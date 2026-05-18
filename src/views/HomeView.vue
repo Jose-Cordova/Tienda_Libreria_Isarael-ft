@@ -1,9 +1,6 @@
 <script setup>
-import TheWelcome from '../components/TheWelcome.vue'
+// Aquí irá la lógica del Dashboard en el futuro
 </script>
 
-<template>
-  <main>
-    <TheWelcome />
-  </main>
-</template>
+<style scoped>
+</style>
