@@ -31,6 +31,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = data.access_token
         this.user = data.user
 
+        router.push('/') // Redirigir al Dashboard tras login exitoso
       } catch (error) {
         console.error('Error en login:', error)
         throw error
@@ -60,7 +61,7 @@ export const useAuthStore = defineStore('auth', {
         console.warn('Error al cerrar sesión:', error)
       } finally {
         this.$reset()
-        router.push('/')
+        router.push('/login') // Redirigir al Login tras cerrar sesión
       }
     },
 
