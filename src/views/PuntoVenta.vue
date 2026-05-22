@@ -3,7 +3,7 @@
 
     <div class="seccion-izquierda">
       <div class="busqueda">
-        <span>🔍</span>
+        <i class="pi pi-search text-gray-400"></i>
         <input v-model="busqueda" type="text" placeholder="Buscar producto..." />
       </div>
 
@@ -40,7 +40,7 @@
     <div class="seccion-derecha">
       <div class="carrito-header">
         <div class="flex-center">
-          <span class="icono-carrito">🛒</span>
+          <i class="pi pi-shopping-cart text-lg mr-2"></i>
           <h3>Venta Actual</h3>
         </div>
         <span class="badge">{{ carrito.length }}</span>
@@ -48,7 +48,7 @@
 
       <div class="carrito-body custom-scrollbar">
         <div v-if="carrito.length === 0" class="vacio">
-          <span class="bolsa-icono">🛍️</span>
+          <i class="pi pi-shopping-bag text-5xl mb-3 opacity-20"></i>
           <p>Sin productos</p>
         </div>
 
@@ -69,13 +69,13 @@
             :class="metodoPago === 'Efectivo' ? 'btn-metodo activo' : 'btn-metodo inactivo'"
             @click="metodoPago = 'Efectivo'"
           >
-            💵 Efectivo
+            <i class="pi pi-money-bill"></i> Efectivo
           </button>
           <button
             :class="metodoPago === 'Transferencia' ? 'btn-metodo activo' : 'btn-metodo inactivo'"
             @click="metodoPago = 'Transferencia'"
           >
-            📱 Transferencia
+            <i class="pi pi-mobile"></i> Transferencia
           </button>
         </div>
 
@@ -84,7 +84,7 @@
           <input type="number" v-model="pagoCon" placeholder="$0.00" />
         </div>
 
-        <button class="btn-fiado" @click="abrirModalCliente">💳 Dar a crédito (fiado)</button>
+        <button class="btn-fiado" @click="abrirModalCliente"><i class="pi pi-credit-card mr-2"></i> Dar a crédito (fiado)</button>
 
         <div v-if="metodoPago === 'Crédito' && clienteSeleccionado" class="cliente-info">
           Fiando a: <b>{{ clienteSeleccionado }}</b>
@@ -136,7 +136,7 @@
 
         <label class="lbl">BUSCAR CLIENTE</label>
         <div class="input-icon">
-          <span>🔍</span>
+          <i class="pi pi-search absolute left-3 text-gray-400"></i>
           <input type="text" placeholder="Nombre o teléfono..." />
         </div>
 
