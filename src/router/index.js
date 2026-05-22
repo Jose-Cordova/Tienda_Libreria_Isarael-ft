@@ -68,7 +68,7 @@ const router = createRouter({
 })
 
 // GUARDIA DE NAVEGACIÓN (Protectores de rutas)
-router.beforeEach((to, from) => {
+router.beforeEach((to) => {
   const authStore = useAuthStore()
   const isAuthenticated = !!authStore.token
 
