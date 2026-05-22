@@ -1,10 +1,8 @@
 <template>
   <aside class="w-45 bg-[#062a1b] text-white flex flex-col h-full border-r border-white/10 shadow-xl overflow-hidden">
 
-    <!-- Navegación -->
     <div class="flex-1 overflow-y-auto py-6 custom-scrollbar">
 
-      <!-- SECCIÓN: PRINCIPAL -->
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-[#4d7c68] uppercase tracking-[0.2em] mb-3">Principal</p>
         <RouterLink to="/" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-white/5 group no-underline">
@@ -13,7 +11,6 @@
         </RouterLink>
       </div>
 
-      <!-- SECCIÓN: VENTAS -->
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-[#4d7c68] uppercase tracking-[0.2em] mb-3">Ventas</p>
         <div class="space-y-0.5">
@@ -34,7 +31,6 @@
         </div>
       </div>
 
-      <!-- SECCIÓN: INVENTARIO -->
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-[#4d7c68] uppercase tracking-[0.2em] mb-3">Inventario</p>
         <div class="space-y-0.5">
@@ -54,12 +50,9 @@
             <i class="pi pi-sliders-h text-lg text-[#529931]"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Unidades</span>
           </RouterLink>
-
-
         </div>
       </div>
 
-      <!-- SECCIÓN: COMPRAS -->
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-[#4d7c68] uppercase tracking-[0.2em] mb-3">Compras</p>
         <div class="space-y-0.5">
@@ -82,24 +75,25 @@
 </script>
 
 <style scoped>
-/* Quitar subrayado azul de los enlaces */
+/* Quita el subrayado de los enlaces */
 a {
   text-decoration: none !important;
 }
 
-.router-link-active {
+
+.router-link-exact-active {
   background-color: #1a4a2b !important;
   border-left: 4px solid #52b831;
+  padding-left: 24px !important;
 }
 
+/* Scrollbar sutil */
 .custom-scrollbar::-webkit-scrollbar {
   width: 3px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.05);
 }
