@@ -61,6 +61,11 @@ const router = createRouter({
           path: 'unidades',
           name: 'unidades',
           component: () => import('../views/Unidad.vue'),
+        },
+        {
+          path: 'proveedores',
+          name: 'proveedores',
+          component: () => import('../views/ProveedorView.vue')
         }
       ]
     }
