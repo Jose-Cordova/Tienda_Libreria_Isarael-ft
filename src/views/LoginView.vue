@@ -14,7 +14,7 @@
             <div class="z-10 text-center px-8">
                 <!-- Logo Circular -->
                 <div class="w-32 h-32 bg-[#76b852] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg border-4 border-[#0a3622]">
-                    <img src="/logo/1778204674961.png" alt="Logo" class="w-32 h-" />
+                  <img src="/logo/1778204674961.png" alt="Logo" class="w-32 h-" />
                 </div>
 
                 <h1 class="text-4xl font-bold tracking-tight mb-2">Tienda y Librería Israel</h1>
@@ -27,7 +27,7 @@
             <!-- Barra superior con reloj -->
             <div class="h-2 bg-[#062012]"></div>
             <div class="flex justify-end p-1 text-[#0a3622] font-mono text-sm font-bold">
-                {{ currentTime }}
+              {{ currentTime }}
             </div>
 
             <!-- Contenedor del Formulario -->
@@ -36,10 +36,17 @@
                     <div class="text-center mb-10">
                         <p class="text-xs font-bold text-[#0a3622] tracking-widest mb-2">BIENVENIDO DE VUELTA</p>
                         <h2 class="text-4xl font-extrabold text-[#0a3622] mb-4">Iniciar sesión</h2>
-                        <p class="text-[#2e7d32] font-medium text-sm">
-                            Ingresa tus credenciales para entrar al panel administrativo.
+                        <p class="text-[#2e7d32] font-1xl text-sm">
+                          Ingresa tus credenciales para entrar al panel administrativo.
                         </p>
-                        <p v-if="loginError" class="mt-4 text-sm text-red-600 font-semibold">{{ loginError }}</p>
+
+                        <!-- Mensaje de error estilizado -->
+                        <div v-if="loginError" class="mt-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md flex items-center gap-3 animate-fade-in shadow-sm">
+                            <i class="pi pi-exclamation-circle text-red-500 text-xl"></i>
+                            <p class="text-xs text-red-700 font-bold uppercase tracking-tight text-left">
+                              {{ loginError }}
+                            </p>
+                        </div>
                     </div>
 
                     <form @submit.prevent="sendLogin" class="space-y-8">
@@ -64,9 +71,12 @@
 
                         <!-- Input Contraseña -->
                         <div>
-                            <label class="block text-xs font-bold text-[#0a3622] uppercase tracking-wider mb-2">
-                                CONTRASEÑA
-                            </label>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold text-[#0a3622] uppercase tracking-wider">
+                                    CONTRASEÑA
+                                </label>
+                                <a href="#" class="text-[#1a8a4d] text-[11px] font-bold hover:underline uppercase tracking-tight">¿Olvidaste tu contraseña?</a>
+                            </div>
                             <div class="relative group">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <i class="pi pi-lock text-[#0a3622] text-lg"></i>
@@ -84,20 +94,11 @@
                             </div>
                         </div>
 
-                        <!-- Recordar sesión y enlace de contraseña -->
-                        <div class="flex items-center justify-between">
-                            <label class="flex items-center text-[#0a3622] text-sm">
-                                <input type="checkbox" class="mr-2 rounded border-gray-300 text-[#1a8a4d] focus:ring-[#1a8a4d]">
-                                Recordar sesión
-                            </label>
-                            <a href="#" class="text-[#1a8a4d] text-sm font-medium hover:underline">¿Olvidaste tu contraseña?</a>
-                        </div>
-
                         <!-- Botón de inicio de sesión -->
                         <button
                             type="submit"
                             :disabled="isLoading"
-                            class="w-full bg-[#1a8a4d] text-white py-3 rounded-lg font-bold text-sm tracking-wider uppercase hover:bg-[#145a32] transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                            class="w-full bg-[#07331b] text-white py-3 rounded-lg font-bold text-sm tracking-wider uppercase hover:bg-[#145a32] transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                             {{ isLoading ? 'Cargando...' : 'INGRESAR AL SISTEMA' }}
                         </button>
                     </form>
