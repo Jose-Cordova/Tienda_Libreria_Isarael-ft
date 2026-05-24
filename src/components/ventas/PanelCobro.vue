@@ -48,7 +48,8 @@
         </Dropdown>
       </div>
 
-      <div class="flex flex-col gap-1">
+      <!-- Método de pago: solo se muestra si NO es crédito -->
+      <div v-if="ventaStore.estado !== 'CREDITO'" class="flex flex-col gap-1">
         <label class="text-[11px] font-bold text-shop-text-2 uppercase flex items-center gap-1">
           <i class="pi pi-credit-card text-[10px]"></i> Método de Pago
         </label>
@@ -75,7 +76,7 @@
       <label class="text-[11px] font-bold text-shop-text-2 uppercase mb-1 block">El cliente pagó con:</label>
       <div class="p-inputgroup">
         <span class="p-inputgroup-addon bg-white font-bold text-shop-green">$</span>
-        <InputNumber v-model="montoRecibido" :minFractionDigits="2" placeholder="0.00" class="font-bold" />
+        <InputNumber v-model="montoRecibido" mode="decimal" :minFractionDigits="2" :maxFractionDigits="2" placeholder="0.00" class="font-bold" />
       </div>
 
       <div class="flex justify-between items-center mt-3 text-sm"
@@ -85,24 +86,27 @@
       </div>
     </div>
     <div v-else class="text-center text-shop-text-3 text-sm py-2">
-      La venta se registrará como deuda pendiente.
+      La venta se registrará como venta al CREDITO.
     </div>
 
     <!-- Acciones finales -->
     <div class="mt-auto flex flex-col gap-2 pt-4">
       <!-- Toggle imprimir ticket (placeholder) -->
       <div
-        class="flex items-center justify-between bg-white border border-shop-border p-2 rounded-shop px-3 cursor-pointer hover:bg-shop-bg transition-colors"
-        @click="opcionImprimirTicket = !opcionImprimirTicket"
-      >
-        <label class="text-xs font-bold text-shop-text-2 uppercase flex items-center gap-2 cursor-pointer">
-          <i class="pi pi-print text-shop-text-3 text-sm"></i> Imprimir Ticket
-        </label>
-        <i
-          class="pi text-xl transition-colors duration-200"
-          :class="opcionImprimirTicket ? 'pi-check-circle text-shop-green' : 'pi-circle text-shop-text-3'"
-        ></i>
-      </div>
+  class="flex items-center justify-between bg-white border p-2 rounded-shop px-3 cursor-pointer transition-all duration-200"
+  :class="opcionImprimirTicket
+    ? 'border-shop-green bg-shop-green-pale shadow-[0_0_12px_rgba(34,197,94,0.5)]'
+    : 'border-shop-border hover:bg-shop-bg'"
+  @click="opcionImprimirTicket = !opcionImprimirTicket"
+>
+  <label class="text-xs font-bold text-shop-text-2 uppercase flex items-center gap-2 cursor-pointer">
+    <i class="pi pi-print text-shop-text-3 text-sm"></i> Imprimir Ticket
+  </label>
+  <i
+    class="pi text-xl transition-colors duration-200"
+    :class="opcionImprimirTicket ? 'pi-check-circle text-shop-green' : 'pi-circle text-shop-text-3'"
+  ></i>
+</div>
 
       <!-- Botón Crédito -->
       <button @click="abrirModalCredito"
@@ -212,7 +216,10 @@
           <div class="space-y-1">
             <p><span class="font-bold">Total:</span> ${{ ventaStore.total.toFixed(2) }}</p>
             <p><span class="font-bold">Tipo de cliente:</span> {{ ventaStore.tipo_cliente === 'MAYORISTA' ? 'Mayorista' : 'Detalles' }}</p>
-            <p><span class="font-bold">Método de pago:</span> {{ metodoPagoNombre }}</p>
+            <p>
+              <span class="font-bold">Método de pago:</span>
+              {{ ventaStore.estado === 'CREDITO' ? 'Crédito (Fiado)' : metodoPagoNombre }}
+            </p>
             <p v-if="ventaStore.estado === 'CREDITO'">
               <span class="font-bold">Venta al crédito:</span>
               {{ ventaStore.nombre_cliente || clientesCredito.find(c => c.id === ventaStore.cliente_credito_id)?.nombre || 'Cliente' }}
@@ -254,7 +261,7 @@ const toast = useToast();
 
 const montoRecibido = ref(null);
 const mostrarModalCredito = ref(false);
-const opcionImprimirTicket = ref(true);
+const opcionImprimirTicket = ref(false);
 const modoCredito = ref('buscar');
 const nuevoCliente = ref({ nombre: '', dui: '', telefono: '' });
 const loading = ref(false);
@@ -332,7 +339,8 @@ const cancelarCredito = () => {
 };
 
 const abrirConfirmacionVenta = () => {
-  if (!ventaStore.metodo_pago_id) {
+  // Método de pago solo requerido si no es crédito
+  if (ventaStore.estado !== 'CREDITO' && !ventaStore.metodo_pago_id) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Seleccione un método de pago', life: 3000 });
     return;
   }
