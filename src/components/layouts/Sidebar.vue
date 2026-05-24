@@ -1,7 +1,3 @@
-<script setup>
-import { RouterLink } from 'vue-router';
-</script>
-
 <template>
   <aside class="w-64 bg-shop-sidebar-bg text-white flex flex-col h-full border-r border-white/10 shadow-shop overflow-hidden font-dm-sans">
 
@@ -73,6 +69,10 @@ import { RouterLink } from 'vue-router';
     </div>
   </aside>
 </template>
+
+<script setup>
+import { RouterLink } from 'vue-router';
+</script>
 
 <style scoped>
 a {
