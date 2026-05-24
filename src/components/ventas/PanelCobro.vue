@@ -76,7 +76,14 @@
       <label class="text-[11px] font-bold text-shop-text-2 uppercase mb-1 block">El cliente pagó con:</label>
       <div class="p-inputgroup">
         <span class="p-inputgroup-addon bg-white font-bold text-shop-green">$</span>
-        <InputNumber v-model="montoRecibido" mode="decimal" :minFractionDigits="2" :maxFractionDigits="2" placeholder="0.00" class="font-bold" />
+        <InputNumber
+          v-model="montoRecibido"
+          mode="decimal"
+          :minFractionDigits="2"
+          :maxFractionDigits="2"
+          placeholder="0.00"
+          class="font-bold"
+        />
       </div>
 
       <div class="flex justify-between items-center mt-3 text-sm"
@@ -91,22 +98,22 @@
 
     <!-- Acciones finales -->
     <div class="mt-auto flex flex-col gap-2 pt-4">
-      <!-- Toggle imprimir ticket (placeholder) -->
+      <!-- Toggle imprimir ticket -->
       <div
-  class="flex items-center justify-between bg-white border p-2 rounded-shop px-3 cursor-pointer transition-all duration-200"
-  :class="opcionImprimirTicket
-    ? 'border-shop-green bg-shop-green-pale shadow-[0_0_12px_rgba(34,197,94,0.5)]'
-    : 'border-shop-border hover:bg-shop-bg'"
-  @click="opcionImprimirTicket = !opcionImprimirTicket"
->
-  <label class="text-xs font-bold text-shop-text-2 uppercase flex items-center gap-2 cursor-pointer">
-    <i class="pi pi-print text-shop-text-3 text-sm"></i> Imprimir Ticket
-  </label>
-  <i
-    class="pi text-xl transition-colors duration-200"
-    :class="opcionImprimirTicket ? 'pi-check-circle text-shop-green' : 'pi-circle text-shop-text-3'"
-  ></i>
-</div>
+        class="flex items-center justify-between bg-white border p-2 rounded-shop px-3 cursor-pointer transition-all duration-200"
+        :class="opcionImprimirTicket
+          ? 'border-shop-green bg-shop-green-pale shadow-[0_0_12px_rgba(34,197,94,0.5)]'
+          : 'border-shop-border hover:bg-shop-bg'"
+        @click="opcionImprimirTicket = !opcionImprimirTicket"
+      >
+        <label class="text-xs font-bold text-shop-text-2 uppercase flex items-center gap-2 cursor-pointer">
+          <i class="pi pi-print text-shop-text-3 text-sm"></i> Imprimir Ticket
+        </label>
+        <i
+          class="pi text-xl transition-colors duration-200"
+          :class="opcionImprimirTicket ? 'pi-check-circle text-shop-green' : 'pi-circle text-shop-text-3'"
+        ></i>
+      </div>
 
       <!-- Botón Crédito -->
       <button @click="abrirModalCredito"
@@ -176,15 +183,30 @@
         <div v-if="modoCredito === 'nuevo'" class="flex flex-col gap-3 py-2">
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-shop-text-2 uppercase">Nombre Completo *</label>
-            <InputText v-model="nuevoCliente.nombre" placeholder="Ej. Juan Pérez" class="w-full rounded-shop-sm" />
+            <InputText
+              v-model="nuevoCliente.nombre"
+              placeholder="Ej. Juan Pérez"
+              class="w-full rounded-shop-sm"
+              maxlength="50"
+            />
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-shop-text-2 uppercase">DUI *</label>
-            <InputText v-model="nuevoCliente.dui" placeholder="00000000-0" class="w-full rounded-shop-sm" />
+            <InputText
+              v-model="nuevoCliente.dui"
+              placeholder="00000000-0"
+              class="w-full rounded-shop-sm"
+              maxlength="10"
+            />
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-shop-text-2 uppercase">Teléfono (Opcional)</label>
-            <InputText v-model="nuevoCliente.telefono" placeholder="Ej. 7777-7777" class="w-full rounded-shop-sm" />
+            <InputText
+              v-model="nuevoCliente.telefono"
+              placeholder="Ej. 7777-7777"
+              class="w-full rounded-shop-sm"
+              maxlength="20"
+            />
           </div>
         </div>
 
@@ -250,7 +272,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useVentaStore } from '@/stores/ventaStore';
 import { useToast } from 'primevue/usetoast';
 import api from '@/services/api';
@@ -280,6 +302,21 @@ onMounted(async () => {
     clientesCredito.value = ccRes.data;
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar datos de configuración', life: 4000 });
+  }
+});
+
+// Watcher para el DUI (guión automático)
+watch(() => nuevoCliente.value.dui, (val) => {
+  if (!val) return;
+  const soloDigitos = val.replace(/\D/g, '');
+  let formateado = soloDigitos;
+  if (soloDigitos.length >= 9) {
+    formateado = soloDigitos.slice(0, 8) + '-' + soloDigitos.slice(8, 9);
+  } else if (soloDigitos.length > 8) {
+    formateado = soloDigitos.slice(0, 8) + '-' + soloDigitos.slice(8);
+  }
+  if (val !== formateado) {
+    nuevoCliente.value.dui = formateado;
   }
 });
 
@@ -339,7 +376,6 @@ const cancelarCredito = () => {
 };
 
 const abrirConfirmacionVenta = () => {
-  // Método de pago solo requerido si no es crédito
   if (ventaStore.estado !== 'CREDITO' && !ventaStore.metodo_pago_id) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Seleccione un método de pago', life: 3000 });
     return;
