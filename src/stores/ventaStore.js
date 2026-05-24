@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import api from '@/services/api';
+import Swal from 'sweetalert2';
 
 export const useVentaStore = defineStore('venta', {
   state: () => ({
@@ -8,7 +9,7 @@ export const useVentaStore = defineStore('venta', {
     estado: 'PAGADA',
     items: [],
     cliente_credito_id: null,
-    nombre_cliente: null,   // para crédito nuevo
+    nombre_cliente: null,
     dui_cliente: null,
     telefono_cliente: null,
   }),
@@ -31,20 +32,17 @@ export const useVentaStore = defineStore('venta', {
       const cantidad = producto.cantidad || 1;
       const index = this.items.findIndex(i => i.producto_id === producto.id);
 
-      // Determinar el precio unitario según tipo de cliente
       const precio_unitario = this.tipo_cliente === 'MAYORISTA'
         ? producto.precio_mayor
         : producto.precio_detalle;
 
       if (index >= 0) {
-        // Producto ya en el carrito: sumar cantidad
         const nuevaCantidad = this.items[index].cantidad + cantidad;
         if (nuevaCantidad > producto.stock) {
           throw new Error(`Stock insuficiente. Disponible: ${producto.stock}`);
         }
         this.items[index].cantidad = nuevaCantidad;
       } else {
-        // Nuevo producto: validar stock
         if (cantidad > producto.stock) {
           throw new Error(`Stock insuficiente. Disponible: ${producto.stock}`);
         }
@@ -75,7 +73,6 @@ export const useVentaStore = defineStore('venta', {
       if (item && item.cantidad > 1) {
         item.cantidad--;
       } else if (item && item.cantidad === 1) {
-        // Si baja a 0, eliminar
         this.eliminarProducto(producto_id);
       }
     },
@@ -103,7 +100,6 @@ export const useVentaStore = defineStore('venta', {
         })),
       };
 
-      // Solo incluir datos de crédito si el estado es CREDITO
       if (this.estado === 'CREDITO') {
         payload.cliente_credito_id = this.cliente_credito_id || undefined;
         payload.nombre = this.nombre_cliente;
@@ -115,9 +111,45 @@ export const useVentaStore = defineStore('venta', {
     },
 
     async confirmarVenta() {
-      const payload = this.construirPayload();
-      const response = await api.post('/ventas', payload);
-      return response.data;
+      try {
+        const payload = this.construirPayload();
+        const response = await api.post('/ventas', payload);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Venta registrada',
+          text: `Correlativo: ${response.data.venta.correlativo}`,
+          timer: 3000,
+        });
+
+        this.resetCarrito();
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 422) {
+          const { errors } = error.response.data;
+          if (errors?.dui) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error al registrar la venta',
+              text: errors.dui[0],
+            });
+          } else {
+            const firstError = Object.values(errors)[0][0];
+            Swal.fire({
+              icon: 'error',
+              title: 'Error al registrar la venta',
+              text: firstError,
+            });
+          }
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo completar la venta. Intente de nuevo.',
+          });
+        }
+        return false;
+      }
     },
 
     resetCarrito() {
