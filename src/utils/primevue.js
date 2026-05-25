@@ -1,5 +1,5 @@
 // @/utils/primevue.js
-// Importaciones centralizadas de componentes PrimeVue usados en el módulo de ventas
+// Importaciones centralizadas de componentes PrimeVue
 
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
@@ -10,6 +10,12 @@ import ProgressSpinner from 'primevue/progressspinner';
 import Toast from 'primevue/toast';
 import Paginator from 'primevue/paginator';
 
+// Componentes para el historial de ventas
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Calendar from 'primevue/calendar';
+import Tag from 'primevue/tag';
+
 export {
   Button,
   Dialog,
@@ -19,4 +25,8 @@ export {
   ProgressSpinner,
   Toast,
   Paginator,
+  DataTable,
+  Column,
+  Calendar,
+  Tag,
 };
