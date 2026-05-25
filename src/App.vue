@@ -1,10 +1,14 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { RouterView } from 'vue-router';
+import { Toast } from '@/utils/primevue';  // ← importado desde nuestro archivo centralizado
 </script>
 
 <template>
-  <!-- RouterView es donde se renderizarán las vistas como LoginView, HomeView, etc. -->
+  <!-- RouterView renderiza la vista actual -->
   <RouterView />
+
+  <!-- Toast global de PrimeVue (siempre presente) -->
+  <Toast position="bottom-right" />
 </template>
 
 <style>

@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/authStore'
 import HomeView from '../views/HomeView.vue'
 
 
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -30,7 +31,7 @@ const router = createRouter({
         {
           path: 'punto-venta',
           name: 'punto-venta',
-          component: () => import('../views/PuntoVenta.vue'),
+          component: () => import('../views/VentasView.vue'),
         },
         {
           path: 'historial-ventas',
