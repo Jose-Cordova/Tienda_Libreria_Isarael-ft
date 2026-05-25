@@ -146,7 +146,7 @@
         </div>
       </div>
 
-      <!-- Botón Agregar Otro (Compacto) -->
+      <!-- Botón Agregar Otro -->
       <button
         v-if="productosAgregados.length > 0"
         @click="scrollToSearch"
@@ -185,13 +185,11 @@
         <div class="bg-white rounded-[28px] w-full max-w-lg shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 text-left">
           <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
           <button @click="mostrarModalNuevo = false" class="absolute top-6 right-7 text-gray-300 hover:text-[#0a3622] transition-colors"><i class="pi pi-times text-2xl"></i></button>
-
           <div class="p-10">
-            <div class="mb-10 text-left">
+            <div class="mb-8 text-left">
               <h2 class="text-2xl font-black text-[#0a3622] uppercase tracking-tight mb-1">Nuevo Producto</h2>
               <p class="text-xs text-gray-800 font-bold uppercase tracking-widest opacity-70">Añadir al catálogo</p>
             </div>
-
             <form @submit.prevent="confirmarCreacionRapida" class="space-y-6 text-left">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                 <div class="md:col-span-2 space-y-2">
@@ -216,7 +214,7 @@
                 </div>
                 <div class="md:col-span-2 bg-[#c5d1c5] p-5 rounded-2xl flex items-center justify-between border border-green-400 shadow-inner">
                   <div class="text-left">
-                    <p class="text-xs font-black text-[#0a3622] uppercase tracking-widest">¿Es Perecedero?</p>
+                    <p class="text-xs font-black text-[#0a3622] uppercase tracking-widest">¿Tipo de producto?</p>
                   </div>
                   <select v-model="nuevoProducto.perecedero" class="bg-white border-2 border-gray-200 rounded-xl text-xs font-black p-2.5 outline-none text-[#0a3622] shadow-sm focus:border-[#0a3622]">
                     <option value="NORMAL">NORMAL</option>

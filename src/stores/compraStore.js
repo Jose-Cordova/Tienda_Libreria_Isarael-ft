@@ -10,7 +10,9 @@ export const useCompraStore = defineStore('compra',{
     textoBusqueda: '',
     filtros: {
       estado: '',
-      proveedor_id: ''
+      proveedor_id: '',
+      fecha_inicio: null,
+      fecha_fin: null
     },
     paginacion: {
       total: 0,
@@ -26,12 +28,16 @@ export const useCompraStore = defineStore('compra',{
       this.cargando = true
       this.error = null
       try{
+        const fInicio = this.filtros.fecha_inicio ? this.filtros.fecha_inicio.toISOString().split('T')[0] : ''
+        const fFin = this.filtros.fecha_fin ? this.filtros.fecha_fin.toISOString().split('T')[0] : ''
         const {data} = await compraService.listarCompras(
           pagina,
           this.textoBusqueda,
           filas,
           this.filtros.estado,
-          this.filtros.proveedor_id
+          this.filtros.proveedor_id,
+          fInicio,
+          fFin
         )
         this.compras = data.data
 
@@ -98,7 +104,9 @@ export const useCompraStore = defineStore('compra',{
       this.textoBusqueda = ''
       this.filtros = {
         estado: '',
-        proveedor_id: ''
+        proveedor_id: '',
+        fecha_inicio: null,
+        fecha_fin: null
       }
     }
   }

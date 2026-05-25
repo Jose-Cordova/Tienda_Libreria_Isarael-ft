@@ -1,7 +1,7 @@
 import api from "./api";
 
 const compraService = {
-  listarCompras(pagina = 1, buscar = '', paginacion = 10, estado = '', proveedor_id = ''){
+  listarCompras(pagina = 1, buscar = '', paginacion = 10, estado = '', proveedor_id = '', fecha_inicio = '', fecha_fin = ''){
     //Construimos los paramentros de consulta
     const params = new URLSearchParams({
       page: pagina,
@@ -11,6 +11,8 @@ const compraService = {
     //Solo se agregaran si se elije un estado o proveedor
     if (estado) params.append('estado', estado);
     if (proveedor_id) params.append('proveedor_id', proveedor_id);
+    if (fecha_inicio) params.append('fecha_inicio', fecha_inicio);
+    if (fecha_fin) params.append('fecha_fin', fecha_fin);
 
     return api.get(`/compras?${params.toString()}`)
   },

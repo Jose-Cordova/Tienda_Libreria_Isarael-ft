@@ -188,7 +188,7 @@
           total: totalFactura.value,
           detalles: props.datos.detalles.map(d => ({
             producto_id: d.producto_id,
-            nombre: d.producto_id ? null : d.nombre,
+            nombre: d.nombre, // Enviamos siempre el nombre por si el backend necesita crear el producto
             categoria_id: d.categoria_id,
             marca_id: d.marca_id,
             unidad_medida_id: d.unidad_medida_id,
