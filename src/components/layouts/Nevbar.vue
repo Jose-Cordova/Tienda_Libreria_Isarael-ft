@@ -1,5 +1,4 @@
 <template>
-  <!-- Envolver todo en un solo contenedor para evitar fragmentos -->
   <div>
     <nav class="bg-shop-sidebar-bg text-white px-6 py-2 flex items-center justify-between shadow-shop border-b border-white/5 font-dm-sans">
       <div class="flex items-center gap-3">
@@ -9,7 +8,6 @@
       </div>
 
       <div class="flex items-center gap-6">
-        <!-- Reloj con fuente JetBrains Mono -->
         <div class="hidden md:block font-jetbrains text-sm text-gray-400 font-bold opacity-80">
           {{ currentTime }}
         </div>
@@ -33,58 +31,35 @@
       </div>
     </nav>
 
-    <!-- MODAL: Confirmar Cierre de Sesión (Estilo Premium) -->
+    <!-- MODAL: Confirmar Cierre de Sesión -->
     <div
       v-if="mostrarConfirmacion"
       class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4"
     >
-        <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 text-center">
-
-            <!-- Línea superior verde oscuro -->
-            <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a4b0a]"></div>
-
-            <div class="p-10">
-                <!-- Icono Power Off (Grande) -->
-                <div class="flex justify-center mb-3 text-red-500/20">
-                    <div class="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center border border-red-100 shadow-sm">
-                        <i class="pi pi-power-off text-5xl text-red-500"></i>
-                    </div>
-                </div>
-
-                <h3 class="text-xl font-extrabold text-shop-green-deep mb-2">¿Cerrar Sesión?</h3>
-                <p class="text-sm text-gray-500 font-medium mb-8">¿Estás seguro de que deseas salir del sistema?</p>
-
-                <div class="flex items-center gap-3">
-                    <button
-                      @click="mostrarConfirmacion = false"
-                      class="flex-1 py-3 bg-[#f1f5f1] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white transition-all text-sm"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      @click="confirmarLogout"
-                      class="flex-1 py-3 bg-shop-red hover:bg-shop-red-dark text-white font-bold rounded-xl shadow-md transition-all text-sm uppercase tracking-wider"
-                    >
-                      Salir
-                    </button>
-                </div>
+      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 text-center">
+        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a4b0a]"></div>
+        <div class="p-10">
+          <div class="flex justify-center mb-3 text-red-500/20">
+            <div class="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center border border-red-100 shadow-sm">
+              <i class="pi pi-power-off text-5xl text-red-500"></i>
             </div>
-        </div>
-
-        <h3 class="text-base font-extrabold text-shop-green-deep mb-1">¿Cerrar Sesión?</h3>
-        <p class="text-xs text-gray-400 font-medium mb-6">¿Estás seguro de que deseas salir del sistema?</p>
-
-        <div class="flex items-center gap-3">
-          <Button
-            label="Cancelar"
-            class="p-button-outlined p-button-secondary flex-1 py-2 rounded-full text-xs font-extrabold"
-            @click="mostrarConfirmacion = false"
-          />
-          <Button
-            label="Salir"
-            class="flex-1 py-2 bg-shop-red hover:bg-shop-red-dark text-white border-none rounded-full text-xs font-extrabold shadow-md transition"
-            @click="confirmarLogout"
-          />
+          </div>
+          <h3 class="text-xl font-extrabold text-shop-green-deep mb-2">¿Cerrar Sesión?</h3>
+          <p class="text-sm text-gray-500 font-medium mb-8">¿Estás seguro de que deseas salir del sistema?</p>
+          <div class="flex items-center gap-3">
+            <button
+              @click="mostrarConfirmacion = false"
+              class="flex-1 py-3 bg-[#f1f5f1] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white transition-all text-sm"
+            >
+              Cancelar
+            </button>
+            <button
+              @click="confirmarLogout"
+              class="flex-1 py-3 bg-shop-red hover:bg-shop-red-dark text-white font-bold rounded-xl shadow-md transition-all text-sm uppercase tracking-wider"
+            >
+              Salir
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -94,7 +69,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
-import { Button } from '@/utils/primevue'  // ← centralizado
 
 const authStore = useAuthStore()
 const mostrarConfirmacion = ref(false)
