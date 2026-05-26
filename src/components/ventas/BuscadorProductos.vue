@@ -13,7 +13,7 @@
       </span>
     </div>
 
-    <!-- Estado de carga -->
+    <!-- Estado de carga yes-->
     <div v-if="loading" class="flex-1 flex justify-center items-center">
       <ProgressSpinner />
     </div>
