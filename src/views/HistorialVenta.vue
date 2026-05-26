@@ -200,7 +200,7 @@ const salesHistory = ref([
 </script>
 
 <style>
-/* Ajustes para que PrimeVue combine con tu diseño Tailwind */
+
 .p-inputtext, .p-dropdown, .p-calendar {
   font-size: 0.75rem !important; /* text-xs */
   border-radius: 0.375rem !important; /* rounded-md */

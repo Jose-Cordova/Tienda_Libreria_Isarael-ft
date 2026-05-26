@@ -243,7 +243,6 @@ const clientesOptions = ref([
 </script>
 
 <style scoped>
-/* Ajustes para integrar inputs y dropdowns de PrimeVue con Tailwind */
 .p-inputtext, .p-dropdown {
   font-size: 0.75rem !important; /* text-xs */
   border-radius: 0.375rem !important; /* rounded-md */
