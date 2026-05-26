@@ -78,7 +78,8 @@
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Fecha</th>
               <th class="py-3 px-5">Proveedor</th>
-              <th class="py-3 px-5">Factura</th>
+              <th class="py-3 px-5">N° de Control</th>
+              <th class="py-3 px-5">Código de Generación</th>
               <th class="py-3 px-5 text-right">Total</th>
               <th class="py-3 px-5 text-center">Estado</th>
               <th class="py-3 px-5 text-center">Acciones</th>
@@ -89,6 +90,7 @@
               <td class="py-4 px-5 font-bold text-gray-800">{{ formateraFecha(compra.fecha_registro) }}</td>
               <td class="py-4 px-5 font-bold text-gray-800">{{ compra.proveedor?.nombre || '—' }}</td>
               <td class="py-4 px-5 font-bold text-gray-800">{{ compra.numero_factura }}</td>
+              <td class="py-4 px-5 font-bold text-gray-800">{{ compra.codigo_factura }}</td>
               <td class="py-4 px-5 text-right font-bold text-gray-800">${{ compra.total }}</td>
               <td class="py-4 px-5 text-center">
                 <span :class="compra.estado === 'REGISTRADA' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'" class="px-3 py-1 rounded-full text-[10px] font-black border uppercase">
@@ -208,7 +210,7 @@
   const confirmarAnular = async() => {
     try{
       await store.anularCompra(compraAnular.value.id)
-      Swal.fire({ icon: 'success', title: '¡Hecho!', text: 'La compra ha sido anulada.', showConfirmButton: false, timer: 1500 })
+      Swal.fire({ icon: 'success', title: '¡Hecho!', text: 'La compra ha sido anulada.', showConfirmButton: false, timer: 2500 })
       mostrarAnular.value = false
     }catch(err){
       const mgs = err.response?.data?.message || 'Error al anular la compra.'

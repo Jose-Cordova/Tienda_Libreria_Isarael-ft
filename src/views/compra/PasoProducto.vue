@@ -66,8 +66,8 @@
             <div class="space-y-2 text-left">
               <label class="text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Costo Unitario ($)</label>
               <div class="relative group">
-                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0a3622] font-black text-xs">$</span>
-                <input type="number" step="0.01" v-model="item.precio_unitario" @input="recalcular(index)" class="w-full border border-gray-400 rounded-xl p-3 pl-8 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all" />
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0a3622] font-black text-xs z-10">$</span>
+                <input type="number" step="0.01" v-model="item.precio_unitario" @input="recalcular(index)" class="w-28 border border-gray-400 rounded-xl p-3 pl-8 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all" />
               </div>
             </div>
             <div class="space-y-2 text-left">
@@ -100,14 +100,14 @@
             </p>
 
             <div v-if="item.perecedero === 'PERECEDERO'" class="space-y-4">
-              <div v-for="(lote, lIdx) in item.lotes" :key="lIdx" class="grid grid-cols-12 gap-4 items-center bg-white p-4 rounded-2xl border border-gray-400 shadow-sm animate-fade-in text-left">
+              <div v-for="(lote, lIdx) in item.lotes" :key="lIdx" class="grid grid-cols-12 gap-4 items-center bg-white p-4 rounded-2xl border border-gray-400 shadow-sm text-left">
                 <div class="col-span-5 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Código Lote</span>
                   <input v-model="lote.codigo_lote" class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-blue-700 uppercase outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 bg-white shadow-sm" placeholder="EJ: L-100" />
                 </div>
                 <div class="col-span-4 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Vencimiento</span>
-                  <input type="date" v-model="lote.fecha_vencimiento" class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-gray-700 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm" />
+                  <input type="date" :min="fechaMinimaLote" v-model="lote.fecha_vencimiento" class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-gray-700 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm" />
                 </div>
                 <div class="col-span-2 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Cantidad</span>
@@ -268,23 +268,39 @@
     perecedero: 'NORMAL'
   });
 
-  //Busqueda de producto
-  const buscarProducto = async() => {
-    if(busqueda.value.length < 2){
-      resultados.value = []
-      mostrarResultados.value = false
-      return
-    }
-    try{
-      const {data} = await axios.get(`http://localhost:8000/api/productos?buscar=${busqueda.value}`)
-      resultados.value = data.data || data
-      mostrarResultados.value = true
-    }catch(err){
-      console.error("Error al buscar productos", err)
-    }
+  //Busqueda de producto con Debounce
+  let searchTimer = null;
+  const buscarProducto = () => {
+    if(searchTimer) clearTimeout(searchTimer);
+
+    searchTimer = setTimeout(async () => {
+      if(busqueda.value.length < 2){
+        resultados.value = []
+        mostrarResultados.value = false
+        return
+      }
+      try{
+        const {data} = await axios.get(`http://localhost:8000/api/productos?search=${busqueda.value}`)
+        // Como el backend pagina, extraemos los datos de data.data
+        resultados.value = data.data || data;
+        mostrarResultados.value = true
+      }catch(err){
+        console.error("Error al buscar productos", err)
+      }
+    }, 200);
   }
 
-  const inputBusqueda = ref(null);
+  const inputBusqueda = ref(null)
+
+  //Fecha mínima para vencimiento
+  const fechaMinimaLote = computed(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 1)
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`;
+  });
 
   const scrollToSearch = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

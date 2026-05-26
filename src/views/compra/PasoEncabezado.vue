@@ -21,7 +21,8 @@
             <label class="block text-[11px] font-black text-gray-800 uppercase tracking-[0.25em] ml-1">Nº de Control *</label>
             <InputText
               v-model="formulario.numero_factura"
-              class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none shadow-sm transition-all"
+              @input="formulario.numero_factura = formulario.numero_factura.toUpperCase()"
+              class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none shadow-sm transition-all uppercase"
               placeholder="Ej: DTE-03-12345678-000000000000001"
             />
           </div>
@@ -30,7 +31,8 @@
             <label class="block text-[11px] font-black text-gray-800 uppercase tracking-[0.25em] ml-1">Código de Generación *</label>
             <InputText
               v-model="formulario.codigo_factura"
-              class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none shadow-sm transition-all"
+              @input="formulario.codigo_factura = formulario.codigo_factura.toUpperCase()"
+              class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none shadow-sm transition-all uppercase"
               placeholder="Ej: C6A9868C-028D-421B-A9A0-36274CECC2C7"
             />
           </div>

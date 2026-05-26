@@ -1,5 +1,5 @@
 <template>
-  <div class="animate-fade-in pb-32 max-w-5xl mx-auto space-y-8 font-dm-sans">
+  <div class="pb-32 max-w-5xl mx-auto space-y-8 font-dm-sans">
     <!-- MENSAJE DE ADVERTENCIA -->
     <div class="bg-amber-100 border-l-4 border-amber-600 p-4 rounded-xl flex items-center gap-4 shadow-sm">
       <i class="pi pi-exclamation-triangle text-amber-500 text-xl"></i>
@@ -8,7 +8,7 @@
       </div>
     </div>
     <!-- RESUMEN DE ENCABEZADO -->
-    <section class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden text-left">
+    <section class="bg-white rounded-3xl border border-gray-300 shadow-xl overflow-hidden text-left">
       <div class="bg-[#0a3622] px-8 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <i class="pi pi-file-check text-white text-lg"></i>
@@ -50,7 +50,7 @@
               <th class="py-4 px-8 text-right">Subtotal</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-50">
+          <tbody class="divide-y divide-gray-400">
             <tr v-for="(item, index) in datos.detalles" :key="index" class="hover:bg-gray-50/50 transition-colors">
               <td class="py-5 px-8">
                 <div class="flex flex-col gap-1">
@@ -184,22 +184,34 @@
           proveedor_id: props.datos.proveedor_id,
           numero_factura: props.datos.numero_factura,
           codigo_factura: props.datos.codigo_factura,
-          fecha_emision: props.datos.fecha_emision,
+          fecha_emision: props.datos.fecha_emision instanceof Date
+            ? props.datos.fecha_emision.toISOString ().split('T')[0]
+            : props.datos.fecha_emision,
           total: totalFactura.value,
-          detalles: props.datos.detalles.map(d => ({
-            producto_id: d.producto_id,
-            nombre: d.nombre, // Enviamos siempre el nombre por si el backend necesita crear el producto
-            categoria_id: d.categoria_id,
-            marca_id: d.marca_id,
-            unidad_medida_id: d.unidad_medida_id,
-            stock_minimo: d.stock_minimo,
-            perecedero: d.perecedero,
-            precio_unitario: d.precio_unitario,
-            margen_detalle: d.margen_detalle,
-            margen_mayor: d.margen_mayor,
-            cantidad: calcularCantidad(d),
-            lotes: d.lotes || []
-          }))
+          detalles: props.datos.detalles.map(d => {
+            const detalle = {
+              producto_id: d.producto_id || null,
+              precio_unitario: d.precio_unitario,
+              margen_detalle: d.margen_detalle,
+              margen_mayor: d.margen_mayor
+            }
+            //Solo para producto nuevo
+            if(!d.producto_id){
+              detalle.nombre = d.nombre
+              detalle.categoria_id = d.categoria_id
+              detalle.marca_id = d.marca_id
+              detalle.unidad_medida_id = d.unidad_medida_id
+              detalle.stock_minimo = d.stock_minimo
+              detalle.perecedero = d.perecedero
+            }
+            //PERECEDERO → lotes, NORMAL → cantidad
+            if(d.perecedero === 'PERECEDERO'){
+              detalle.lotes = d.lotes
+            }else{
+              detalle.cantidad = calcularCantidad(d)
+            }
+            return detalle
+          })
         };
 
         await compraStore.registrarCompra(datosParaBackend);
@@ -217,10 +229,23 @@
 
       } catch (error) {
         console.error("Error al registrar:", error);
+
+        let errorMsg = "No se pudo registrar la compra.";
+
+        if (error.response?.data?.errors) {
+          // Si hay errores de validación, los aplanamos
+          const validationErrors = error.response.data.errors;
+          errorMsg = Object.values(validationErrors).flat().join('<br>');
+        } else if (error.response?.data?.message) {
+          // Si hay un mensaje directo del servidor
+          errorMsg = error.response.data.message;
+        }
+
         Swal.fire({
           icon: 'error',
           title: 'Error de Registro',
-          text: error.response?.data?.message || 'No se pudo guardar la compra en el servidor.'
+          html: errorMsg,
+          confirmButtonColor: '#0a3622'
         });
       } finally {
         cargando.value = false;
