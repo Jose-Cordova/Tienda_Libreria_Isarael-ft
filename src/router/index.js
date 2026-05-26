@@ -31,12 +31,12 @@ const router = createRouter({
         {
           path: 'punto-venta',
           name: 'punto-venta',
-          component: () => import('../views/VentasView.vue'),
+          component: () => import('../views/venta/VentasView.vue'),
         },
         {
           path: 'historial-ventas',
           name: 'historial-ventas',
-          component: () => import('../views/HistorialVentasView.vue'),
+          component: () => import('../views/venta/HistorialVentasView.vue'),
         },
         {
           path: 'creditos',

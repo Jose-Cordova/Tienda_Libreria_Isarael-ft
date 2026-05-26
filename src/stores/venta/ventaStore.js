@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import api from '@/services/api';
-import Swal from 'sweetalert2';
 
 export const useVentaStore = defineStore('venta', {
   state: () => ({
@@ -8,7 +7,9 @@ export const useVentaStore = defineStore('venta', {
     metodo_pago_id: null,
     estado: 'PAGADA',
     items: [],
+    // Crédito: cliente existente
     cliente_credito_id: null,
+    // Crédito: nuevo cliente
     nombre_cliente: null,
     dui_cliente: null,
     telefono_cliente: null,
@@ -88,6 +89,34 @@ export const useVentaStore = defineStore('venta', {
       });
     },
 
+    // Establecer cliente crédito existente
+    setClienteExistente(clienteId) {
+      this.cliente_credito_id = clienteId;
+      this.nombre_cliente = null;
+      this.dui_cliente = null;
+      this.telefono_cliente = null;
+      this.estado = 'CREDITO';
+    },
+
+    // Establecer cliente crédito nuevo (datos del formulario)
+    setClienteNuevo({ nombre, dui, telefono }) {
+      this.cliente_credito_id = null;
+      this.nombre_cliente = nombre;
+      this.dui_cliente = dui;
+      this.telefono_cliente = telefono;
+      this.estado = 'CREDITO';
+    },
+
+    // Cancelar crédito y volver a contado
+    cancelarCredito() {
+      this.estado = 'PAGADA';
+      this.cliente_credito_id = null;
+      this.nombre_cliente = null;
+      this.dui_cliente = null;
+      this.telefono_cliente = null;
+    },
+
+    // Construir payload para enviar al backend
     construirPayload() {
       const payload = {
         user_id: 1, // TODO: obtener del authStore
@@ -101,55 +130,26 @@ export const useVentaStore = defineStore('venta', {
       };
 
       if (this.estado === 'CREDITO') {
-        payload.cliente_credito_id = this.cliente_credito_id || undefined;
-        payload.nombre = this.nombre_cliente;
-        payload.dui = this.dui_cliente;
-        payload.telefono = this.telefono_cliente;
+        // Si hay un cliente existente, enviar su ID
+        if (this.cliente_credito_id) {
+          payload.cliente_credito_id = this.cliente_credito_id;
+        } else {
+          // Si no, enviar datos del nuevo cliente
+          payload.nombre = this.nombre_cliente;
+          payload.dui = this.dui_cliente;
+          payload.telefono = this.telefono_cliente;
+        }
       }
 
       return payload;
     },
 
+    // Confirmar venta (envía al backend y limpia el carrito)
     async confirmarVenta() {
-      try {
-        const payload = this.construirPayload();
-        const response = await api.post('/ventas', payload);
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Venta registrada',
-          text: `Correlativo: ${response.data.venta.correlativo}`,
-          timer: 3000,
-        });
-
-        this.resetCarrito();
-        return response.data;
-      } catch (error) {
-        if (error.response?.status === 422) {
-          const { errors } = error.response.data;
-          if (errors?.dui) {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error al registrar la venta',
-              text: errors.dui[0],
-            });
-          } else {
-            const firstError = Object.values(errors)[0][0];
-            Swal.fire({
-              icon: 'error',
-              title: 'Error al registrar la venta',
-              text: firstError,
-            });
-          }
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo completar la venta. Intente de nuevo.',
-          });
-        }
-        return false;
-      }
+      const payload = this.construirPayload();
+      const response = await api.post('/ventas', payload);
+      this.resetCarrito();
+      return response.data; // { venta: {...} }
     },
 
     resetCarrito() {

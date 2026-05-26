@@ -111,7 +111,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useVentaStore } from '@/stores/ventaStore'
+import { useVentaStore } from '@/stores/venta/ventaStore'
 import { useToast } from 'primevue/usetoast'
 import api from '@/services/api'
 import { InputText, Dialog, Button, ProgressSpinner, InputNumber, Paginator } from '@/utils/primevue'

@@ -9,6 +9,7 @@ import InputText from 'primevue/inputtext';
 import ProgressSpinner from 'primevue/progressspinner';
 import Toast from 'primevue/toast';
 import Paginator from 'primevue/paginator';
+import InputMask from 'primevue/inputmask';
 
 // Componentes para el historial de ventas
 import DataTable from 'primevue/datatable';
@@ -29,4 +30,5 @@ export {
   Column,
   Calendar,
   Tag,
+  InputMask,
 };
