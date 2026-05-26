@@ -67,7 +67,7 @@
                 {{ calcularCantidad(item) }} <span class="text-[9px] text-gray-400 font-bold ml-0.5 uppercase tracking-tighter"></span>
               </td>
               <td class="py-5 px-6 text-center font-black text-[#000000] text-sm">
-                ${{ item.precio_unitario.toFixed(2) }}
+                ${{ parseFloat(item.precio_unitario).toFixed(2) }}
               </td>
               <td class="py-5 px-8 text-right font-black text-[#000000] text-base tracking-tighter">
                 $ {{ (parseFloat(item.precio_unitario) * calcularCantidad(item)).toFixed(2) }}
@@ -221,7 +221,7 @@
           title: '¡Compra Registrada!',
           text: 'El abastecimiento se ha procesado con éxito.',
           showConfirmButton: false,
-          timer: 2000
+          timer: 2500
         });
 
         // Notificamos al Wizard que hemos terminado

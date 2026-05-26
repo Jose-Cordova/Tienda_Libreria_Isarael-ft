@@ -67,20 +67,38 @@
               <label class="text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Costo Unitario ($)</label>
               <div class="relative group">
                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0a3622] font-black text-xs z-10">$</span>
-                <input type="number" step="0.01" v-model="item.precio_unitario" @input="recalcular(index)" class="w-28 border border-gray-400 rounded-xl p-3 pl-8 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all" />
+                <input
+                  type="text"
+                  v-model="item.precio_unitario"
+                  @input="recalcular(index)"
+                  @keydown="soloDecimalPositivo"
+                  class="w-28 border border-gray-400 rounded-xl p-3 pl-8 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all"
+                />
               </div>
             </div>
             <div class="space-y-2 text-left">
               <label class="text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Margen Detalle (%)</label>
               <div class="relative group">
-                <input type="number" v-model="item.margen_detalle" @input="recalcular(index)" class="w-full border border-gray-400 rounded-xl p-3 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all" />
+                <input
+                  type="number"
+                  v-model="item.margen_detalle"
+                  @input="recalcular(index)"
+                  @keydown="soloEnteroPositivo"
+                  class="w-full border border-gray-400 rounded-xl p-3 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all"
+                />
                 <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-[10px]">%</span>
               </div>
             </div>
             <div class="space-y-2 text-left">
               <label class="text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Margen Mayor (%)</label>
               <div class="relative group">
-                <input type="number" v-model="item.margen_mayor" @input="recalcular(index)" class="w-full border border-gray-400 rounded-xl p-3 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all" />
+                <input
+                  type="number"
+                  v-model="item.margen_mayor"
+                  @input="recalcular(index)"
+                  @keydown="soloEnteroPositivo"
+                  class="w-full border border-gray-400 rounded-xl p-3 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all"
+                />
                 <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-[10px]">%</span>
               </div>
             </div>
@@ -111,7 +129,12 @@
                 </div>
                 <div class="col-span-2 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Cantidad</span>
-                  <input type="number" v-model="lote.cantidad" class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-center text-[#0a3622] outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm" />
+                  <input
+                    type="number"
+                    v-model="lote.cantidad"
+                    @keydown="soloEnteroPositivo"
+                    class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-center text-[#0a3622] outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm"
+                  />
                 </div>
                 <div class="col-span-1 flex items-center justify-end pt-5">
                   <button
@@ -129,7 +152,12 @@
             </div>
 
             <div v-else class="flex items-center gap-4 text-left">
-              <input type="number" v-model="item.cantidad" class="w-20 border border-gray-300 rounded-xl p-2 text-base font-bold text-center text-[#0a3622] outline-none focus:border-[#0a3622] focus:ring-4 focus:ring-green-50" />
+              <input
+                type="number"
+                v-model="item.cantidad"
+                @keydown="soloEnteroPositivo"
+                class="w-20 border border-gray-300 rounded-xl p-2 text-base font-bold text-center text-[#0a3622] outline-none focus:border-[#0a3622] focus:ring-4 focus:ring-green-50 shadow-md bg-white"
+              />
               <div class="flex flex-col">
                 <span class="text-[11px] font-black text-[#0a3622] uppercase tracking-widest">Unidades a ingresar</span>
               </div>
@@ -140,7 +168,7 @@
           <div class="flex flex-wrap justify-between items-center border-t-2 border-gray-50 mt-4 text-left">
             <div class="flex items-center gap-4">
               <span class="text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Subtotal Producto</span>
-              <b class="text-[#0a3622] text-xl font-black tracking-tighter bg-green-50 px-5 py-2 rounded-xl border border-green-100 shadow-sm">$ {{ (item.precio_unitario * calcularCantidad(index)).toFixed(2) }}</b>
+              <b class="text-[#0a3622] text-xl font-black tracking-tighter bg-green-50 px-5 py-2 rounded-xl border border-green-100 shadow-sm">$ {{ ((parseFloat(item.precio_unitario) || 0) * calcularCantidad(index)).toFixed(2) }}</b>
             </div>
           </div>
         </div>
@@ -210,7 +238,12 @@
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Stock Mínimo *</label>
-                  <input type="number" v-model="nuevoProducto.stock_minimo" class="w-full border border-gray-300 rounded-xl p-2 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none transition-all shadow-sm bg-white" />
+                  <input
+                    type="number"
+                    v-model="nuevoProducto.stock_minimo"
+                    @keydown="soloEnteroPositivo"
+                    class="w-full border border-gray-300 rounded-xl p-2 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none transition-all shadow-sm bg-white"
+                  />
                 </div>
                 <div class="md:col-span-2 bg-[#c5d1c5] p-5 rounded-2xl flex items-center justify-between border border-green-400 shadow-inner">
                   <div class="text-left">
@@ -267,6 +300,46 @@
     stock_minimo: 0,
     perecedero: 'NORMAL'
   });
+
+  //Solo enteros positivos
+  const soloEnteroPositivo = (e) => {
+    const key = e.key
+    if (
+        !/^[0-9]$/.test(key) &&
+        key !== 'Backspace' &&
+        key !== 'Delete' &&
+        key !== 'ArrowLeft' &&
+        key !== 'ArrowRight' &&
+        key !== 'Tab'
+    ){
+      e.preventDefault()
+    }
+  }
+  //Solo decimales positivos (máximo 2 decimales)
+  const soloDecimalPositivo = (e) => {
+    const { key, target } = e;
+    const { value, selectionStart, selectionEnd } = target;
+
+    // Teclas de control permitidas
+    if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(key)) return;
+
+    // Solo números y punto
+    if (!/^[0-9.]$/.test(key)) return e.preventDefault();
+
+    // No permitir más de un punto
+    if (key === '.' && value.includes('.')) return e.preventDefault();
+
+    // Máximo 2 decimales (solo si no hay texto seleccionado)
+    if (key !== '.' && value.includes('.')) {
+        const decimales = value.split('.')[1] || '';
+        const cursorDespuesDelPunto = selectionStart > value.indexOf('.');
+        const sinSeleccion = selectionStart === selectionEnd;
+
+        if (cursorDespuesDelPunto && decimales.length >= 2 && sinSeleccion) {
+            e.preventDefault();
+        }
+    }
+  }
 
   //Busqueda de producto con Debounce
   let searchTimer = null;
@@ -325,11 +398,11 @@
       producto_id: prod.id,
       nombre: prod.nombre,
       perecedero: prod.perecedero,
-      precio_unitario: 0.01,
+      precio_unitario: 0.00,
       margen_detalle: 0,
       margen_mayor: 0,
-      precio_detalle_sugerido: '0.01',
-      precio_mayor_sugerido: '0.01',
+      precio_detalle_sugerido: '0.00',
+      precio_mayor_sugerido: '0.00',
       cantidad: 1,
       lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
     }
@@ -373,11 +446,11 @@
       unidad_medida_id: nuevoProducto.value.unidad_medida_id,
       stock_minimo: nuevoProducto.value.stock_minimo,
       perecedero: nuevoProducto.value.perecedero,
-      precio_unitario: 0.01,
-      margen_detalle: 1,
-      margen_mayor: 1,
-      precio_detalle_sugerido: '0.01',
-      precio_mayor_sugerido: '0.01',
+      precio_unitario: 0.00,
+      margen_detalle: 0,
+      margen_mayor: 0,
+      precio_detalle_sugerido: '0.00',
+      precio_mayor_sugerido: '0.00',
       cantidad: 1,
       visible: true,
       lotes: nuevoProducto.value.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
