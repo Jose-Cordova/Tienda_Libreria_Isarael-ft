@@ -6,7 +6,7 @@ import { Toast } from '@/utils/primevue';  // ← importado desde nuestro archiv
 <template>
   <!-- RouterView renderiza la vista actual -->
   <RouterView />
-
+  
   <!-- Toast global de PrimeVue (siempre presente) -->
   <Toast position="bottom-right" />
 </template>

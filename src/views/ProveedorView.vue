@@ -2,7 +2,7 @@
   <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
 
     <!-- Encabezado -->
-    <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300">
+    <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
       <div class="flex items-center gap-3">
         <i class="pi pi-truck text-xl text-green-600"></i>
         <h1 class="text-lg font-extrabold text-[#0a3622]">Proveedores</h1>
@@ -33,18 +33,20 @@
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr class="bg-[#99bba7] text-[#003d00] text-[12px] font-bold uppercase tracking-wider">
+            <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Nombre</th>
               <th class="py-3 px-5">Teléfono</th>
               <th class="py-3 px-5">Email</th>
+              <th class="py-3 px-5">Dirección</th>
               <th class="py-3 px-5 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
             <tr v-for="prov in store.filteredProveedores" :key="prov.id" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-5 font-medium text-gray-700 text-sm">{{ prov.nombre }}</td>
-              <td class="py-4 px-5 font-medium text-sm text-gray-600">{{ prov.telefono }}</td>
-              <td class="py-4 px-5 text-gray-500 text-sm">{{ prov.email || '—' }}</td>
+              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.nombre }}</td>
+              <td class="py-4 px-5 font-bold text-sm text-gray-800">{{ prov.telefono }}</td>
+              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.email || '—' }}</td>
+              <td class="py-4 px-5 font-bold text-gray-800 text-sm max-w-xs truncate" :title="prov.direccion">{{ prov.direccion || '—' }}</td>
               <td class="py-4 px-5">
                 <div class="flex items-center justify-center gap-1">
                   <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirEditar(prov)" />
@@ -53,7 +55,7 @@
               </td>
             </tr>
             <tr v-if="store.filteredProveedores.length === 0">
-              <td colspan="4" class="py-10 text-center italic text-gray-400">No se encontraron resultados.</td>
+              <td colspan="5" class="py-10 text-center italic text-gray-400">No se encontraron resultados.</td>
             </tr>
           </tbody>
         </table>
@@ -105,7 +107,7 @@
               </div>
             </div>
             <div class="flex items-center gap-4 mt-10">
-              <button type="button" @click="mostrarModal = false" class="px-10 py-4 bg-[#f1f5f1] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm">Cancelar</button>
+              <button type="button" @click="mostrarModal = false" class="px-10 py-4 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm">Cancelar</button>
               <button type="submit" :disabled="enviando" class="flex-1 py-4 bg-[#003d00] hover:bg-[#002800] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-widest disabled:opacity-50">
                 {{ enviando ? 'PROCESANDO...' : 'Guardar' }}
               </button>
@@ -124,7 +126,7 @@
           <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Eliminar proveedor?</h2>
           <p class="text-1xl text-gray-500 mb-8 font-medium">Se eliminará "{{ ProveedorEliminar?.nombre }}".</p>
           <div class="flex items-center gap-3">
-            <button @click="mostrarModalEliminar = false" class="flex-1 py-3 bg-[#f1f5f1] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
+            <button @click="mostrarModalEliminar = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
             <button @click="ejecutarEliminacion" class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md text-sm">Confirmar</button>
           </div>
         </div>

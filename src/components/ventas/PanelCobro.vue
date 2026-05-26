@@ -81,7 +81,7 @@
           mode="decimal"
           :minFractionDigits="2"
           :maxFractionDigits="2"
-          placeholder="0.00"
+          placeholder="0,00"
           class="font-bold"
         />
       </div>
