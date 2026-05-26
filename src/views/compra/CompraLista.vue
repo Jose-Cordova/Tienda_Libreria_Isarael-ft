@@ -21,7 +21,7 @@
         </span>
 
         <!-- Filtro por Estado -->
-        <div class="relative bg-white border border-gray-200 rounded-xl px-3 h-[38px] flex items-center shadow-sm focus-within:border-green-600 transition-all">
+        <div class="relative bg-white border border-gray-200 rounded-xl px-2 h-[38px] flex items-center shadow-sm focus-within:border-green-600 transition-all">
           <select
             v-model="store.filtros.estado"
             @change="store.obtenerCompras(1)"
@@ -33,7 +33,34 @@
           </select>
           <i class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[9px]"></i>
         </div>
-
+        <!-- Filtros de fecha -->
+         <div class="flex items-center gap-2">
+            <Calendar
+              v-model="store.filtros.fecha_inicio"
+              placeholder="Desde"
+              dateFormat="dd/mm/yy"
+              showIcon
+              :maxDate="store.filtros.fecha_fin || null"
+              class="p-calendar-sm w-32 custom-prime-calendar"
+              @date-select="store.obtenerCompras(1)"
+            />
+            <Calendar
+              v-model="store.filtros.fecha_fin"
+              dateFormat="dd/mm/yy"
+              placeholder="Hasta"
+              showIcon
+              :minDate="store.filtros.fecha_inicio || null"
+              class="p-calendar-sm w-32 custom-prime-calendar"
+              @date-select="store.obtenerCompras(1)"
+            />
+            <Button
+              v-if="store.filtros.fecha_inicio || store.filtros.fecha_fin"
+              icon="pi pi-filter-slash"
+              v-tooltip.top="'Limpiar fechas'"
+              class="p-button-rounded p-button-text p-button-sm !text-red-900 !w-9 !h-9"
+              @click="limpiarFechas"
+            />
+         </div>
         <Button
           label="Nueva Compra"
           icon="pi pi-plus"
@@ -51,7 +78,8 @@
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Fecha</th>
               <th class="py-3 px-5">Proveedor</th>
-              <th class="py-3 px-5">Factura</th>
+              <th class="py-3 px-5">N° de Control</th>
+              <th class="py-3 px-5">Código de Generación</th>
               <th class="py-3 px-5 text-right">Total</th>
               <th class="py-3 px-5 text-center">Estado</th>
               <th class="py-3 px-5 text-center">Acciones</th>
@@ -62,6 +90,7 @@
               <td class="py-4 px-5 font-bold text-gray-800">{{ formateraFecha(compra.fecha_registro) }}</td>
               <td class="py-4 px-5 font-bold text-gray-800">{{ compra.proveedor?.nombre || '—' }}</td>
               <td class="py-4 px-5 font-bold text-gray-800">{{ compra.numero_factura }}</td>
+              <td class="py-4 px-5 font-bold text-gray-800">{{ compra.codigo_factura }}</td>
               <td class="py-4 px-5 text-right font-bold text-gray-800">${{ compra.total }}</td>
               <td class="py-4 px-5 text-center">
                 <span :class="compra.estado === 'REGISTRADA' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'" class="px-3 py-1 rounded-full text-[10px] font-black border uppercase">
@@ -132,6 +161,7 @@
   import InputText from 'primevue/inputtext';
   import Button from 'primevue/button';
   import Paginator from 'primevue/paginator';
+  import Calendar from 'primevue/calendar';
   import CompraDetalle from './CompraDetalle.vue';
 
   const store = useCompraStore()
@@ -143,6 +173,12 @@
     store.obtenerCompras(1)
   })
 
+  //Funcion para resetear las fechas
+  const limpiarFechas = () => {
+    store.filtros.fecha_inicio = null
+    store.filtros.fecha_fin = null
+    store.obtenerCompras(1)
+  }
   //Listado de las compras
   const alCambiarPagina = (e) => store.obtenerCompras(e.page + 1, e.rows)
 
@@ -174,7 +210,7 @@
   const confirmarAnular = async() => {
     try{
       await store.anularCompra(compraAnular.value.id)
-      Swal.fire({ icon: 'success', title: '¡Hecho!', text: 'La compra ha sido anulada.', showConfirmButton: false, timer: 1500 })
+      Swal.fire({ icon: 'success', title: '¡Hecho!', text: 'La compra ha sido anulada.', showConfirmButton: false, timer: 2500 })
       mostrarAnular.value = false
     }catch(err){
       const mgs = err.response?.data?.message || 'Error al anular la compra.'
@@ -207,4 +243,5 @@
     outline: none !important;
     box-shadow: 0 0 0 2px #fecaca !important;
   }
+
 </style>

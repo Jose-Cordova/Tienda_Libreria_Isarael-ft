@@ -1,6 +1,5 @@
 <template>
   <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
-
     <!-- Encabezado -->
     <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
       <div class="flex items-center gap-3">
@@ -27,7 +26,6 @@
         />
       </div>
     </section>
-
     <!-- Tabla de Datos -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <div class="overflow-x-auto">
@@ -60,7 +58,6 @@
           </tbody>
         </table>
       </div>
-
       <!-- Paginación integrada -->
       <div class="p-3 border-t border-gray-400 bg-gray-50/50">
         <Paginator
@@ -74,7 +71,6 @@
         />
       </div>
     </section>
-
     <!-- MODAL: Nuevo/Editar -->
     <div v-if="mostrarModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
       <div class="bg-white rounded-[24px] w-full max-w-2xl shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
@@ -95,9 +91,15 @@
               </div>
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Teléfono</label>
-                <InputText v-model="formulario.telefono" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: 1234-5678" />
-              </div>
-              <div class="space-y-2">
+                <InputText
+                  v-model="formulario.telefono"
+                  @input="formatearTelefono"
+                  @keypress="soloNumeros"
+                  class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none"
+                  placeholder="Ej: 1234-5678"
+                  maxlength="9"
+                />
+              </div>              <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Email</label>
                 <InputText v-model="formulario.email" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: correo@gmail.com" />
               </div>
@@ -116,7 +118,6 @@
         </div>
       </div>
     </div>
-
     <!-- MODAL: Eliminar -->
     <div v-if="mostrarModalEliminar" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
       <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 text-center">
@@ -151,6 +152,28 @@
   const enviando = ref(false)
   const formulario = ref({id: null, nombre: '', telefono: '', email: '', direccion: ''})
   const ProveedorEliminar = ref(null)
+
+  // Función para bloquear letras y solo permitir números
+  const soloNumeros = (e) => {
+    const key = e.key;
+    // Permitir solo números (0-9)
+    if (!/^[0-9]$/.test(key) && key !== 'Backspace' && key !== 'Delete' && key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Tab') {
+      e.preventDefault();
+    }
+  }
+  // Función para formatear el teléfono automáticamente (XXXX-XXXX)
+  const formatearTelefono = () => {
+    // 1. Eliminar cualquier cosa que no sea número
+    let valor = formulario.value.telefono.replace(/\D/g, '');
+    // 2. Limitar a 8 dígitos reales
+    if (valor.length > 8) valor = valor.substring(0, 8);
+    // 3. Aplicar el formato XXXX-XXXX
+    if (valor.length > 4) {
+      formulario.value.telefono = valor.substring(0, 4) + '-' + valor.substring(4, 8);
+    } else {
+      formulario.value.telefono = valor;
+    }
+  }
 
   onMounted(() => store.fetchProveedores(1, 10))
 

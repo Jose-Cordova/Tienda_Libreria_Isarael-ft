@@ -22,7 +22,7 @@
           <p class="text-[11px] font-black text-[#0a3622] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
             <i class="pi pi-list"></i> Productos Adquiridos
           </p>
-          <div class="border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+          <div class="border border-gray-300 rounded-xl overflow-hidden shadow-sm">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-[#99bba7] text-[#000000] text-[10px] font-black uppercase tracking-wider">
@@ -32,7 +32,7 @@
                   <th class="py-3 px-5 text-right">Subtotal</th>
                 </tr>
               </thead>
-              <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+              <tbody class="text-sm text-gray-700 divide-y divide-gray-400">
                 <tr v-for="item in compra?.detalle_compras" :key="item.id" class="hover:bg-gray-50/50 transition">
                   <td class="py-3 px-5">
                     <p class="font-bold text-gray-800">{{ item.producto?.nombre }}</p>
