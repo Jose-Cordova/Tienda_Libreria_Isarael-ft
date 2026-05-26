@@ -27,7 +27,7 @@
       v-else
       :ventas="ventasFormateadas"
       @ver-detalle="abrirDetalle"
-      @eliminar="confirmarEliminacion"
+      @anular="confirmarAnulacion"
     />
 
     <!-- Paginador -->
@@ -147,7 +147,9 @@ const cerrarDetalle = () => {
   ventaDetalle.value = null;
 };
 
-const confirmarEliminacion = (venta) => {
+// Antes: const confirmarEliminacion = (venta) => { ... }
+// Ahora:
+const confirmarAnulacion = (venta) => {
   Swal.fire({
     title: `¿Anular venta #${venta.correlativo}?`,
     text: 'Esta acción no se puede deshacer.',

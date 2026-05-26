@@ -52,7 +52,7 @@
         </label>
         <Dropdown
           v-model="ventaStore.metodo_pago_id"
-          :options="metodosPago"
+          :options="ventaStore.metodosPago"
           optionLabel="nombre"
           optionValue="id"
           class="w-full font-bold"
@@ -61,15 +61,15 @@
           <template #value="slotProps">
             <div v-if="slotProps.value" class="flex items-center gap-2">
               <i class="pi pi-wallet text-shop-green"></i>
-              <span>{{ metodosPago.find(m => m.id === slotProps.value)?.nombre }}</span>
+              <span>{{ ventaStore.metodosPago.find(m => m.id === slotProps.value)?.nombre }}</span>
             </div>
           </template>
         </Dropdown>
       </div>
     </div>
 
-    <!-- Monto recibido y vuelto (solo PAGADA) -->
-    <div v-if="ventaStore.estado !== 'CREDITO'" class="bg-shop-surface-2 p-3 rounded-shop border border-shop-border mt-1">
+    <!-- Monto recibido y vuelto (solo PAGADA y NO transferencia) -->
+    <div v-if="ventaStore.estado !== 'CREDITO' && !ventaStore.isTransferencia" class="bg-shop-surface-2 p-3 rounded-shop border border-shop-border mt-1">
       <label class="text-[11px] font-bold text-shop-text-2 uppercase mb-1 block">El cliente pagó con:</label>
       <div class="p-inputgroup">
         <span class="p-inputgroup-addon bg-white font-bold text-shop-green">$</span>
@@ -92,6 +92,14 @@
         <span class="text-lg">${{ Math.abs(cambio).toFixed(2) }}</span>
       </div>
     </div>
+
+    <!-- Mensaje cuando es transferencia -->
+    <div v-else-if="ventaStore.estado !== 'CREDITO' && ventaStore.isTransferencia" class="text-center text-shop-text-3 text-sm py-2">
+      <i class="pi pi-building-columns text-lg mb-1 block"></i>
+      Pago por transferencia bancaria. No requiere vuelto.
+    </div>
+
+    <!-- Mensaje cuando es crédito -->
     <div v-else class="text-center text-shop-text-3 text-sm py-2">
       La venta se registrará como venta al CRÉDITO.
     </div>
@@ -192,7 +200,7 @@
       </div>
     </Dialog>
 
-    <!-- Modal de registro de cliente (usa SelectorPaisTelefono) -->
+    <!-- Modal de registro de cliente (usa ClienteCreditoModal) -->
     <ClienteCreditoModal
       v-model:visible="mostrarModalNuevoCliente"
       @clienteGuardado="onClienteNuevoGuardado"
@@ -236,6 +244,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useVentaStore } from '@/stores/venta/ventaStore';
 import { useToast } from 'primevue/usetoast';
+import Swal from 'sweetalert2';
 import api from '@/services/api';
 import { Dropdown, InputNumber, Dialog, Button } from '@/utils/primevue';
 import ClienteCreditoModal from './ClienteCreditoModal.vue';
@@ -246,44 +255,39 @@ const toast = useToast();
 const montoRecibido = ref(null);
 const opcionImprimirTicket = ref(false);
 const loading = ref(false);
-const mostrarConfirmacionVenta = ref(false);
 
 // Estado del diálogo de crédito
 const mostrarDialogoCredito = ref(false);
-const modoDialogo = ref('buscar'); // 'buscar' | 'nuevo'
+const modoDialogo = ref('buscar');
 const clienteExistenteSeleccionado = ref(null);
-
-// Modal de registro nuevo
 const mostrarModalNuevoCliente = ref(false);
 
-const metodosPago = ref([]);
 const clientesCredito = ref([]);
 
 onMounted(async () => {
   try {
-    const [mpRes, ccRes] = await Promise.all([
-      api.get('/metodos-pagos'),
-      api.get('/clientes-creditos'),
-    ]);
-    metodosPago.value = mpRes.data;
-    clientesCredito.value = ccRes.data;
+    // Cargar métodos de pago desde el store
+    await ventaStore.cargarMetodosPago();
+    // Cargar clientes crédito
+    const { data } = await api.get('/clientes-creditos');
+    clientesCredito.value = data;
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar datos de configuración', life: 4000 });
   }
 });
 
-// --- Computed ---
+// Computed
 const cambio = computed(() => {
   if (!montoRecibido.value) return 0;
   return montoRecibido.value - ventaStore.total;
 });
 
 const metodoPagoNombre = computed(() => {
-  const metodo = metodosPago.value.find(m => m.id === ventaStore.metodo_pago_id);
+  const metodo = ventaStore.metodosPago.find(m => m.id === ventaStore.metodo_pago_id);
   return metodo ? metodo.nombre : 'No seleccionado';
 });
 
-// --- Métodos de crédito (usan el store) ---
+// Métodos de crédito
 const abrirDialogoCredito = () => {
   clienteExistenteSeleccionado.value = ventaStore.cliente_credito_id || null;
   modoDialogo.value = 'buscar';
@@ -313,33 +317,47 @@ const cancelarCredito = () => {
   toast.add({ severity: 'info', summary: 'Crédito cancelado', detail: 'La venta volvió a ser de contado.', life: 3000 });
 };
 
-// --- Confirmación y procesamiento de venta ---
+// Confirmación con SweetAlert2 y procesamiento de venta
 const abrirConfirmacionVenta = () => {
   if (ventaStore.estado !== 'CREDITO' && !ventaStore.metodo_pago_id) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Seleccione un método de pago', life: 3000 });
     return;
   }
-  if (ventaStore.estado === 'PAGADA' && (montoRecibido.value === null || cambio.value < 0)) {
-    toast.add({ severity: 'error', summary: 'Error de cobro', detail: 'El monto recibido es menor al total.', life: 3000 });
-    return;
+  // Si es PAGADA y no es transferencia, validar monto recibido
+  if (ventaStore.estado === 'PAGADA' && !ventaStore.isTransferencia) {
+    if (montoRecibido.value === null || cambio.value < 0) {
+      toast.add({ severity: 'error', summary: 'Error de cobro', detail: 'El monto recibido es menor al total.', life: 3000 });
+      return;
+    }
   }
-  mostrarConfirmacionVenta.value = true;
-};
 
-const confirmarVentaDefinitiva = () => {
-  mostrarConfirmacionVenta.value = false;
-  procesarVenta();
+  Swal.fire({
+    title: '¿Confirmar venta?',
+    html: `
+      <p>Total: <strong>$${ventaStore.total.toFixed(2)}</strong></p>
+      <p>Tipo de cliente: ${ventaStore.tipo_cliente === 'MAYORISTA' ? 'Mayorista' : 'Detalles'}</p>
+      <p>Método de pago: ${ventaStore.estado === 'CREDITO' ? 'Crédito (Fiado)' : metodoPagoNombre.value}</p>
+      ${ventaStore.estado === 'CREDITO' ? `<p>Cliente: ${ventaStore.nombre_cliente || clientesCredito.value.find(c => c.id === ventaStore.cliente_credito_id)?.nombre || 'Nuevo cliente'}</p>` : ''}
+    `,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, finalizar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#22c55e',
+    cancelButtonColor: '#6b7280',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      procesarVenta();
+    }
+  });
 };
 
 const procesarVenta = async () => {
   loading.value = true;
-  const eraCredito = ventaStore.estado === 'CREDITO'; // ✅ Guardamos estado antes de resetear
-
+  const eraCredito = ventaStore.estado === 'CREDITO';
   try {
     const response = await ventaStore.confirmarVenta();
     toast.add({ severity: 'success', summary: 'Venta Exitosa', detail: `Correlativo: ${response.venta.correlativo}`, life: 5000 });
-
-    // ✅ Refrescamos la lista de clientes crédito si era una venta al crédito
     if (eraCredito) {
       try {
         const { data } = await api.get('/clientes-creditos');
@@ -348,11 +366,9 @@ const procesarVenta = async () => {
         console.warn('No se pudo refrescar la lista de clientes crédito.');
       }
     }
-
     if (opcionImprimirTicket.value) {
       console.log("Ticket pendiente para venta ID:", response.venta.id);
     }
-
     limpiarTodo();
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'No se pudo registrar la venta', life: 5000 });

@@ -13,6 +13,9 @@ export const useVentaStore = defineStore('venta', {
     nombre_cliente: null,
     dui_cliente: null,
     telefono_cliente: null,
+    // Métodos de pago dinámicos
+    metodosPago: [],
+    transferenciaId: null,
   }),
 
   getters: {
@@ -26,9 +29,25 @@ export const useVentaStore = defineStore('venta', {
       return state.items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
     },
     cantidadItems: (state) => state.items.reduce((acc, item) => acc + item.cantidad, 0),
+    // Getter para saber si el método de pago seleccionado es transferencia
+    isTransferencia: (state) => {
+      return state.metodo_pago_id === state.transferenciaId;
+    },
   },
 
   actions: {
+    // Cargar métodos de pago desde API y obtener ID de transferencia
+    async cargarMetodosPago() {
+      try {
+        const response = await api.get('/metodos-pagos');
+        this.metodosPago = response.data;
+        const transferencia = this.metodosPago.find(m => m.nombre === 'TRANSFERENCIA');
+        this.transferenciaId = transferencia ? transferencia.id : null;
+      } catch (error) {
+        console.error('Error al cargar métodos de pago:', error);
+      }
+    },
+
     agregarProducto(producto) {
       const cantidad = producto.cantidad || 1;
       const index = this.items.findIndex(i => i.producto_id === producto.id);
