@@ -4,6 +4,8 @@ import router from './router'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import ToastService from 'primevue/toastservice'
+import Tooltip from 'primevue/tooltip';
 
 // 1. IMPORTAR ESTILOS DE Tailwind
 import './assets/main.css'
@@ -14,11 +16,14 @@ import 'primevue/resources/primevue.css'
 import 'primeicons/primeicons.css'
 
 const app = createApp(App)
+
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
-
 
 app.use(pinia)
 app.use(router)
 app.use(PrimeVue)
+app.use(ToastService)
+app.directive('tooltip', Tooltip);
+
 app.mount('#app')

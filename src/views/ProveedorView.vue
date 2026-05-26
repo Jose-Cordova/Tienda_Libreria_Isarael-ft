@@ -1,8 +1,7 @@
 <template>
   <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
-
     <!-- Encabezado -->
-    <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300">
+    <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
       <div class="flex items-center gap-3">
         <i class="pi pi-truck text-xl text-green-600"></i>
         <h1 class="text-lg font-extrabold text-[#0a3622]">Proveedores</h1>
@@ -27,24 +26,25 @@
         />
       </div>
     </section>
-
     <!-- Tabla de Datos -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse whitespace-nowrap">
           <thead>
-            <tr class="bg-[#99bba7] text-[#003d00] text-[12px] font-bold uppercase tracking-wider">
+            <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Nombre</th>
               <th class="py-3 px-5">Teléfono</th>
               <th class="py-3 px-5">Email</th>
+              <th class="py-3 px-5">Dirección</th>
               <th class="py-3 px-5 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
             <tr v-for="prov in store.filteredProveedores" :key="prov.id" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-5 font-medium text-gray-700 text-sm">{{ prov.nombre }}</td>
-              <td class="py-4 px-5 font-medium text-sm text-gray-600">{{ prov.telefono }}</td>
-              <td class="py-4 px-5 text-gray-500 text-sm">{{ prov.email || '—' }}</td>
+              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.nombre }}</td>
+              <td class="py-4 px-5 font-bold text-sm text-gray-800">{{ prov.telefono }}</td>
+              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.email || '—' }}</td>
+              <td class="py-4 px-5 font-bold text-gray-800 text-sm max-w-xs truncate" :title="prov.direccion">{{ prov.direccion || '—' }}</td>
               <td class="py-4 px-5">
                 <div class="flex items-center justify-center gap-1">
                   <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirEditar(prov)" />
@@ -53,12 +53,11 @@
               </td>
             </tr>
             <tr v-if="store.filteredProveedores.length === 0">
-              <td colspan="4" class="py-10 text-center italic text-gray-400">No se encontraron resultados.</td>
+              <td colspan="5" class="py-10 text-center italic text-gray-400">No se encontraron resultados.</td>
             </tr>
           </tbody>
         </table>
       </div>
-
       <!-- Paginación integrada -->
       <div class="p-3 border-t border-gray-400 bg-gray-50/50">
         <Paginator
@@ -72,7 +71,6 @@
         />
       </div>
     </section>
-
     <!-- MODAL: Nuevo/Editar -->
     <div v-if="mostrarModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
       <div class="bg-white rounded-[24px] w-full max-w-2xl shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
@@ -93,9 +91,15 @@
               </div>
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Teléfono</label>
-                <InputText v-model="formulario.telefono" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: 1234-5678" />
-              </div>
-              <div class="space-y-2">
+                <InputText
+                  v-model="formulario.telefono"
+                  @input="formatearTelefono"
+                  @keypress="soloNumeros"
+                  class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none"
+                  placeholder="Ej: 1234-5678"
+                  maxlength="9"
+                />
+              </div>              <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Email</label>
                 <InputText v-model="formulario.email" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: correo@gmail.com" />
               </div>
@@ -105,7 +109,7 @@
               </div>
             </div>
             <div class="flex items-center gap-4 mt-10">
-              <button type="button" @click="mostrarModal = false" class="px-10 py-4 bg-[#f1f5f1] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm">Cancelar</button>
+              <button type="button" @click="mostrarModal = false" class="px-10 py-4 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm">Cancelar</button>
               <button type="submit" :disabled="enviando" class="flex-1 py-4 bg-[#003d00] hover:bg-[#002800] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-widest disabled:opacity-50">
                 {{ enviando ? 'PROCESANDO...' : 'Guardar' }}
               </button>
@@ -114,7 +118,6 @@
         </div>
       </div>
     </div>
-
     <!-- MODAL: Eliminar -->
     <div v-if="mostrarModalEliminar" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
       <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 text-center">
@@ -124,7 +127,7 @@
           <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Eliminar proveedor?</h2>
           <p class="text-1xl text-gray-500 mb-8 font-medium">Se eliminará "{{ ProveedorEliminar?.nombre }}".</p>
           <div class="flex items-center gap-3">
-            <button @click="mostrarModalEliminar = false" class="flex-1 py-3 bg-[#f1f5f1] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
+            <button @click="mostrarModalEliminar = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
             <button @click="ejecutarEliminacion" class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md text-sm">Confirmar</button>
           </div>
         </div>
@@ -149,6 +152,28 @@
   const enviando = ref(false)
   const formulario = ref({id: null, nombre: '', telefono: '', email: '', direccion: ''})
   const ProveedorEliminar = ref(null)
+
+  // Función para bloquear letras y solo permitir números
+  const soloNumeros = (e) => {
+    const key = e.key;
+    // Permitir solo números (0-9)
+    if (!/^[0-9]$/.test(key) && key !== 'Backspace' && key !== 'Delete' && key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Tab') {
+      e.preventDefault();
+    }
+  }
+  // Función para formatear el teléfono automáticamente (XXXX-XXXX)
+  const formatearTelefono = () => {
+    // 1. Eliminar cualquier cosa que no sea número
+    let valor = formulario.value.telefono.replace(/\D/g, '');
+    // 2. Limitar a 8 dígitos reales
+    if (valor.length > 8) valor = valor.substring(0, 8);
+    // 3. Aplicar el formato XXXX-XXXX
+    if (valor.length > 4) {
+      formulario.value.telefono = valor.substring(0, 4) + '-' + valor.substring(4, 8);
+    } else {
+      formulario.value.telefono = valor;
+    }
+  }
 
   onMounted(() => store.fetchProveedores(1, 10))
 
