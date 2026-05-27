@@ -13,7 +13,7 @@
       </span>
     </div>
 
-    <!-- Estado de carga -->
+    <!-- Estado de carga yes-->
     <div v-if="loading" class="flex-1 flex justify-center items-center">
       <ProgressSpinner />
     </div>
@@ -28,13 +28,13 @@
           class="bg-white border border-shop-border rounded-shop-sm p-3 cursor-pointer hover:border-shop-green hover:shadow-shop transition-all flex flex-col justify-between"
         >
           <div class="mb-2">
-            <span class="text-[10px] uppercase font-bold text-shop-text-3 tracking-wider">
+            <span class="text-[10px] uppercase font-bold text-shop-text tracking-wider">
               {{ prod.categoria?.nombre ?? 'Sin categoría' }}
             </span>
             <h3 class="font-bold text-sm text-shop-text leading-tight mt-0.5">
               {{ prod.nombre }}
             </h3>
-            <span class="text-xs text-shop-text-2">{{ prod.marca?.nombre ?? '' }}</span>
+            <span class="text-xs text-shop-text">{{ prod.marca?.nombre ?? '' }}</span>
           </div>
 
           <div class="flex justify-between items-end mt-2">
@@ -111,7 +111,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useVentaStore } from '@/stores/ventaStore'
+import { useVentaStore } from '@/stores/venta/ventaStore'
 import { useToast } from 'primevue/usetoast'
 import api from '@/services/api'
 import { InputText, Dialog, Button, ProgressSpinner, InputNumber, Paginator } from '@/utils/primevue'

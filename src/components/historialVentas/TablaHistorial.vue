@@ -88,10 +88,10 @@
                   @click="$emit('ver-detalle', venta)"
                 />
                 <Button
-                  icon="pi pi-trash"
-                  class="p-button-rounded p-button-text p-button-sm p-button-danger"
-                  v-tooltip="'Eliminar'"
-                  @click="$emit('eliminar', venta)"
+                icon="pi pi-ban"
+                class="p-button-rounded p-button-text p-button-sm p-button-danger"
+                v-tooltip="'Anular'"
+                @click="$emit('anular', venta)"
                 />
               </div>
             </td>

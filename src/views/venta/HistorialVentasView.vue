@@ -27,7 +27,7 @@
       v-else
       :ventas="ventasFormateadas"
       @ver-detalle="abrirDetalle"
-      @eliminar="confirmarEliminacion"
+      @anular="confirmarAnulacion"
     />
 
     <!-- Paginador -->
@@ -58,11 +58,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useHistorialStore } from '@/stores/historialStore';
-import FiltrosHistorial from '@/components/ventas/FiltrosHistorial.vue';
-import CardsResumen from '@/components/ventas/CardsResumen.vue';
-import TablaHistorial from '@/components/ventas/TablaHistorial.vue';
-import DetalleVentaModal from '@/components/ventas/DetalleVentaModal.vue';
+import { useHistorialStore } from '@/stores/venta/historialStore';
+import FiltrosHistorial from '@/components/historialVentas/FiltrosHistorial.vue';
+import CardsResumen from '@/components/historialVentas/CardsResumen.vue';
+import TablaHistorial from '@/components/historialVentas/TablaHistorial.vue';
+import DetalleVentaModal from '@/components/historialVentas/DetalleVentaModal.vue';
 import { ventaService } from '@/services/ventaService';
 import { Paginator } from '@/utils/primevue';
 import api from '@/services/api';
@@ -147,7 +147,9 @@ const cerrarDetalle = () => {
   ventaDetalle.value = null;
 };
 
-const confirmarEliminacion = (venta) => {
+// Antes: const confirmarEliminacion = (venta) => { ... }
+// Ahora:
+const confirmarAnulacion = (venta) => {
   Swal.fire({
     title: `¿Anular venta #${venta.correlativo}?`,
     text: 'Esta acción no se puede deshacer.',

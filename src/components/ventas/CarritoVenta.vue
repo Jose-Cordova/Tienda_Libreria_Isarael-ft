@@ -56,7 +56,7 @@
 </template>
 
 <script setup>
-import { useVentaStore } from '@/stores/ventaStore';
+import { useVentaStore } from '@/stores/venta/ventaStore';
 import { Button } from '@/utils/primevue';
 
 const ventaStore = useVentaStore();

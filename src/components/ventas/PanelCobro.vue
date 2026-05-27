@@ -12,15 +12,12 @@
       </div>
     </div>
 
-    <!-- Indicador de venta al crédito (con opción de cancelar) -->
+    <!-- Indicador de venta al crédito -->
     <div v-if="ventaStore.estado === 'CREDITO'" class="flex flex-col gap-1 bg-shop-yellow-pale text-shop-yellow font-bold text-sm px-3 py-2 rounded-shop-sm">
       <div class="flex items-center gap-2">
         <i class="pi pi-book"></i> VENTA AL CRÉDITO (Fiado)
       </div>
-      <button
-        @click="cancelarCredito"
-        class="text-xs underline hover:text-shop-red transition-colors self-start"
-      >
+      <button @click="cancelarCredito" class="text-xs underline hover:text-shop-red transition-colors self-start">
         Cancelar crédito
       </button>
     </div>
@@ -48,14 +45,14 @@
         </Dropdown>
       </div>
 
-      <!-- Método de pago: solo se muestra si NO es crédito -->
+      <!-- Método de pago: solo si no es crédito -->
       <div v-if="ventaStore.estado !== 'CREDITO'" class="flex flex-col gap-1">
         <label class="text-[11px] font-bold text-shop-text-2 uppercase flex items-center gap-1">
           <i class="pi pi-credit-card text-[10px]"></i> Método de Pago
         </label>
         <Dropdown
           v-model="ventaStore.metodo_pago_id"
-          :options="metodosPago"
+          :options="ventaStore.metodosPago"
           optionLabel="nombre"
           optionValue="id"
           class="w-full font-bold"
@@ -64,15 +61,15 @@
           <template #value="slotProps">
             <div v-if="slotProps.value" class="flex items-center gap-2">
               <i class="pi pi-wallet text-shop-green"></i>
-              <span>{{ metodosPago.find(m => m.id === slotProps.value)?.nombre }}</span>
+              <span>{{ ventaStore.metodosPago.find(m => m.id === slotProps.value)?.nombre }}</span>
             </div>
           </template>
         </Dropdown>
       </div>
     </div>
 
-    <!-- Monto recibido y vuelto (solo si es PAGADA) -->
-    <div v-if="ventaStore.estado !== 'CREDITO'" class="bg-shop-surface-2 p-3 rounded-shop border border-shop-border mt-1">
+    <!-- Monto recibido y vuelto (solo PAGADA y NO transferencia) -->
+    <div v-if="ventaStore.estado !== 'CREDITO' && !ventaStore.isTransferencia" class="bg-shop-surface-2 p-3 rounded-shop border border-shop-border mt-1">
       <label class="text-[11px] font-bold text-shop-text-2 uppercase mb-1 block">El cliente pagó con:</label>
       <div class="p-inputgroup">
         <span class="p-inputgroup-addon bg-white font-bold text-shop-green">$</span>
@@ -81,8 +78,11 @@
           mode="decimal"
           :minFractionDigits="2"
           :maxFractionDigits="2"
-          placeholder="0,00"
+          placeholder="0.00"
           class="font-bold"
+          :locale="'es-SV'"
+          :decimalSeparator="','"
+          :thousandSeparator="'.'"
         />
       </div>
 
@@ -92,8 +92,16 @@
         <span class="text-lg">${{ Math.abs(cambio).toFixed(2) }}</span>
       </div>
     </div>
+
+    <!-- Mensaje cuando es transferencia -->
+    <div v-else-if="ventaStore.estado !== 'CREDITO' && ventaStore.isTransferencia" class="text-center text-shop-text-3 text-sm py-2">
+      <i class="pi pi-building-columns text-lg mb-1 block"></i>
+      Pago por transferencia bancaria. No requiere vuelto.
+    </div>
+
+    <!-- Mensaje cuando es crédito -->
     <div v-else class="text-center text-shop-text-3 text-sm py-2">
-      La venta se registrará como venta al CREDITO.
+      La venta se registrará como venta al CRÉDITO.
     </div>
 
     <!-- Acciones finales -->
@@ -116,7 +124,7 @@
       </div>
 
       <!-- Botón Crédito -->
-      <button @click="abrirModalCredito"
+      <button @click="abrirDialogoCredito"
         class="w-full py-2 border-2 border-shop-green text-shop-green font-bold rounded-shop-sm hover:bg-shop-green-pale transition-colors flex items-center justify-center gap-2 mt-1"
         :class="{ 'bg-shop-green text-white hover:bg-shop-green-dark': ventaStore.estado === 'CREDITO' }">
         <i class="pi pi-book"></i>
@@ -137,9 +145,9 @@
       </button>
     </div>
 
-    <!-- Modal de Crédito -->
+    <!-- Diálogo de Crédito (buscar existente + nuevo) -->
     <Dialog
-      v-model:visible="mostrarModalCredito"
+      v-model:visible="mostrarDialogoCredito"
       modal
       header="Cliente Crédito"
       :style="{ width: '450px' }"
@@ -148,21 +156,21 @@
       <div class="pt-2 flex flex-col gap-4">
         <div class="flex border-b border-shop-border">
           <button
-            @click="modoCredito = 'buscar'"
+            @click="modoDialogo = 'buscar'"
             class="flex-1 pb-2 text-sm font-bold transition-colors border-b-2"
-            :class="modoCredito === 'buscar' ? 'border-shop-green text-shop-green' : 'border-transparent text-shop-text-3 hover:text-shop-text'"
+            :class="modoDialogo === 'buscar' ? 'border-shop-green text-shop-green' : 'border-transparent text-shop-text-3 hover:text-shop-text'"
           >Buscar Existente</button>
           <button
-            @click="modoCredito = 'nuevo'"
+            @click="modoDialogo = 'nuevo'"
             class="flex-1 pb-2 text-sm font-bold transition-colors border-b-2"
-            :class="modoCredito === 'nuevo' ? 'border-shop-green text-shop-green' : 'border-transparent text-shop-text-3 hover:text-shop-text'"
+            :class="modoDialogo === 'nuevo' ? 'border-shop-green text-shop-green' : 'border-transparent text-shop-text-3 hover:text-shop-text'"
           >Registrar Nuevo</button>
         </div>
 
-        <div v-if="modoCredito === 'buscar'" class="flex flex-col gap-1 py-2">
+        <div v-if="modoDialogo === 'buscar'" class="flex flex-col gap-1 py-2">
           <label class="text-xs font-bold text-shop-text-2 uppercase">Seleccionar de la base de datos</label>
           <Dropdown
-            v-model="ventaStore.cliente_credito_id"
+            v-model="clienteExistenteSeleccionado"
             :options="clientesCredito"
             optionLabel="nombre"
             optionValue="id"
@@ -178,51 +186,25 @@
               </div>
             </template>
           </Dropdown>
-        </div>
-
-        <div v-if="modoCredito === 'nuevo'" class="flex flex-col gap-3 py-2">
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-shop-text-2 uppercase">Nombre Completo *</label>
-            <InputText
-              v-model="nuevoCliente.nombre"
-              placeholder="Ej. Juan Pérez"
-              class="w-full rounded-shop-sm"
-              maxlength="50"
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-shop-text-2 uppercase">DUI *</label>
-            <InputText
-              v-model="nuevoCliente.dui"
-              placeholder="00000000-0"
-              class="w-full rounded-shop-sm"
-              maxlength="10"
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-shop-text-2 uppercase">Teléfono (Opcional)</label>
-            <InputText
-              v-model="nuevoCliente.telefono"
-              placeholder="Ej. 7777-7777"
-              class="w-full rounded-shop-sm"
-              maxlength="20"
-            />
+          <div class="flex justify-end gap-2 mt-4">
+            <Button label="Cancelar" icon="pi pi-times" text severity="secondary" @click="mostrarDialogoCredito = false" class="rounded-shop-sm" />
+            <Button label="Asignar Existente" icon="pi pi-check" severity="success" @click="asignarClienteExistente" :disabled="!clienteExistenteSeleccionado" class="rounded-shop-sm" />
           </div>
         </div>
 
-        <div class="flex justify-end gap-2 mt-2">
-          <Button label="Cancelar" icon="pi pi-times" text severity="secondary" @click="mostrarModalCredito = false" class="rounded-shop-sm" />
-          <Button
-            label="Confirmar Crédito"
-            icon="pi pi-check"
-            severity="success"
-            @click="confirmarCredito"
-            :disabled="botonConfirmarDeshabilitado"
-            class="rounded-shop-sm"
-          />
+        <div v-if="modoDialogo === 'nuevo'" class="flex flex-col items-center py-4">
+          <p class="text-sm text-shop-text-2 mb-4">Registre un nuevo cliente crédito</p>
+          <Button label="Abrir formulario nuevo cliente" icon="pi pi-user-plus" severity="info" @click="abrirModalNuevoCliente" class="rounded-shop-sm" />
+          <Button label="Volver" icon="pi pi-arrow-left" text severity="secondary" @click="modoDialogo = 'buscar'" class="mt-2 rounded-shop-sm" />
         </div>
       </div>
     </Dialog>
+
+    <!-- Modal de registro de cliente (usa ClienteCreditoModal) -->
+    <ClienteCreditoModal
+      v-model:visible="mostrarModalNuevoCliente"
+      @clienteGuardado="onClienteNuevoGuardado"
+    />
 
     <!-- Diálogo de confirmación antes de finalizar -->
     <Dialog
@@ -243,28 +225,15 @@
               {{ ventaStore.estado === 'CREDITO' ? 'Crédito (Fiado)' : metodoPagoNombre }}
             </p>
             <p v-if="ventaStore.estado === 'CREDITO'">
-              <span class="font-bold">Venta al crédito:</span>
-              {{ ventaStore.nombre_cliente || clientesCredito.find(c => c.id === ventaStore.cliente_credito_id)?.nombre || 'Cliente' }}
+              <span class="font-bold">Cliente:</span>
+              {{ ventaStore.nombre_cliente || clientesCredito.find(c => c.id === ventaStore.cliente_credito_id)?.nombre || 'Nuevo cliente' }}
             </p>
           </div>
         </div>
 
         <div class="flex justify-end gap-2">
-          <Button
-            label="Cancelar"
-            icon="pi pi-times"
-            text
-            severity="secondary"
-            @click="mostrarConfirmacionVenta = false"
-            class="rounded-shop-sm"
-          />
-          <Button
-            label="Confirmar Venta"
-            icon="pi pi-check"
-            severity="success"
-            @click="confirmarVentaDefinitiva"
-            class="rounded-shop-sm"
-          />
+          <Button label="Cancelar" icon="pi pi-times" text severity="secondary" @click="mostrarConfirmacionVenta = false" class="rounded-shop-sm" />
+          <Button label="Confirmar Venta" icon="pi pi-check" severity="success" @click="confirmarVentaDefinitiva" class="rounded-shop-sm" />
         </div>
       </div>
     </Dialog>
@@ -272,136 +241,134 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useVentaStore } from '@/stores/ventaStore';
+import { ref, computed, onMounted } from 'vue';
+import { useVentaStore } from '@/stores/venta/ventaStore';
 import { useToast } from 'primevue/usetoast';
+import Swal from 'sweetalert2';
 import api from '@/services/api';
-import { Dropdown, InputNumber, Dialog, Button, InputText } from '@/utils/primevue';
+import { Dropdown, InputNumber, Dialog, Button } from '@/utils/primevue';
+import ClienteCreditoModal from './ClienteCreditoModal.vue';
 
 const ventaStore = useVentaStore();
 const toast = useToast();
 
 const montoRecibido = ref(null);
-const mostrarModalCredito = ref(false);
 const opcionImprimirTicket = ref(false);
-const modoCredito = ref('buscar');
-const nuevoCliente = ref({ nombre: '', dui: '', telefono: '' });
 const loading = ref(false);
-const mostrarConfirmacionVenta = ref(false);
 
-const metodosPago = ref([]);
+// Estado del diálogo de crédito
+const mostrarDialogoCredito = ref(false);
+const modoDialogo = ref('buscar');
+const clienteExistenteSeleccionado = ref(null);
+const mostrarModalNuevoCliente = ref(false);
+
 const clientesCredito = ref([]);
 
 onMounted(async () => {
   try {
-    const [mpRes, ccRes] = await Promise.all([
-      api.get('/metodos-pagos'),
-      api.get('/clientes-creditos'),
-    ]);
-    metodosPago.value = mpRes.data;
-    clientesCredito.value = ccRes.data;
+    // Cargar métodos de pago desde el store
+    await ventaStore.cargarMetodosPago();
+    // Cargar clientes crédito
+    const { data } = await api.get('/clientes-creditos');
+    clientesCredito.value = data;
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar datos de configuración', life: 4000 });
   }
 });
 
-// Watcher para el DUI (guión automático)
-watch(() => nuevoCliente.value.dui, (val) => {
-  if (!val) return;
-  const soloDigitos = val.replace(/\D/g, '');
-  let formateado = soloDigitos;
-  if (soloDigitos.length >= 9) {
-    formateado = soloDigitos.slice(0, 8) + '-' + soloDigitos.slice(8, 9);
-  } else if (soloDigitos.length > 8) {
-    formateado = soloDigitos.slice(0, 8) + '-' + soloDigitos.slice(8);
-  }
-  if (val !== formateado) {
-    nuevoCliente.value.dui = formateado;
-  }
-});
-
+// Computed
 const cambio = computed(() => {
   if (!montoRecibido.value) return 0;
   return montoRecibido.value - ventaStore.total;
 });
 
 const metodoPagoNombre = computed(() => {
-  const metodo = metodosPago.value.find(m => m.id === ventaStore.metodo_pago_id);
+  const metodo = ventaStore.metodosPago.find(m => m.id === ventaStore.metodo_pago_id);
   return metodo ? metodo.nombre : 'No seleccionado';
 });
 
-const botonConfirmarDeshabilitado = computed(() => {
-  if (modoCredito.value === 'buscar') {
-    return !ventaStore.cliente_credito_id;
-  } else {
-    return nuevoCliente.value.nombre.trim() === '' || nuevoCliente.value.dui.trim() === '';
-  }
-});
-
-const abrirModalCredito = () => {
-  mostrarModalCredito.value = true;
+// Métodos de crédito
+const abrirDialogoCredito = () => {
+  clienteExistenteSeleccionado.value = ventaStore.cliente_credito_id || null;
+  modoDialogo.value = 'buscar';
+  mostrarDialogoCredito.value = true;
 };
 
-const confirmarCredito = () => {
-  if (modoCredito.value === 'nuevo') {
-    ventaStore.cliente_credito_id = null;
-    ventaStore.nombre_cliente = nuevoCliente.value.nombre;
-    ventaStore.dui_cliente = nuevoCliente.value.dui;
-    ventaStore.telefono_cliente = nuevoCliente.value.telefono || null;
-  } else {
-    ventaStore.nombre_cliente = null;
-    ventaStore.dui_cliente = null;
-    ventaStore.telefono_cliente = null;
+const asignarClienteExistente = () => {
+  if (clienteExistenteSeleccionado.value) {
+    ventaStore.setClienteExistente(clienteExistenteSeleccionado.value);
+    mostrarDialogoCredito.value = false;
+    toast.add({ severity: 'info', summary: 'Venta al crédito', detail: 'Cliente existente asignado.', life: 3000 });
   }
+};
 
-  ventaStore.estado = 'CREDITO';
-  mostrarModalCredito.value = false;
-  toast.add({ severity: 'info', summary: 'Venta al crédito', detail: 'Se registrará como fiado.', life: 3000 });
-  nuevoCliente.value = { nombre: '', dui: '', telefono: '' };
-  modoCredito.value = 'buscar';
+const abrirModalNuevoCliente = () => {
+  mostrarModalNuevoCliente.value = true;
+};
+
+const onClienteNuevoGuardado = (datosCliente) => {
+  ventaStore.setClienteNuevo(datosCliente);
+  mostrarDialogoCredito.value = false;
+  toast.add({ severity: 'success', summary: 'Cliente registrado', detail: 'Venta al crédito con nuevo cliente.', life: 3000 });
 };
 
 const cancelarCredito = () => {
-  ventaStore.estado = 'PAGADA';
-  ventaStore.cliente_credito_id = null;
-  ventaStore.nombre_cliente = null;
-  ventaStore.dui_cliente = null;
-  ventaStore.telefono_cliente = null;
-  toast.add({
-    severity: 'info',
-    summary: 'Crédito cancelado',
-    detail: 'La venta volvió a ser de contado.',
-    life: 3000
-  });
+  ventaStore.cancelarCredito();
+  toast.add({ severity: 'info', summary: 'Crédito cancelado', detail: 'La venta volvió a ser de contado.', life: 3000 });
 };
 
+// Confirmación con SweetAlert2 y procesamiento de venta
 const abrirConfirmacionVenta = () => {
   if (ventaStore.estado !== 'CREDITO' && !ventaStore.metodo_pago_id) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Seleccione un método de pago', life: 3000 });
     return;
   }
-  if (ventaStore.estado === 'PAGADA' && (montoRecibido.value === null || cambio.value < 0)) {
-    toast.add({ severity: 'error', summary: 'Error de cobro', detail: 'El monto recibido es menor al total.', life: 3000 });
-    return;
+  // Si es PAGADA y no es transferencia, validar monto recibido
+  if (ventaStore.estado === 'PAGADA' && !ventaStore.isTransferencia) {
+    if (montoRecibido.value === null || cambio.value < 0) {
+      toast.add({ severity: 'error', summary: 'Error de cobro', detail: 'El monto recibido es menor al total.', life: 3000 });
+      return;
+    }
   }
-  mostrarConfirmacionVenta.value = true;
-};
 
-const confirmarVentaDefinitiva = () => {
-  mostrarConfirmacionVenta.value = false;
-  procesarVenta();
+  Swal.fire({
+    title: '¿Confirmar venta?',
+    html: `
+      <p>Total: <strong>$${ventaStore.total.toFixed(2)}</strong></p>
+      <p>Tipo de cliente: ${ventaStore.tipo_cliente === 'MAYORISTA' ? 'Mayorista' : 'Detalles'}</p>
+      <p>Método de pago: ${ventaStore.estado === 'CREDITO' ? 'Crédito (Fiado)' : metodoPagoNombre.value}</p>
+      ${ventaStore.estado === 'CREDITO' ? `<p>Cliente: ${ventaStore.nombre_cliente || clientesCredito.value.find(c => c.id === ventaStore.cliente_credito_id)?.nombre || 'Nuevo cliente'}</p>` : ''}
+    `,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, finalizar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#22c55e',
+    cancelButtonColor: '#6b7280',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      procesarVenta();
+    }
+  });
 };
 
 const procesarVenta = async () => {
   loading.value = true;
+  const eraCredito = ventaStore.estado === 'CREDITO';
   try {
     const response = await ventaStore.confirmarVenta();
     toast.add({ severity: 'success', summary: 'Venta Exitosa', detail: `Correlativo: ${response.venta.correlativo}`, life: 5000 });
-
+    if (eraCredito) {
+      try {
+        const { data } = await api.get('/clientes-creditos');
+        clientesCredito.value = data;
+      } catch (e) {
+        console.warn('No se pudo refrescar la lista de clientes crédito.');
+      }
+    }
     if (opcionImprimirTicket.value) {
       console.log("Ticket pendiente para venta ID:", response.venta.id);
     }
-
     limpiarTodo();
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'No se pudo registrar la venta', life: 5000 });
