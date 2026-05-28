@@ -34,7 +34,7 @@
           <i class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[9px]"></i>
         </div>
         <!-- Filtros de fecha -->
-         <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2">
             <Calendar
               v-model="store.filtros.fecha_inicio"
               placeholder="Desde"
