@@ -497,9 +497,6 @@
 
   //Navegacion
   const finalizarPaso = () => {
-    if(productosAgregados.value.length === 0){
-      return Swal.fire('Error', 'Agregue al menos un producto para continuar', 'error')
-    }
     //Validacion de campos vacios
     let incompleto = false
     productosAgregados.value.forEach(p => {
@@ -515,7 +512,7 @@
       }
     })
     if(incompleto){
-      return Swal.fire('Datos faltantes', 'Por favor complete todos los campos de precios, lotes y cantidades.', 'warning')
+      return Swal.fire('Datos faltantes', 'Por favor complete todos los campos de precios, cantidades y lotes si es PERECEDERO.', 'warning')
     }
     emit('siguiente', { detalles: productosAgregados.value })
   }
