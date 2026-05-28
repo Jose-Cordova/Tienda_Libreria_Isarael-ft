@@ -227,7 +227,7 @@
         // Notificamos al Wizard que hemos terminado
         emit('finalizar');
 
-      } catch (error) {
+      }catch(error){
         console.error("Error al registrar:", error);
 
         let errorMsg = "No se pudo registrar la compra.";

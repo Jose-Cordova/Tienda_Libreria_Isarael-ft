@@ -66,7 +66,7 @@
 
   //Estado global del registro
   const pasoActual = ref(1)
-  const nombresPasos = ['Factura y Proveedor', 'Productos y Lotes', 'Revisión Final','Confirmación']
+  const nombresPasos = ['Factura y Proveedor', 'Productos y Lotes', 'Revisión y Confirmación']
 
   //Objeto que viajara por todos los pasos guardando la informacion
   const compraTemporal = ref({

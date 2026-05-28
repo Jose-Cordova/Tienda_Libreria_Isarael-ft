@@ -46,6 +46,7 @@
               dateFormat="yy-mm-dd"
               showIcon
               placeholder="Seleccione la fecha"
+              :maxDate="hoy"
             />
           </div>
           <!-- Selección de Proveedor -->
@@ -88,6 +89,7 @@
   const props = defineProps({
     datos: Object
   })
+  const hoy = new Date()
   const emit = defineEmits(['siguiente', 'atras'])
   const proveedorStore = useProveedorStore()
 
