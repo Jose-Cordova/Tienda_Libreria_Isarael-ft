@@ -198,3 +198,17 @@ const anularAbono = (abono) => {
   abono.estado = 'ANULADO';
 };
 </script>
+
+<style scoped>
+.p-inputtext {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #c6e5d3;
+  border-radius: 4px;
+}
+</style>

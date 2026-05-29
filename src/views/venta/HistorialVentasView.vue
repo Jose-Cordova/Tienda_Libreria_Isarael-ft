@@ -175,6 +175,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.p-inputtext {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+}
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -182,5 +186,15 @@ onMounted(() => {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #c6e5d3;
   border-radius: 4px;
+}
+:deep(.custom-paginator) {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+:deep(.p-paginator-page.p-highlight) {
+  background: #0b580b !important;
+  color: white !important;
+  font-weight: bold;
 }
 </style>
