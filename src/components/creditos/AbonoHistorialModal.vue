@@ -15,7 +15,7 @@
         </button>
       </div>
 
-      <!-- Cuerpo -->
+      <!-- Cuerpo Credito-->
       <div class="p-6">
         <div v-if="abonos.length === 0" class="py-10 text-center text-gray-500 italic font-bold">
           No hay abonos registrados para este crédito.
