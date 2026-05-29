@@ -29,7 +29,7 @@
                 <th class="py-2 px-3">Monto</th>
                 <th class="py-2 px-3">Método</th>
                 <th class="py-2 px-3">Estado</th>
-                <th class="py-2 px-3 text-center">Acciones</th>
+                <th class="py-2 px-3">Acciones</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">

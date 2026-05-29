@@ -44,10 +44,10 @@
             <p class="font-extrabold text-lg text-[#0a3622]">${{ Number(venta.total).toFixed(2) }}</p>
           </div>
           <div v-if="venta.credito">
-            <p class="text-gray-800 font-bold">Cliente crédito</p>
+            <p class="text-gray-900 font-bold">Cliente crédito</p>
             <p class="font-bold text-gray-600">
               {{ venta.credito.cliente_credito?.nombre || '-' }} <br>
-              <span class="text-xs text-gray-400">DUI: {{ venta.credito.cliente_credito?.dui }}</span>
+              <span class="text-xs text-gray-600">DUI: {{ venta.credito.cliente_credito?.dui }}</span>
             </p>
           </div>
         </div>
