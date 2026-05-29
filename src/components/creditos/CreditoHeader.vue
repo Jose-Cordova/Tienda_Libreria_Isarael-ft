@@ -1,7 +1,7 @@
 <template>
-  <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-100">
+  <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
     <div class="flex items-center gap-3">
-      <i class="pi pi-credit-card text-xl text-blue-500"></i>
+      <i class="pi pi-credit-card text-xl text-green-600"></i>
       <h1 class="text-lg font-extrabold text-[#0a3622]">Crédito/Fiados</h1>
     </div>
 
@@ -12,16 +12,16 @@
         :options="opcionesEstadoCredito"
         optionLabel="label"
         placeholder="Todos los créditos"
-        class="p-dropdown-sm border-gray-200 text-xs w-48"
+        class="p-dropdown-sm border-gray-500 rounded-lg text-sm text-[#0a3622] w-48 focus:border-green-600"
       />
 
-      <span class="p-input-icon-left text-xs">
-        <i class="pi pi-search text-gray-400" />
+      <span class="relative">
+        <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-black text-sm z-10"></i>
         <InputText
           :modelValue="buscarCliente"
           @update:modelValue="$emit('update:buscarCliente', $event)"
           placeholder="Buscar cliente..."
-          class="p-inputtext-sm border-gray-200 focus:border-green-600 w-48 text-xs"
+          class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-56 focus:border-green-600"
         />
       </span>
     </div>

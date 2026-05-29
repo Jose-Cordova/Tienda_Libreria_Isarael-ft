@@ -1,117 +1,82 @@
 <template>
-  <Dialog
-    :visible="visible"
-    @update:visible="$emit('update:visible', $event)"
-    :modal="true"
-    :style="{ width: '90%', maxWidth: '900px' }"
-    class="rounded-2xl overflow-hidden"
-    :header="null"
+  <div
+    v-if="visible"
+    class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4"
   >
-    <template v-if="cliente">
-      <div class="absolute top-0 left-0 w-full h-2 bg-[#0a3622]"></div>
+    <div class="bg-white rounded-xl w-full max-w-4xl shadow-2xl overflow-hidden animate-fade-up border border-gray-100">
+      <!-- Cabecera -->
+      <div class="bg-[#0a3622] text-white px-6 py-4 flex items-center justify-between">
+        <h2 class="text-lg font-extrabold flex items-center gap-2">
+          <i class="pi pi-wallet"></i>
+          Detalle de crédito: {{ cliente?.nombre }}
+        </h2>
+        <button @click="$emit('update:visible', false)" class="text-white/80 hover:text-white">
+          <i class="pi pi-times text-xl"></i>
+        </button>
+      </div>
 
-      <div class="p-6 pt-8">
-        <!-- Cabecera compacta -->
-        <div class="flex justify-between items-start mb-5">
-          <div class="flex items-center gap-2">
-            <i class="pi pi-wallet text-xl text-[#0a3622]"></i>
-            <h2 class="text-2xl font-extrabold text-[#0a3622]">Detalle de crédito</h2>
-          </div>
-          <Button
-            icon="pi pi-times"
-            class="p-button-rounded p-button-text p-button-sm text-gray-400 hover:text-gray-700"
-            @click="$emit('update:visible', false)"
-          />
-        </div>
-
-        <!-- Información del cliente (compacta) -->
-        <section class="bg-[#f8fbf8] border border-[#dbe9dc] rounded-xl p-4 mb-5">
-          <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-full bg-red-100 border border-red-200 flex items-center justify-center text-xl font-extrabold text-red-500">
+      <!-- Cuerpo -->
+      <div class="p-6" v-if="cliente">
+        <!-- Información del cliente (KPIs) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-[#f8fbf8] border border-[#dbe9dc] rounded-xl p-4 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-500 font-extrabold">
               {{ cliente.iniciales }}
             </div>
             <div>
-              <h2 class="text-xl font-extrabold text-[#0a3622] mb-1">{{ cliente.nombre }}</h2>
-              <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 font-semibold">
-                <div class="flex items-center gap-1">
-                  <i class="pi pi-phone text-[#0a3622] text-xs"></i>
-                  <span>{{ cliente.telefono }}</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <i class="pi pi-id-card text-[#0a3622] text-xs"></i>
-                  <span>DUI: {{ cliente.dui }}</span>
-                </div>
-              </div>
+              <p class="text-gray-500 text-[10px] uppercase font-extrabold">Cliente</p>
+              <p class="text-gray-800 font-bold text-sm">{{ cliente.nombre }}</p>
+              <p class="text-xs text-gray-400 font-bold">DUI: {{ cliente.dui }}</p>
             </div>
           </div>
-        </section>
 
-        <!-- KPIs en cards pequeñas -->
-        <section class="grid grid-cols-3 gap-3 mb-5">
           <div class="bg-white border border-red-200 border-l-[4px] border-l-red-500 rounded-lg p-3 shadow-sm">
             <p class="text-[10px] uppercase tracking-wider font-extrabold text-red-400 mb-1">Saldo pendiente</p>
-            <div class="flex items-center justify-between">
-              <h2 class="text-xl font-extrabold text-red-500">${{ cliente.kpi.saldoPendiente }}</h2>
-              <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <i class="pi pi-hourglass text-red-400 text-lg"></i>
-              </div>
-            </div>
+            <h2 class="text-xl font-extrabold text-red-500">${{ cliente.kpi.saldoPendiente.toFixed(2) }}</h2>
           </div>
+
           <div class="bg-white border border-green-200 border-l-[4px] border-l-green-600 rounded-lg p-3 shadow-sm">
             <p class="text-[10px] uppercase tracking-wider font-extrabold text-green-500 mb-1">Total abonado</p>
-            <div class="flex items-center justify-between">
-              <h2 class="text-xl font-extrabold text-[#0a3622]">${{ cliente.kpi.totalAbonado }}</h2>
-              <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <i class="pi pi-wallet text-green-500 text-lg"></i>
-              </div>
-            </div>
+            <h2 class="text-xl font-extrabold text-[#0a3622]">${{ cliente.kpi.totalAbonado.toFixed(2) }}</h2>
           </div>
-          <div class="bg-white border border-[#cfe7d1] border-l-[4px] border-l-[#0a3622] rounded-lg p-3 shadow-sm">
-            <p class="text-[10px] uppercase tracking-wider font-extrabold text-[#0a3622] mb-1">Créditos totales</p>
-            <div class="flex items-center justify-between">
-              <h2 class="text-xl font-extrabold text-[#0a3622]">{{ cliente.kpi.creditosTotales }}</h2>
-              <div class="w-10 h-10 rounded-full bg-[#dff4e4] flex items-center justify-center">
-                <i class="pi pi-file text-[#0a3622] text-lg"></i>
-              </div>
-            </div>
-          </div>
-        </section>
+        </div>
 
-        <!-- Tabla de créditos (protagonista) -->
-        <section class="bg-white border border-[#dcebdd] rounded-xl overflow-hidden">
-          <div class="flex items-center justify-between px-4 py-3 border-b border-[#e9f2ea]">
-            <h3 class="font-extrabold text-[#0a3622] uppercase tracking-wider text-xs">Créditos del cliente</h3>
-          </div>
-          <table class="w-full text-xs">
-            <thead class="bg-[#edf6ef] text-[#0a3622] uppercase text-[10px] tracking-wider">
-              <tr>
-                <th class="py-3 px-4 text-left">Fecha</th>
-                <th class="py-3 px-4 text-left">Monto original</th>
-                <th class="py-3 px-4 text-left">Abonado</th>
-                <th class="py-3 px-4 text-left">Saldo pendiente</th>
-                <th class="py-3 px-4 text-left">Estado</th>
-                <th class="py-3 px-4 text-center">Acciones</th>
+        <!-- Tabla de créditos -->
+        <h3 class="font-extrabold !text-gray-800 mb-2 text-sm uppercase tracking-wider">Créditos del cliente</h3>
+        <div class="overflow-x-auto border border-black rounded-lg">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#99bba7]">
+              <tr class="text-black font-bold uppercase">
+                <th class="py-2 px-3">Fecha</th>
+                <th class="py-2 px-3">Monto original</th>
+                <th class="py-2 px-3">Abonado</th>
+                <th class="py-2 px-3">Saldo pendiente</th>
+                <th class="py-2 px-3">Estado</th>
+                <th class="py-2 px-3 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody>
-              <tr v-for="credito in cliente.creditos" :key="credito.id" class="border-t border-[#eef4ef]">
-                <td class="py-3 px-4 font-medium text-gray-600">{{ credito.fecha }}</td>
-                <td class="py-3 px-4 font-extrabold text-[#0a3622]">${{ credito.montoOriginal }}</td>
-                <td class="py-3 px-4 font-bold text-green-600">${{ credito.abonado }}</td>
-                <td class="py-3 px-4 font-extrabold text-red-500">${{ credito.saldoPendiente }}</td>
-                <td class="py-3 px-4">
+            <tbody class="divide-y divide-gray-100">
+              <tr v-for="credito in cliente.creditos" :key="credito.id">
+                <td class="py-3 px-3 font-bold text-gray-600">{{ credito.fecha }}</td>
+                <td class="py-3 px-3 font-extrabold text-gray-800">${{ Number(credito.montoOriginal).toFixed(2) }}</td>
+                <td class="py-3 px-3 font-bold text-green-700">${{ Number(credito.abonado).toFixed(2) }}</td>
+                <td class="py-3 px-3 font-extrabold text-red-600">${{ Number(credito.saldoPendiente).toFixed(2) }}</td>
+                <td class="py-3 px-3">
                   <CreditoEstadoBadge :estado="credito.estado" />
                 </td>
-                <td class="py-3 px-4">
-                  <div class="flex items-center justify-center gap-1">
+                <td class="py-3 px-3">
+                  <div class="flex items-center justify-center gap-2">
                     <Button
                       icon="pi pi-eye"
-                      class="p-button-rounded p-button-sm bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"
+                      class="p-button-rounded p-button-text p-button-sm p-button-info"
+                      v-tooltip="'Ver abonos'"
                       @click="abrirHistorial(credito)"
                     />
                     <Button
+                      v-if="credito.estado !== 'PAGADO'"
                       icon="pi pi-plus"
-                      class="p-button-rounded p-button-sm bg-[#0a3622] border-none"
+                      class="p-button-rounded p-button-text p-button-sm p-button-success"
+                      v-tooltip="'Registrar abono'"
                       @click="$emit('registrar-abono', credito)"
                     />
                   </div>
@@ -119,21 +84,27 @@
               </tr>
             </tbody>
           </table>
-        </section>
+        </div>
       </div>
-    </template>
-  </Dialog>
 
-  <AbonoHistorialModal
-    v-model:visible="mostrarHistorial"
-    :abonos="abonosSeleccionados"
-    @anular-abono="$emit('anular-abono', $event)"
-  />
+      <!-- Cargando -->
+      <div v-else class="p-10 text-center text-gray-500">
+        <i class="pi pi-spin pi-spinner text-3xl"></i>
+        <p class="mt-2 text-sm font-bold">Cargando detalles...</p>
+      </div>
+    </div>
+
+    <!-- Modal de historial de abonos -->
+    <AbonoHistorialModal
+      v-model:visible="mostrarHistorial"
+      :abonos="abonosSeleccionados"
+      @anular-abono="$emit('anular-abono', $event)"
+    />
+  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import CreditoEstadoBadge from './CreditoEstadoBadge.vue';
 import AbonoHistorialModal from './AbonoHistorialModal.vue';
@@ -153,3 +124,13 @@ const abrirHistorial = (credito) => {
   mostrarHistorial.value = true;
 };
 </script>
+
+<style scoped>
+.animate-fade-up {
+  animation: fadeUp 0.3s ease-out forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
