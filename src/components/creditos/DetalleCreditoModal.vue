@@ -24,9 +24,9 @@
               {{ cliente.iniciales }}
             </div>
             <div>
-              <p class="text-gray-500 text-[10px] uppercase font-extrabold">Cliente</p>
-              <p class="text-gray-800 font-bold text-sm">{{ cliente.nombre }}</p>
-              <p class="text-xs text-gray-400 font-bold">DUI: {{ cliente.dui }}</p>
+              <p class="text-gray-800 text-[10px] uppercase font-extrabold">Cliente</p>
+              <p class="text-gray-600 font-bold text-sm">{{ cliente.nombre }}</p>
+              <p class="text-xs text-gray-600 font-bold">DUI: {{ cliente.dui }}</p>
             </div>
           </div>
 
