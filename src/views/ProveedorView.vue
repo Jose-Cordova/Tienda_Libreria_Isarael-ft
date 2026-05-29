@@ -198,9 +198,6 @@
   }
 
   const procesarGuradado = async () => {
-    if(!formulario.value.nombre || !formulario.value.telefono || !formulario.value.email){
-      return Swal.fire('Atención', 'Nombre, Teléfono y Email son obligatorios', 'warning');
-    }
     enviando.value = true
     try{
       if(esEdicion.value) {
@@ -211,8 +208,26 @@
         Swal.fire({ icon: 'success', title: '¡Guardado!', showConfirmButton: false, timer: 1500 })
       }
       mostrarModal.value = false
-    }catch(err){
-      Swal.fire('Error', err.response?.data?.message || 'Error en el servidor', 'error')
+    }catch(error){
+        console.error("Error al registrar:", error);
+
+        let errorMsg = "No se pudo registrar la compra.";
+
+        if (error.response?.data?.errors) {
+          // Si hay errores de validación, los aplanamos
+          const validationErrors = error.response.data.errors;
+          errorMsg = Object.values(validationErrors).flat().join('<br>');
+        } else if (error.response?.data?.message) {
+          // Si hay un mensaje directo del servidor
+          errorMsg = error.response.data.message;
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de Registro',
+          html: errorMsg,
+          confirmButtonColor: '#0a3622'
+        });
     }finally{
       enviando.value = false
     }
@@ -230,7 +245,12 @@
       Swal.fire({ icon: 'success', title: '¡Eliminado!', showConfirmButton: false, timer: 1500 })
       mostrarModalEliminar.value = false
     }catch(err){
-      Swal.fire('Error', err.response?.data?.message || 'No se pudo eliminar', 'error')
+      Swal.fire({
+        title:'Error',
+        text: err.response?.data?.message || 'No se pudo eliminar',
+        icon: 'error',
+        confirmButtonColor: '#0a3622'
+      })
       mostrarModalEliminar.value = false
     }
   }

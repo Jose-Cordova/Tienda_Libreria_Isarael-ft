@@ -75,6 +75,19 @@
           </RouterLink>
         </div>
       </div>
+      <div class="mb-6">
+        <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Administración</p>
+        <div class="space-y-0.5">
+          <RouterLink to="/usuarios" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-users text-lg text-shop-accent"></i>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Usuarios</span>
+          </RouterLink>
+          <RouterLink to="/roles" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-key text-lg text-shop-accent"></i>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Roles</span>
+          </RouterLink>
+        </div>
+      </div>
     </div>
   </aside>
 </template>

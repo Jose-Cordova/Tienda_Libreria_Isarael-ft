@@ -210,14 +210,25 @@
   const confirmarAnular = async() => {
     try{
       await store.anularCompra(compraAnular.value.id)
-      Swal.fire({ icon: 'success', title: '¡Hecho!', text: 'La compra ha sido anulada.', showConfirmButton: false, timer: 2500 })
+      Swal.fire({
+        icon: 'success',
+        title: '¡Hecho!',
+        text: 'La compra ha sido anulada.',
+        showConfirmButton: false,
+        timer: 2500
+        })
       mostrarAnular.value = false
     }catch(err){
+      mostrarAnular.value = false
       const mgs = err.response?.data?.message || 'Error al anular la compra.'
-      Swal.fire('Error', mgs, 'error')
+      Swal.fire({
+        title: 'Error',
+        text: mgs,
+        icon: 'error',
+        confirmButtonColor: '#0a3622'
+      })
     }
   }
-
 </script>
 
 <style scoped>
