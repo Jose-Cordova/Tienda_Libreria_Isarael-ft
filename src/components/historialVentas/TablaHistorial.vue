@@ -31,12 +31,24 @@
               <div class="text-[10px] text-gray-400 font-bold">{{ venta.hora }}</div>
             </td>
 
-            <!-- Productos -->
+            <!-- Productos (primeros 2 + resto) -->
             <td class="py-4 px-5">
-              <div class="font-bold text-gray-800">{{ venta.productos }}</div>
-              <div class="text-[10px] text-gray-400 font-bold">
-                {{ venta.itemsCount }} items
-              </div>
+              <!-- Separamos los nombres de productos en un array -->
+              <template v-if="venta.productos">
+                <div class="font-bold text-gray-800 text-xs leading-tight">
+                  <!-- Mostramos máximo 2 nombres -->
+                  {{ venta.productos.split(', ').slice(0, 2).join(', ') }}
+                </div>
+                <div v-if="venta.itemsCount > 2" class="text-[10px] text-gray-400 font-bold mt-0.5">
+                  + {{ venta.itemsCount - 2 }} producto(s) más
+                </div>
+                <div v-else class="text-[10px] text-gray-400 font-bold">
+                  {{ venta.itemsCount }} item(s)
+                </div>
+              </template>
+              <template v-else>
+                <div class="text-gray-400 text-xs">Sin productos</div>
+              </template>
             </td>
 
             <!-- Método de pago -->
@@ -119,7 +131,6 @@ defineEmits(['ver-detalle', 'anular']);
 </script>
 
 <style scoped>
-/* Scroll suave si hay muchas columnas en pantallas pequeñas */
 .overflow-x-auto::-webkit-scrollbar {
   height: 6px;
 }
