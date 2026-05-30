@@ -77,6 +77,31 @@ const router = createRouter({
           path: 'compras',
           name: 'compras',
           component: () => import('../views/compra/CompraIndex.vue')
+        },
+        {
+          path: 'usuarios',
+          name: 'usuarios',
+          component: () => import('../views/UsuarioView.vue')
+        },
+        {
+          path: 'roles',
+          name: 'roles',
+          component: () => import('../views/RolView.vue')
+        },
+        {
+          path: 'productos-danados',
+          name: 'productos-danados',
+          component: () => import('../views/ProductoDanado.vue')
+        },
+        {
+          path: 'devoluciones-compras',
+          name: 'devoluciones-compras',
+          component: () => import('../views/DevolucionCompraView.vue')
+        },
+        {
+          path: 'cronograma-proveedores',
+          name: 'cronograma-proveedores',
+          component: () => import('../views/CronogramaView.vue')
         }
       ]
     }
