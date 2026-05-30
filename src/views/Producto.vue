@@ -100,15 +100,14 @@
           </tbody>
         </table>
       </div>
-      <!-- Paginación -->
+      <!-- Paginación (fija a 10 productos por página, sin selector de cantidad) -->
       <div class="p-3 border-t border-gray-400 bg-gray-50/50">
         <Paginator
-          :rows="perPage"
+          :rows="10"
           :totalRecords="pagination.total"
-          :rowsPerPageOptions="[5, 10, 20, 30]"
-          :first="(pagination.current_page - 1) * perPage"
+          :first="(pagination.current_page - 1) * 10"
           @page="cambiarPagina"
-          template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+          template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
           class="custom-paginator text-[10px]"
         />
       </div>
@@ -312,7 +311,7 @@ const dialogoTipoVisible = ref(false)
 const mostrarModalProducto = ref(false)
 const esEdicion = ref(false)
 const loading = ref(false)
-const perPage = ref(5)
+// Se elimina la variable perPage, ahora fijo a 10
 const productoForm = ref({
   id: null, nombre: '', categoria_id: null, marca_id: null, unidad_medida_id: null,
   precio_detalle: null, precio_mayor: null, stock_minimo: 1, perecedero: false,
@@ -325,7 +324,7 @@ const nuevaCategoria = ref({ nombre: '' })
 const nuevaMarca = ref({ nombre: '' })
 const nuevaUnidad = ref({ nombre: '', equivalencia: 1 })
 
-// Toast nativo
+// Toast nativo (sin cambios)
 const toast = ref({ visible: false, tipo: 'success', mensaje: '' })
 let toastTimer = null
 const mostrarToast = (tipo, mensaje) => {
@@ -342,15 +341,15 @@ const pagination = computed(() => productoStore.pagination)
 
 const formatPrice = (value) => Number(value).toFixed(2)
 
+// Cargar productos: siempre per_page = 10
 const cargarProductos = async (page = null) => {
-  const params = { page: page ?? pagination.value.current_page ?? 1, per_page: perPage.value }
+  const params = { page: page ?? pagination.value.current_page ?? 1, per_page: 10 }
   if (buscar.value) params.search = buscar.value
   await productoStore.fetchProductos(params)
 }
 
 const cambiarPagina = async (event) => {
-  perPage.value = event.rows
-  const params = { page: event.page + 1, per_page: event.rows }
+  const params = { page: event.page + 1, per_page: 10 }
   if (buscar.value) params.search = buscar.value
   await productoStore.fetchProductos(params)
 }
@@ -359,7 +358,7 @@ let timer = null
 const buscarProductos = () => {
   clearTimeout(timer)
   timer = setTimeout(async () => {
-    await productoStore.fetchProductos({ page: 1, per_page: perPage.value, search: buscar.value })
+    await productoStore.fetchProductos({ page: 1, per_page: 10, search: buscar.value })
   }, 500)
 }
 
@@ -431,13 +430,11 @@ const guardarProducto = async () => {
 
   try {
     if (esEdicion.value) {
-      // EDICIÓN → Toast flotante nativo
       await productoStore.updateProducto(productoForm.value.id, data)
       cerrarModalProducto()
       await cargarProductos()
       mostrarToast('success', 'Producto actualizado correctamente.')
     } else {
-      // CREACIÓN → Swal modal clásico
       await productoStore.createProducto(data)
       cerrarModalProducto()
       await cargarProductos()
@@ -475,7 +472,6 @@ const guardarProducto = async () => {
   }
 }
 
-// cambiarEstado usa Swal de confirmación (acción destructiva, no es edición de formulario)
 const cambiarEstado = async (id, estadoActual) => {
   const confirmacion = await Swal.fire({
     title: `¿${estadoActual === 'ACTIVO' ? 'Desactivar' : 'Activar'} producto?`,
