@@ -207,7 +207,7 @@ const ejecutarAnulacion = async () => {
 };
 
 // -----------------------------------------------
-// Carga inicial
+// Carga Inicial
 // -----------------------------------------------
 onMounted(() => {
   cargarMetodosPago();
