@@ -416,19 +416,21 @@
   const prepararNuevoProducto = async () => {
     try {
       const [resCat, resMar, resUni] = await Promise.all([
-        axios.get('http://localhost:8000/api/categorias'),
-        axios.get('http://localhost:8000/api/marcas'),
-        axios.get('http://localhost:8000/api/unidades-medidas')
+        axios.get('http://localhost:8000/api/categorias?per_page=100'),
+        axios.get('http://localhost:8000/api/marcas?per_page=100'),
+        axios.get('http://localhost:8000/api/unidades-medidas?per_page=100')
       ]);
 
-      categorias.value = resCat.data;
-      marcas.value = resMar.data;
-      unidades.value = resUni.data;
+      // Extraemos .data.data porque el backend pagina
+      categorias.value = resCat.data.data || resCat.data;
+      marcas.value = resMar.data.data || resMar.data;
+      unidades.value = resUni.data.data || resUni.data;
 
       nuevoProducto.value = { nombre: '', categoria_id: null, marca_id: null, unidad_medida_id: null, stock_minimo: 5, perecedero: 'NORMAL' };
       mostrarModalNuevo.value = true;
     } catch (error) {
-      Swal.fire('Error', 'No se pudieron cargar las listas del catálogo', error);
+      console.error("Error al cargar catálogos:", error);
+      Swal.fire('Error', 'No se pudieron cargar las listas del catálogo', 'error');
     }
   };
 

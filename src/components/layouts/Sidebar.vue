@@ -50,6 +50,10 @@
             <i class="pi pi-sliders-h text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Unidades</span>
           </RouterLink>
+          <RouterLink to="/productos-danados" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-trash text-lg text-shop-accent"></i>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Productos Dañados</span>
+          </RouterLink>
         </div>
       </div>
 
@@ -66,12 +70,27 @@
           </RouterLink>
         </div>
       </div>
+
+      <div class="mb-6">
+        <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Devoluciones</p>
+        <div class="space-y-0.5">
+          <RouterLink to="/devoluciones-compras" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-replay text-lg text-shop-accent"></i>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Devolución de Compras</span>
+          </RouterLink>
+        </div>
+      </div>
+
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Gestiones</p>
         <div class="space-y-0.5">
           <RouterLink to="/reportes" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-chart-line text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Reportes</span>
+          </RouterLink>
+          <RouterLink to="/cronograma-proveedores" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-calendar text-lg text-shop-accent"></i>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Cronograma</span>
           </RouterLink>
         </div>
       </div>
