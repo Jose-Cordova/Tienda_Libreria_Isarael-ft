@@ -47,19 +47,12 @@
       />
     </div>
 
-    <!-- Modal de detalle -->
-    <DetalleVentaModal
-      :visible="mostrarDetalle"
-      :venta="ventaDetalle"
-      @cerrar="cerrarDetalle"
-    />
-
-    <!-- MODAL: Anulación -->
+    <!-- MODAL: Anulación (ya existente) -->
     <div v-if="mostrarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4 text-center">
       <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#044e04]"></div>
         <div class="p-10">
-          <div class="flex justify-center mb-6 text-red-500"><i class="pi pi-ban text-9xl"></i></div>
+          <div class="flex justify-center mb-6 text-red-500"><i class="pi pi-ban text-6xl"></i></div>
           <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Anular esta venta?</h2>
           <p class="text-1xl text-gray-500 mb-8 font-medium">Se anulará la venta con correlativo "{{ ventaAnular?.correlativo }}".</p>
           <div class="flex items-center gap-3">
@@ -69,6 +62,13 @@
         </div>
       </div>
     </div>
+
+    <!-- MODAL DE DETALLE DE VENTA (colocado al final, fuera del flujo) -->
+    <DetalleVentaModal
+      :visible="mostrarDetalle"
+      :venta="ventaDetalle"
+      @cerrar="cerrarDetalle"
+    />
   </main>
 </template>
 
@@ -79,7 +79,6 @@ import FiltrosHistorial from '@/components/historialVentas/FiltrosHistorial.vue'
 import CardsResumen from '@/components/historialVentas/CardsResumen.vue';
 import TablaHistorial from '@/components/historialVentas/TablaHistorial.vue';
 import DetalleVentaModal from '@/components/historialVentas/DetalleVentaModal.vue';
-import { ventaService } from '@/services/ventaService';
 import { Paginator } from '@/utils/primevue';
 import api from '@/services/api';
 import Swal from 'sweetalert2';
@@ -91,7 +90,6 @@ const store = useHistorialStore();
 
 const mostrarDetalle = ref(false);
 const ventaDetalle = ref(null);
-
 const mostrarAnular = ref(false);
 const ventaAnular = ref(null);
 
@@ -121,9 +119,9 @@ const ventasFormateadas = computed(() =>
     fecha: new Date(v.fecha).toLocaleDateString('es-ES'),
     hora: new Date(v.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
     productos: v.detalle_ventas
-      .map(d => `${d.producto.nombre} x${d.cantidad}`)
-      .join(', '),
-    itemsCount: v.detalle_ventas.length,
+      ?.map(d => `${d.producto?.nombre || 'Producto'} x${d.cantidad}`)
+      .join(', ') || '',
+    itemsCount: v.detalle_ventas?.length || 0,
     metodo: v.metodo_pago?.nombre || 'Sin método',
     tipo: v.tipo_cliente === 'MAYORISTA' ? 'Mayorista' : 'Detalle',
     estado: v.estado.charAt(0) + v.estado.slice(1).toLowerCase(),
@@ -145,14 +143,26 @@ const limpiarFiltros = () => {
 };
 
 // -----------------------------------------------
-// Métodos para detalle y eliminación
+// Métodos para detalle y anulación
 // -----------------------------------------------
 const abrirDetalle = async (ventaResumen) => {
   try {
-    const ventaCompleta = await ventaService.obtenerVentaPorId(ventaResumen.id);
-    ventaDetalle.value = ventaCompleta;
+    console.log('Iniciando carga para venta ID:', ventaResumen.id);
+
+    const response = await api.get(`/ventas/${ventaResumen.id}`);
+
+    console.log('Respuesta completa de la API:', response.data);
+    console.log('Objeto venta:', response.data.venta);
+    console.log('detalle_ventas:', response.data.venta?.detalle_ventas);
+    console.log('Cantidad de detalles:', response.data.venta?.detalle_ventas?.length);
+
+    ventaDetalle.value = response.data.venta;
     mostrarDetalle.value = true;
+
+    console.log('ventaDetalle asignado:', ventaDetalle.value);
+    console.log('mostrarDetalle:', mostrarDetalle.value);
   } catch (error) {
+    console.error('Error al cargar detalle:', error);
     Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -166,18 +176,16 @@ const cerrarDetalle = () => {
   ventaDetalle.value = null;
 };
 
-// Abre el modal de confirmación
 const confirmarAnulacion = (venta) => {
   ventaAnular.value = venta;
   mostrarAnular.value = true;
 };
 
-// Ejecuta la anulación real
 const ejecutarAnulacion = async () => {
   try {
-    // Aquí iría la llamada al backend para anular, por ahora simulamos con el store si tuviera el método
-    // await store.anularVenta(ventaAnular.value.id); 
-    
+    // TODO: llamar al endpoint de anulación cuando esté implementado
+    // await store.anularVenta(ventaAnular.value.id);
+
     Swal.fire({
       icon: 'success',
       title: '¡Hecho!',
@@ -185,10 +193,9 @@ const ejecutarAnulacion = async () => {
       showConfirmButton: false,
       timer: 2500
     });
-    
+
     mostrarAnular.value = false;
-    // Recargar lista si es necesario
-    // store.fetchVentas(store.currentPage);
+    store.fetchVentas(store.currentPage);
   } catch (error) {
     mostrarAnular.value = false;
     Swal.fire({
