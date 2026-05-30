@@ -115,7 +115,7 @@ defineProps({
   }
 });
 
-defineEmits(['ver-detalle', 'eliminar']);
+defineEmits(['ver-detalle', 'anular']);
 </script>
 
 <style scoped>

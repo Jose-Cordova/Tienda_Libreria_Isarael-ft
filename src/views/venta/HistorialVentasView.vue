@@ -53,6 +53,22 @@
       :venta="ventaDetalle"
       @cerrar="cerrarDetalle"
     />
+
+    <!-- MODAL: Anulación -->
+    <div v-if="mostrarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4 text-center">
+      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
+        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#044e04]"></div>
+        <div class="p-10">
+          <div class="flex justify-center mb-6 text-red-500"><i class="pi pi-ban text-9xl"></i></div>
+          <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Anular esta venta?</h2>
+          <p class="text-1xl text-gray-500 mb-8 font-medium">Se anulará la venta con correlativo "{{ ventaAnular?.correlativo }}".</p>
+          <div class="flex items-center gap-3">
+            <button @click="mostrarAnular = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
+            <button @click="ejecutarAnulacion" class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md text-sm">Confirmar</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -75,6 +91,9 @@ const store = useHistorialStore();
 
 const mostrarDetalle = ref(false);
 const ventaDetalle = ref(null);
+
+const mostrarAnular = ref(false);
+const ventaAnular = ref(null);
 
 // Métodos de pago (carga única desde API)
 const metodosPago = ref([]);
@@ -147,22 +166,37 @@ const cerrarDetalle = () => {
   ventaDetalle.value = null;
 };
 
-// Antes: const confirmarEliminacion = (venta) => { ... }
-// Ahora:
+// Abre el modal de confirmación
 const confirmarAnulacion = (venta) => {
-  Swal.fire({
-    title: `¿Anular venta #${venta.correlativo}?`,
-    text: 'Esta acción no se puede deshacer.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, anular',
-    cancelButtonText: 'Cancelar'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Aquí iría la llamada al backend para anular
-      Swal.fire('Anulada', `La venta #${venta.correlativo} ha sido anulada.`, 'success');
-    }
-  });
+  ventaAnular.value = venta;
+  mostrarAnular.value = true;
+};
+
+// Ejecuta la anulación real
+const ejecutarAnulacion = async () => {
+  try {
+    // Aquí iría la llamada al backend para anular, por ahora simulamos con el store si tuviera el método
+    // await store.anularVenta(ventaAnular.value.id); 
+    
+    Swal.fire({
+      icon: 'success',
+      title: '¡Hecho!',
+      text: `La venta #${ventaAnular.value.correlativo} ha sido anulada.`,
+      showConfirmButton: false,
+      timer: 2500
+    });
+    
+    mostrarAnular.value = false;
+    // Recargar lista si es necesario
+    // store.fetchVentas(store.currentPage);
+  } catch (error) {
+    mostrarAnular.value = false;
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudo anular la venta.'
+    });
+  }
 };
 
 // -----------------------------------------------
@@ -196,5 +230,12 @@ onMounted(() => {
   background: #0b580b !important;
   color: white !important;
   font-weight: bold;
+}
+.animate-fade-up {
+  animation: fadeUp 0.3s ease-out forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

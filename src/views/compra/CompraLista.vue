@@ -136,7 +136,7 @@
         <div class="p-10">
           <div class="flex justify-center mb-6 text-red-500"><i class="pi pi-ban text-9xl"></i></div>
           <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Anular esta compra?</h2>
-          <p class="text-1 text-gray-500 mb-8 font-medium">Se anulara la factura "{{ compraAnular?.numero_factura }}".</p>
+          <p class="text-1xl text-gray-500 mb-8 font-medium">Se anulará la factura "{{ compraAnular?.numero_factura }}".</p>
           <div class="flex items-center gap-3">
             <button @click="mostrarAnular = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
             <button @click="confirmarAnular" class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md text-sm">Confirmar</button>
