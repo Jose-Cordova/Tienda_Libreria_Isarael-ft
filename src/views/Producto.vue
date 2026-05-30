@@ -393,8 +393,8 @@ const abrirModalEditar = (producto) => {
     categoria_id: producto.categoria_id,
     marca_id: producto.marca_id,
     unidad_medida_id: producto.unidad_medida_id,
-    precio_detalle: producto.precio_detalle,
-    precio_mayor: producto.precio_mayor,
+    precio_detalle: Number(producto.precio_detalle),   // ← conversión explícita
+    precio_mayor: Number(producto.precio_mayor),       // ← conversión explícita
     stock_minimo: producto.stock_minimo,
     perecedero: producto.perecedero === 'PERECEDERO',
     codigo_lote: '',

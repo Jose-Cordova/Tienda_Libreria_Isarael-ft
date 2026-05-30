@@ -152,6 +152,7 @@
       header="Cliente Crédito"
       :style="{ width: '450px' }"
       :pt="{ root: { class: 'rounded-shop overflow-hidden' }, header: { class: 'bg-white pb-0' } }"
+      appendTo="body"
     >
       <div class="pt-2 flex flex-col gap-4">
         <div class="flex border-b border-shop-border">
@@ -200,43 +201,32 @@
       </div>
     </Dialog>
 
-    <!-- Modal de registro de cliente (usa ClienteCreditoModal) -->
+    <!-- Modal de registro de cliente crédito (componente independiente) -->
     <ClienteCreditoModal
       v-model:visible="mostrarModalNuevoCliente"
       @clienteGuardado="onClienteNuevoGuardado"
     />
 
-    <!-- Diálogo de confirmación antes de finalizar -->
-    <Dialog
-      v-model:visible="mostrarConfirmacionVenta"
-      modal
-      header="Confirmar Venta"
-      :style="{ width: '400px' }"
-      :pt="{ root: { class: 'rounded-shop overflow-hidden' }, header: { class: 'bg-white pb-2' } }"
-    >
-      <div class="flex flex-col gap-4 pt-4">
-        <div class="text-sm text-shop-text-2">
-          <p class="font-bold mb-2">¿Está seguro de finalizar la venta?</p>
-          <div class="space-y-1">
-            <p><span class="font-bold">Total:</span> ${{ ventaStore.total.toFixed(2) }}</p>
-            <p><span class="font-bold">Tipo de cliente:</span> {{ ventaStore.tipo_cliente === 'MAYORISTA' ? 'Mayorista' : 'Detalles' }}</p>
-            <p>
-              <span class="font-bold">Método de pago:</span>
-              {{ ventaStore.estado === 'CREDITO' ? 'Crédito (Fiado)' : metodoPagoNombre }}
-            </p>
-            <p v-if="ventaStore.estado === 'CREDITO'">
-              <span class="font-bold">Cliente:</span>
-              {{ ventaStore.nombre_cliente || clientesCredito.find(c => c.id === ventaStore.cliente_credito_id)?.nombre || 'Nuevo cliente' }}
-            </p>
+    <!-- Modal de confirmación personalizado -->
+    <div v-if="mostrarConfirmarVenta" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] backdrop-blur-sm p-4 text-center">
+      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
+        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#044e04]"></div>
+        <div class="p-10">
+          <div class="flex justify-center mb-6 text-green-600"><i class="pi pi-check-circle text-6xl"></i></div>
+          <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Finalizar Venta?</h2>
+          <div class="space-y-1 mb-8">
+             <p class="text-1xl text-gray-800 font-bold">Total: <span class="font-black text-green-700">${{ ventaStore.total.toFixed(2) }}</span></p>
+             <p class="text-xs text-gray-800 font-medium uppercase tracking-wider">
+               {{ ventaStore.estado === 'CREDITO' ? 'Crédito' : metodoPagoNombre }} • {{ ventaStore.tipo_cliente }}
+             </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button @click="mostrarConfirmarVenta = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm transition-colors">Cancelar</button>
+            <button @click="ejecutarFinalizarVenta" class="flex-1 py-3 bg-[#0a3622] hover:bg-[#115033] text-white font-bold rounded-xl shadow-md text-sm transition-colors">Confirmar</button>
           </div>
         </div>
-
-        <div class="flex justify-end gap-2">
-          <Button label="Cancelar" icon="pi pi-times" text severity="secondary" @click="mostrarConfirmacionVenta = false" class="rounded-shop-sm" />
-          <Button label="Confirmar Venta" icon="pi pi-check" severity="success" @click="confirmarVentaDefinitiva" class="rounded-shop-sm" />
-        </div>
       </div>
-    </Dialog>
+    </div>
   </div>
 </template>
 
@@ -244,7 +234,6 @@
 import { ref, computed, onMounted } from 'vue';
 import { useVentaStore } from '@/stores/venta/ventaStore';
 import { useToast } from 'primevue/usetoast';
-import Swal from 'sweetalert2';
 import api from '@/services/api';
 import { Dropdown, InputNumber, Dialog, Button } from '@/utils/primevue';
 import ClienteCreditoModal from './ClienteCreditoModal.vue';
@@ -256,19 +245,17 @@ const montoRecibido = ref(null);
 const opcionImprimirTicket = ref(false);
 const loading = ref(false);
 
-// Estado del diálogo de crédito
 const mostrarDialogoCredito = ref(false);
 const modoDialogo = ref('buscar');
 const clienteExistenteSeleccionado = ref(null);
 const mostrarModalNuevoCliente = ref(false);
+const mostrarConfirmarVenta = ref(false);
 
 const clientesCredito = ref([]);
 
 onMounted(async () => {
   try {
-    // Cargar métodos de pago desde el store
     await ventaStore.cargarMetodosPago();
-    // Cargar clientes crédito
     const { data } = await api.get('/clientes-creditos');
     clientesCredito.value = data;
   } catch (error) {
@@ -276,7 +263,6 @@ onMounted(async () => {
   }
 });
 
-// Computed
 const cambio = computed(() => {
   if (!montoRecibido.value) return 0;
   return montoRecibido.value - ventaStore.total;
@@ -287,7 +273,6 @@ const metodoPagoNombre = computed(() => {
   return metodo ? metodo.nombre : 'No seleccionado';
 });
 
-// Métodos de crédito
 const abrirDialogoCredito = () => {
   clienteExistenteSeleccionado.value = ventaStore.cliente_credito_id || null;
   modoDialogo.value = 'buscar';
@@ -317,39 +302,23 @@ const cancelarCredito = () => {
   toast.add({ severity: 'info', summary: 'Crédito cancelado', detail: 'La venta volvió a ser de contado.', life: 3000 });
 };
 
-// Confirmación con SweetAlert2 y procesamiento de venta
 const abrirConfirmacionVenta = () => {
   if (ventaStore.estado !== 'CREDITO' && !ventaStore.metodo_pago_id) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Seleccione un método de pago', life: 3000 });
     return;
   }
-  // Si es PAGADA y no es transferencia, validar monto recibido
   if (ventaStore.estado === 'PAGADA' && !ventaStore.isTransferencia) {
     if (montoRecibido.value === null || cambio.value < 0) {
       toast.add({ severity: 'error', summary: 'Error de cobro', detail: 'El monto recibido es menor al total.', life: 3000 });
       return;
     }
   }
+  mostrarConfirmarVenta.value = true;
+};
 
-  Swal.fire({
-    title: '¿Confirmar venta?',
-    html: `
-      <p>Total: <strong>$${ventaStore.total.toFixed(2)}</strong></p>
-      <p>Tipo de cliente: ${ventaStore.tipo_cliente === 'MAYORISTA' ? 'Mayorista' : 'Detalles'}</p>
-      <p>Método de pago: ${ventaStore.estado === 'CREDITO' ? 'Crédito (Fiado)' : metodoPagoNombre.value}</p>
-      ${ventaStore.estado === 'CREDITO' ? `<p>Cliente: ${ventaStore.nombre_cliente || clientesCredito.value.find(c => c.id === ventaStore.cliente_credito_id)?.nombre || 'Nuevo cliente'}</p>` : ''}
-    `,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, finalizar',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#22c55e',
-    cancelButtonColor: '#6b7280',
-  }).then((result) => {
-    if (result.isConfirmed) {
-      procesarVenta();
-    }
-  });
+const ejecutarFinalizarVenta = () => {
+  mostrarConfirmarVenta.value = false;
+  procesarVenta();
 };
 
 const procesarVenta = async () => {
@@ -382,3 +351,13 @@ const limpiarTodo = () => {
   montoRecibido.value = null;
 };
 </script>
+
+<style scoped>
+.animate-fade-up {
+  animation: fadeUp 0.3s ease-out forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

@@ -6,6 +6,7 @@
     :modal="true"
     :closable="false"
     class="w-full max-w-md"
+    appendTo="body"
   >
     <div class="flex flex-col gap-4">
       <!-- Nombre -->

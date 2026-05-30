@@ -29,7 +29,6 @@ export const useVentaStore = defineStore('venta', {
       return state.items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
     },
     cantidadItems: (state) => state.items.reduce((acc, item) => acc + item.cantidad, 0),
-    // Getter para saber si el método de pago seleccionado es transferencia
     isTransferencia: (state) => {
       return state.metodo_pago_id === state.transferenciaId;
     },
@@ -115,6 +114,7 @@ export const useVentaStore = defineStore('venta', {
       this.dui_cliente = null;
       this.telefono_cliente = null;
       this.estado = 'CREDITO';
+      this.metodo_pago_id = null; // ← Limpiar método de pago al pasar a crédito
     },
 
     // Establecer cliente crédito nuevo (datos del formulario)
@@ -124,6 +124,7 @@ export const useVentaStore = defineStore('venta', {
       this.dui_cliente = dui;
       this.telefono_cliente = telefono;
       this.estado = 'CREDITO';
+      this.metodo_pago_id = null; // ← Limpiar método de pago al pasar a crédito
     },
 
     // Cancelar crédito y volver a contado
@@ -133,35 +134,40 @@ export const useVentaStore = defineStore('venta', {
       this.nombre_cliente = null;
       this.dui_cliente = null;
       this.telefono_cliente = null;
+      // método_pago_id se mantiene null para que el usuario elija uno nuevo
     },
 
-    // Construir payload para enviar al backend
     construirPayload() {
-      const payload = {
-        user_id: 1, // TODO: obtener del authStore
-        metodo_pago_id: this.metodo_pago_id,
-        tipo_cliente: this.tipo_cliente,
-        estado: this.estado,
-        detalle: this.items.map(item => ({
-          producto_id: item.producto_id,
-          cantidad: item.cantidad,
-        })),
-      };
+  const payload = {
+    user_id: 1,
+    tipo_cliente: this.tipo_cliente,
+    estado: this.estado,
+    detalle: this.items.map(item => ({
+      producto_id: item.producto_id,
+      cantidad: item.cantidad,
+    })),
+  };
 
-      if (this.estado === 'CREDITO') {
-        // Si hay un cliente existente, enviar su ID
-        if (this.cliente_credito_id) {
-          payload.cliente_credito_id = this.cliente_credito_id;
-        } else {
-          // Si no, enviar datos del nuevo cliente
-          payload.nombre = this.nombre_cliente;
-          payload.dui = this.dui_cliente;
-          payload.telefono = this.telefono_cliente;
-        }
-      }
+  // Solo se agrega método_pago_id si NO es crédito
+  if (this.estado !== 'CREDITO') {
+    payload.metodo_pago_id = this.metodo_pago_id;
+  } else {
+    // Por seguridad, eliminar cualquier rastro de método de pago en crédito
+    delete payload.metodo_pago_id;
+  }
 
-      return payload;
-    },
+  if (this.estado === 'CREDITO') {
+    if (this.cliente_credito_id) {
+      payload.cliente_credito_id = this.cliente_credito_id;
+    } else {
+      payload.nombre = this.nombre_cliente;
+      payload.dui = this.dui_cliente;
+      payload.telefono = this.telefono_cliente;
+    }
+  }
+
+  return payload;
+},
 
     // Confirmar venta (envía al backend y limpia el carrito)
     async confirmarVenta() {
