@@ -44,7 +44,7 @@
                   <Button
                     icon="pi pi-ban"
                     class="p-button-rounded p-button-text p-button-sm p-button-danger"
-                    @click="$emit('anular-abono', abono)"
+                    @click="abrirConfirmacion(abono)"
                     :disabled="abono.estado === 'ANULADO'"
                     v-tooltip.left="'Anular abono'"
                   />
@@ -55,10 +55,41 @@
         </div>
       </div>
     </div>
+
+    <!-- MODAL DE CONFIRMACIÓN DE ANULACIÓN (Adaptado de HistorialVentasView) -->
+    <div v-if="mostrarConfirmarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[70] backdrop-blur-sm p-4 text-center">
+      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
+        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
+        <div class="p-10">
+          <div class="flex justify-center mb-6 text-red-500">
+            <i class="pi pi-ban text-6xl"></i>
+          </div>
+          <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Anular este abono?</h2>
+          <p class="text-sm text-gray-500 mb-8 font-medium leading-relaxed">
+            Se anulará el abono del día <span class="text-gray-800 font-bold">"{{ abonoAAnular?.fecha }}"</span> por un monto de <span class="text-green-700 font-bold">${{ Number(abonoAAnular?.monto).toFixed(2) }}</span>.
+          </p>
+          <div class="flex items-center gap-3">
+            <button
+              @click="mostrarConfirmarAnular = false"
+              class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white transition-colors text-sm"
+            >
+              Cancelar
+            </button>
+            <button
+              @click="confirmarAnulacion"
+              class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md transition-colors text-sm"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import Button from 'primevue/button';
 import CreditoEstadoBadge from './CreditoEstadoBadge.vue';
 
@@ -67,7 +98,21 @@ defineProps({
   abonos: { type: Array, default: () => [] }
 });
 
-defineEmits(['update:visible', 'anular-abono']);
+const emit = defineEmits(['update:visible', 'anular-abono']);
+
+const mostrarConfirmarAnular = ref(false);
+const abonoAAnular = ref(null);
+
+const abrirConfirmacion = (abono) => {
+  abonoAAnular.value = abono;
+  mostrarConfirmarAnular.value = true;
+};
+
+const confirmarAnulacion = () => {
+  emit('anular-abono', abonoAAnular.value);
+  mostrarConfirmarAnular.value = false;
+  abonoAAnular.value = null;
+};
 </script>
 
 <style scoped>

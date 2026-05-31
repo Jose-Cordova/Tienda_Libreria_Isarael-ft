@@ -43,6 +43,7 @@ import CreditoCards from '../components/creditos/CreditoCards.vue';
 import CreditoTable from '../components/creditos/CreditoTable.vue';
 import DetalleCreditoModal from '../components/creditos/DetalleCreditoModal.vue';
 import AbonoModal from '../components/creditos/AbonoModal.vue';
+import Swal from 'sweetalert2';
 
 // --- Filtros ---
 const buscarCliente = ref('');
@@ -196,6 +197,14 @@ const confirmarAbono = (datos) => {
 const anularAbono = (abono) => {
   console.log('Anular abono:', abono);
   abono.estado = 'ANULADO';
+
+  Swal.fire({
+    icon: 'success',
+    title: '¡Hecho!',
+    text: `El abono del día ${abono.fecha} por $${Number(abono.monto).toFixed(2)} ha sido anulado.`,
+    showConfirmButton: false,
+    timer: 2500
+  });
 };
 </script>
 

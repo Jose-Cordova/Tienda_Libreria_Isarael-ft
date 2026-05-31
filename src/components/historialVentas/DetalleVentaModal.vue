@@ -16,42 +16,6 @@
 
       <!-- Cuerpo -->
       <div class="p-6" v-if="venta">
-        <!-- Datos generales -->
-        <div class="grid grid-cols-2 gap-4 text-sm mb-6">
-          <div>
-            <p class="text-gray-800 font-bold">Fecha y hora</p>
-            <p class="font-bold text-gray-600">{{ fechaFormateada }}</p>
-          </div>
-          <div>
-            <p class="text-gray-800 font-bold">Estado</p>
-            <span
-              :class="venta.estado === 'PAGADA' ? 'bg-green-200 text-green-700 border-green-100' : 'bg-yellow-50 text-yellow-700 border-yellow-100'"
-              class="px-2 py-0.5 rounded text-xs font-extrabold border"
-            >
-              {{ venta.estado.charAt(0) + venta.estado.slice(1).toLowerCase() }}
-            </span>
-          </div>
-          <div>
-            <p class="text-gray-800 font-bold">Método de pago</p>
-            <p class="font-bold text-gray-600">{{ venta.metodo_pago?.nombre || '-' }}</p>
-          </div>
-          <div>
-            <p class="text-gray-800 font-bold">Tipo de cliente</p>
-            <p class="font-bold text-gray-600">{{ venta.tipo_cliente }}</p>
-          </div>
-          <div>
-            <p class="text-gray-800 font-bold">Total</p>
-            <p class="font-extrabold text-lg text-[#0a3622]">${{ Number(venta.total).toFixed(2) }}</p>
-          </div>
-          <div v-if="venta.credito">
-            <p class="text-gray-900 font-bold">Cliente crédito</p>
-            <p class="font-bold text-gray-600">
-              {{ venta.credito.cliente_credito?.nombre || '-' }} <br>
-              <span class="text-xs text-gray-600">DUI: {{ venta.credito.cliente_credito?.dui }}</span>
-            </p>
-          </div>
-        </div>
-
         <!-- Tabla de productos -->
         <h3 class="font-extrabold !text-gray-800 mb-2 text-sm">Productos</h3>
         <div class="overflow-x-auto border border-black rounded-lg">
@@ -76,6 +40,22 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Total (abajo) -->
+        <div class="mt-6 text-right border-t pt-3">
+          <p class="text-lg font-extrabold text-[#0a3622]">
+            Total: ${{ Number(venta.total).toFixed(2) }}
+          </p>
+        </div>
+
+        <!-- Cliente crédito (solo si existe) -->
+        <div v-if="venta.credito" class="mt-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+          <p class="text-gray-900 font-bold text-sm">Cliente crédito</p>
+          <p class="font-bold text-gray-600 text-sm">
+            {{ venta.credito.cliente_credito?.nombre || '-' }}<br>
+            <span class="text-xs text-gray-600">DUI: {{ venta.credito.cliente_credito?.dui }}</span>
+          </p>
+        </div>
       </div>
 
       <!-- Cargando -->
@@ -88,18 +68,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-
 const props = defineProps({
   visible: { type: Boolean, required: true },
   venta: { type: Object, default: null }
 });
 
 defineEmits(['cerrar']);
-
-const fechaFormateada = computed(() => {
-  if (!props.venta) return '';
-  const fecha = new Date(props.venta.fecha);
-  return fecha.toLocaleDateString('es-ES') + ' ' + fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-});
 </script>
