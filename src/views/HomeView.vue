@@ -1,6 +1,5 @@
 <template>
   <div class="p-8 pb-24 bg-[#f4f7f6] font-dm-sans min-h-full space-y-8">
-
     <!-- ENCABEZADO -->
     <div class="bg-shop-sidebar-bg text-white rounded-2xl p-6 flex justify-between items-center shadow-shop animate-fade-up">
       <div>
@@ -11,7 +10,6 @@
         <span class="text-1xl font-jetbrains font-bold text-gray-300 block">{{ currentDate }}</span>
       </div>
     </div>
-
     <!-- ACCESOS RÁPIDOS -->
     <section>
       <h3 class="text-[11px] font-black text-shop-green-deep uppercase tracking-[0.25em] mb-4 flex items-center gap-2">
@@ -25,8 +23,7 @@
         </div>
       </div>
     </section>
-
-    <!-- MÉTRICAS CLAVE (Cierre de Caja) -->
+    <!-- MÉTRICAS CLAVE -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div v-for="stat in mainStats" :key="stat.label" class="bg-white p-6 rounded-2xl border border-shop-border shadow-shop flex items-center gap-5">
         <div :class="stat.bgIcon" class="w-14 h-14 rounded-xl flex items-center justify-center shadow-sm">
@@ -38,7 +35,6 @@
         </div>
       </div>
     </div>
-
     <!-- GRÁFICOS (Reportes Históricos) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Tendencias de Ventas -->
@@ -55,7 +51,6 @@
           <canvas id="salesChart"></canvas>
         </div>
       </div>
-
       <!-- Ganancias y Pérdidas -->
       <div class="bg-white p-8 rounded-3xl border border-shop-border shadow-shop">
         <h3 class="text-sm font-black text-shop-green-deep uppercase tracking-widest mb-6">Ganancias vs Pérdidas</h3>
@@ -63,7 +58,6 @@
            <canvas id="profitPerdChart"></canvas>
         </div>
       </div>
-
       <!-- Top 5 Productos -->
       <div class="bg-white p-8 rounded-3xl border border-shop-border shadow-shop">
         <h3 class="text-sm font-black text-shop-green-deep uppercase tracking-widest mb-6">Top 5 Productos más Vendidos</h3>
@@ -71,7 +65,6 @@
            <canvas id="topProductsChart"></canvas>
         </div>
       </div>
-
       <!-- Distribución de Métodos de Pago -->
       <div class="bg-white p-8 rounded-3xl border border-shop-border shadow-shop">
         <h3 class="text-sm font-black text-shop-green-deep uppercase tracking-widest mb-6">Métodos de Pago</h3>
@@ -80,16 +73,13 @@
         </div>
       </div>
     </div>
-
     <!-- ALERTAS CRÍTICAS (Vencimientos y Stock Mínimo) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
       <!-- Alertas de Inventario -->
       <div class="lg:col-span-3 space-y-4">
         <h3 class="text-[11px] font-black text-shop-red uppercase tracking-[0.25em] mb-4 flex items-center gap-2">
           <i class="pi pi-bell text-shop-red animate-swing"></i> Alertas del Sistema
         </h3>
-
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Cuadro Único de Stock Crítico -->
           <div class="bg-red-100 border border-red-200 rounded-3xl p-6 shadow-sm">
@@ -109,7 +99,6 @@
                 Abastecer
               </button>
             </div>
-
             <!-- Lista de productos -->
             <div class="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
               <div
@@ -126,7 +115,6 @@
                   <span class="text-[13px] font-bold text-red-600">{{ prod.stock }}</span>
                 </div>
               </div>
-
               <!-- Si no hay stock bajo -->
               <div v-if="lowStockProducts.length === 0" class="py-10 text-center">
                 <i class="pi pi-check-circle text-4xl text-green-500 mb-2"></i>
@@ -134,7 +122,6 @@
               </div>
             </div>
           </div>
-
           <!-- Cuadro de Vencimientos Próximos -->
           <div class="bg-amber-100 border border-amber-200 rounded-3xl p-6 shadow-sm">
             <div class="flex items-center justify-between mb-6 border-b border-amber-200 pb-4">
@@ -147,7 +134,6 @@
                 </div>
               </div>
             </div>
-
             <div class="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar text-left">
               <div
                 v-for="prod in expiringProducts"
@@ -163,7 +149,6 @@
                   <span class="text-[12px] font-bold text-amber-600">{{ prod.fecha }}</span>
                 </div>
               </div>
-
               <!-- Si no hay vencimientos próximos -->
               <div v-if="expiringProducts.length === 0" class="py-10 text-center">
                 <i class="pi pi-calendar-check text-4xl text-green-500 mb-2"></i>
@@ -171,7 +156,6 @@
               </div>
             </div>
           </div>
-
           <!-- Pedidos a Proveedores -->
           <div class="bg-blue-100 border border-blue-200 rounded-3xl p-6 shadow-sm font-dm-sans">
             <div class="flex items-center justify-between mb-6 border-b border-blue-200 pb-4">
@@ -184,7 +168,6 @@
                 </div>
               </div>
             </div>
-
             <div class="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar text-left">
               <div v-for="order in providerVisits" :key="order.id"
                 class="bg-white/90 hover:bg-white border border-blue-100 rounded-xl p-3 flex justify-between items-center transition-all group shadow-sm">
@@ -197,7 +180,6 @@
                     <span class="text-[12px] font-bold text-blue-600">{{ order.fecha }}</span>
                 </div>
               </div>
-
               <div v-if="providerVisits.length === 0" class="py-10 text-center">
                 <i class="pi pi-calendar text-4xl text-gray-300 mb-2"></i>
                 <p class="text-xs text-gray-500 font-black uppercase tracking-widest">Sin pedidos pendientes</p>
