@@ -45,7 +45,6 @@
         <table class="w-full text-left border-collapse whitespace-nowrap">
           <thead>
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
-              <th class="py-3 px-5">ID</th>
               <th class="py-3 px-5">Nombre</th>
               <th class="py-3 px-5 text-center">Equivalencia</th>
               <th class="py-3 px-5 text-center">Acciones</th>
@@ -53,7 +52,6 @@
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
             <tr v-for="unidad in unidades" :key="unidad.id" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ unidad.id }}</td>
               <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ unidad.nombre }}</td>
               <td class="py-4 px-5 text-center">
                 <span class="bg-green-50 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold border border-green-200">
@@ -68,7 +66,7 @@
               </td>
             </tr>
             <tr v-if="unidades.length === 0">
-              <td colspan="4" class="py-10 text-center italic text-gray-400">No se encontraron unidades.</td>
+              <td colspan="3" class="py-10 text-center italic text-gray-400">No se encontraron unidades.</td>
             </tr>
           </tbody>
         </table>
@@ -103,7 +101,7 @@
           <form @submit.prevent="guardar">
             <div class="mb-4">
               <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Nombre *</label>
-              <InputText v-model="form.nombre" class="w-full border border-gray-200 rounded-xl p-3 focus:border-[#003d00]" :class="{ 'border-red-500': errorNombre }" />
+              <InputText v-model="form.nombre" :maxlength="50" class="w-full border border-gray-200 rounded-xl p-3 focus:border-[#003d00]" :class="{ 'border-red-500': errorNombre }" />
               <small class="text-red-500">{{ errorNombre }}</small>
             </div>
             <div class="mb-6">
@@ -281,9 +279,14 @@ const confirmarEliminar = async (id) => {
     text: 'Esta acción no se puede revertir.',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#d33',
+    confirmButtonColor: '#d1333e',
+    cancelButtonColor: '#d6dfd6',
+    confirmButtonText: 'Sí, eliminar',
     cancelButtonText: 'Cancelar',
-    confirmButtonText: 'Sí, eliminar'
+    customClass: {
+      cancelButton: '!text-[#3a5a3a] !font-bold'
+    },
+    reverseButtons: true
   })
   if (result.isConfirmed) {
     try {
