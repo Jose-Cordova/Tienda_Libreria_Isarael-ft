@@ -192,6 +192,7 @@
             const detalle = {
               producto_id: d.producto_id || null,
               precio_unitario: d.precio_unitario,
+              factor_conversion: d.factor_conversion || 1,
               margen_detalle: d.margen_detalle,
               margen_mayor: d.margen_mayor
             }

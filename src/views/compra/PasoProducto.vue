@@ -62,7 +62,7 @@
 
         <div class="p-8 space-y-8 bg-[#fcfdfc]">
           <!-- Grid de Inputs -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div class="space-y-2 text-left">
               <label class="text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Costo Unitario ($)</label>
               <div class="relative group">
@@ -72,7 +72,7 @@
                   v-model="item.precio_unitario"
                   @input="recalcular(index)"
                   @keydown="soloDecimalPositivo"
-                  class="w-28 border border-gray-400 rounded-xl p-3 pl-8 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all"
+                  class="w-full border border-gray-400 rounded-xl p-3 pl-8 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all"
                 />
               </div>
             </div>
@@ -102,6 +102,22 @@
                 <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-[10px]">%</span>
               </div>
             </div>
+            <!-- Columna 4: Factor con Checkbox integrado -->
+            <div class="space-y-2 text-left">
+              <div class="flex items-center gap-2 mb-1">
+                <label class="text-[10px] font-black text-blue-700 uppercase tracking-[0.2em] ml-1">Factor Conversión</label>
+                <Checkbox v-model="item.usar_factor" :binary="true" @change="recalcular(index)" inputId="chkFactor{{index}}" class="scale-90" />
+              </div>
+              <div v-if="item.usar_factor" class="relative group animate-fade-in">
+                <i class="pi pi-box absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 text-xs z-10 font-bold"></i>
+                <InputNumber
+                  v-model="item.factor_conversion"
+                  :min="1"
+                  @input="recalcular(index)"
+                  inputClass="w-full border border-gray-400 rounded-xl p-3 !pl-11 text-sm font-bold text-gray-800 outline-none focus:border-blue-500 bg-blue-50/20 shadow-sm transition-all"
+                />
+              </div>
+            </div>
           </div>
 
           <!-- Barra de Precios Sugeridos -->
@@ -121,7 +137,12 @@
               <div v-for="(lote, lIdx) in item.lotes" :key="lIdx" class="grid grid-cols-12 gap-4 items-center bg-white p-4 rounded-2xl border border-gray-400 shadow-sm text-left">
                 <div class="col-span-5 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Código Lote</span>
-                  <input v-model="lote.codigo_lote" class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-blue-700 uppercase outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 bg-white shadow-sm" placeholder="EJ: L-100" />
+                  <input
+                    v-model="lote.codigo_lote"
+                    @input="lote.codigo_lote = lote.codigo_lote.toUpperCase()"
+                    class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-blue-700 uppercase outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 bg-white shadow-sm"
+                    placeholder="EJ: L-100"
+                  />
                 </div>
                 <div class="col-span-4 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Vencimiento</span>
@@ -272,6 +293,8 @@
   import axios from 'axios';
   import Swal from 'sweetalert2';
   import InputText from 'primevue/inputtext';
+  import InputNumber from 'primevue/inputnumber';
+  import Checkbox from 'primevue/checkbox';
   import Button from 'primevue/button';
   import Dropdown from 'primevue/dropdown';
 
@@ -393,19 +416,20 @@
       mostrarResultados.value = false
       return
     }
-
-    const nuevoItem = {
-      producto_id: prod.id,
-      nombre: prod.nombre,
-      perecedero: prod.perecedero,
-      precio_unitario: 0.00,
-      margen_detalle: 0,
-      margen_mayor: 0,
-      precio_detalle_sugerido: '0.00',
-      precio_mayor_sugerido: '0.00',
-      cantidad: 1,
-      lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
-    }
+const nuevoItem = {
+  producto_id: prod.id,
+  nombre: prod.nombre,
+  perecedero: prod.perecedero,
+  precio_unitario: 0.00,
+  usar_factor: false,
+  factor_conversion: 1,
+  margen_detalle: 0,
+  margen_mayor: 0,
+  precio_detalle_sugerido: '0.00',
+  precio_mayor_sugerido: '0.00',
+  cantidad: 1,
+  lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
+}
     productosAgregados.value.unshift(nuevoItem)
     recalcular(0);
     busqueda.value = ''
@@ -449,6 +473,8 @@
       stock_minimo: nuevoProducto.value.stock_minimo,
       perecedero: nuevoProducto.value.perecedero,
       precio_unitario: 0.00,
+      usar_factor: false,
+      factor_conversion: 1,
       margen_detalle: 0,
       margen_mayor: 0,
       precio_detalle_sugerido: '0.00',
@@ -467,9 +493,17 @@
   //Calculos
   const recalcular = (index) => {
     const item = productosAgregados.value[index]
-    const costo = parseFloat(item.precio_unitario) || 0
-    item.precio_detalle_sugerido = (costo * (1 + item.margen_detalle / 100)).toFixed(2)
-    item.precio_mayor_sugerido = (costo * (1 + item.margen_mayor / 100)).toFixed(2)
+    const costoFactura = parseFloat(item.precio_unitario) || 0
+
+    // Si no aplica factor, forzamos a 1 para el cálculo
+    if (!item.usar_factor) item.factor_conversion = 1
+    const factor = parseInt(item.factor_conversion) || 1
+
+    // El costo base por unidad real
+    const costoUnitarioBase = costoFactura / factor
+
+    item.precio_detalle_sugerido = (costoUnitarioBase * (1 + item.margen_detalle / 100)).toFixed(2)
+    item.precio_mayor_sugerido = (costoUnitarioBase * (1 + item.margen_mayor / 100)).toFixed(2)
   }
   const calcularCantidad = (index) => {
     const item = productosAgregados.value[index]
@@ -519,6 +553,30 @@
     emit('siguiente', { detalles: productosAgregados.value })
   }
 </script>
+
+<style scoped>
+  .animate-fade-in{
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+  .animate-fade-up{
+    animation: fadeUp 0.3s ease-out forwards;
+  }
+  @keyframes fadeIn{
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp{
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button{
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .shadow-text {
+    text-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+</style>
 
 <style scoped>
   .animate-fade-in{
