@@ -85,11 +85,11 @@
               <td class="py-4 px-4">
                 <div class="flex items-center justify-center gap-1">
                   <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirModalEditar(prod)" />
-                  <Button
-                    icon="pi pi-power-off"
-                    class="p-button-rounded p-button-text p-button-sm"
-                    :class="prod.estado === 'ACTIVO' ? 'text-red-600 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'"
-                    @click="cambiarEstado(prod.id, prod.estado)"
+                 <Button
+                 icon="pi pi-power-off"
+                  class="p-button-rounded p-button-sm text-white !border-none"
+                  :class="prod.estado === 'ACTIVO' ? '!bg-red-600 hover:!bg-red-700 focus:!ring-0 focus:!ring-offset-0' : '!bg-green-600 hover:!bg-green-700 focus:!ring-0 focus:!ring-offset-0'"
+                   @click="cambiarEstado(prod.id, prod.estado)"
                   />
                 </div>
               </td>
@@ -122,9 +122,10 @@
           <h2 class="text-2xl font-extrabold text-[#003d00] mb-2">Nuevo Producto</h2>
           <p class="text-gray-500 mb-6">Selecciona el tipo de producto</p>
           <div class="flex flex-col gap-3">
-            <button @click="seleccionarTipo('NORMAL')" class="py-3 bg-[#003d00] text-white font-bold rounded-xl shadow-md hover:bg-[#002800] transition">Producto Normal</button>
-            <button @click="seleccionarTipo('PERECEDERO')" class="py-3 bg-[#8b5e3c] text-white font-bold rounded-xl shadow-md hover:bg-[#6b4226] transition">Producto Perecedero</button>
-            <button @click="dialogoTipoVisible = false" class="py-3 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300 transition">Cancelar</button>
+            <button @click="seleccionarTipo('NORMAL')" class="py-3 bg-[#003d00] text-white font-bold rounded-xl shadow-md hover:bg-[#002800] transition">Normal</button>
+            <button @click="seleccionarTipo('PERECEDERO')" class="py-3 bg-[#8b5e3c] text-white font-bold rounded-xl shadow-md hover:bg-[#6b4226] transition">Perecedero</button>
+            <button @click="dialogoTipoVisible = false" class="py-3 bg-gray-200 text-gray-800 font-bold rounded-xl shadow-sm hover:bg-red-600 hover:text-white transition-all duration-200">Cancelar
+            </button>
           </div>
         </div>
       </div>
@@ -475,13 +476,17 @@ const guardarProducto = async () => {
 const cambiarEstado = async (id, estadoActual) => {
   const confirmacion = await Swal.fire({
     title: `¿${estadoActual === 'ACTIVO' ? 'Desactivar' : 'Activar'} producto?`,
-    text: `El producto quedará ${estadoActual === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO'}. Los lotes no se ven afectados.`,
+    text: `El producto quedará ${estadoActual === 'ACTIVO' ? 'inactivo' : 'activo'}.`,
     icon: 'question',
     showCancelButton: true,
-    confirmButtonColor: '#003d00',
-    cancelButtonColor: '#be123c',
+    confirmButtonColor: '#d1333e',
+    cancelButtonColor: '#d6dfd6',
     confirmButtonText: 'Sí, cambiar',
-    cancelButtonText: 'Cancelar'
+    cancelButtonText: 'Cancelar',
+    customClass: {
+      cancelButton: '!text-[#3a5a3a] !font-bold'
+    },
+    reverseButtons: true
   })
   if (confirmacion.isConfirmed) {
     try {
