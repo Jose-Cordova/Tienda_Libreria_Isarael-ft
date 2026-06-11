@@ -15,48 +15,62 @@
         </button>
       </div>
 
-      <!-- Cuerpo credito-->
+      <!-- Cuerpo -->
       <div class="p-6">
         <div v-if="abonos.length === 0" class="py-10 text-center text-gray-500 italic font-bold">
           No hay abonos registrados para este crédito.
         </div>
 
-        <div v-else class="overflow-x-auto border border-black rounded-lg">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-[#99bba7]">
-              <tr class="text-black font-bold uppercase">
-                <th class="py-2 px-3">Fecha</th>
-                <th class="py-2 px-3">Monto</th>
-                <th class="py-2 px-3">Método</th>
-                <th class="py-2 px-3">Estado</th>
-                <th class="py-2 px-3">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr v-for="abono in abonos" :key="abono.id">
-                <td class="py-3 px-3 font-bold text-gray-600">{{ abono.fecha }}</td>
-                <td class="py-3 px-3 font-extrabold text-green-700">${{ Number(abono.monto).toFixed(2) }}</td>
-                <td class="py-3 px-3 font-bold text-gray-700">{{ abono.metodo }}</td>
-                <td class="py-3 px-3">
-                  <CreditoEstadoBadge :estado="abono.estado" />
-                </td>
-                <td class="py-3 px-3 text-center">
-                  <Button
-                    icon="pi pi-ban"
-                    class="p-button-rounded p-button-text p-button-sm p-button-danger"
-                    @click="abrirConfirmacion(abono)"
-                    :disabled="abono.estado === 'ANULADO'"
-                    v-tooltip.left="'Anular abono'"
-                  />
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else>
+          <div class="overflow-x-auto border border-black rounded-lg">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-[#99bba7]">
+                <tr class="text-black font-bold uppercase">
+                  <th class="py-2 px-3">Fecha</th>
+                  <th class="py-2 px-3">Monto</th>
+                  <th class="py-2 px-3">Método</th>
+                  <th class="py-2 px-3">Estado</th>
+                  <th class="py-2 px-3">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr v-for="abono in abonosPaginados" :key="abono.id">
+                  <td class="py-3 px-3 font-bold text-gray-600">{{ abono.fecha }}</td>
+                  <td class="py-3 px-3 font-extrabold text-green-700">${{ Number(abono.monto).toFixed(2) }}</td>
+                  <td class="py-3 px-3 font-bold text-gray-700">{{ abono.metodo }}</td>
+                  <td class="py-3 px-3">
+                    <CreditoEstadoBadge :estado="abono.estado" />
+                  </td>
+                  <td class="py-3 px-3 text-center">
+                    <Button
+                      icon="pi pi-ban"
+                      class="p-button-rounded p-button-text p-button-sm p-button-danger"
+                      @click="abrirConfirmacion(abono)"
+                      :disabled="abono.estado === 'ANULADO'"
+                      v-tooltip.left="'Anular abono'"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div v-if="totalPaginas > 1" class="mt-4 flex justify-center">
+            <Paginator
+              :rows="filasPorPagina"
+              :totalRecords="abonos.length"
+              :first="(paginaActual - 1) * filasPorPagina"
+              @page="cambiarPagina"
+              template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+              class="custom-paginator text-xs"
+            />
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- MODAL DE CONFIRMACIÓN DE ANULACIÓN (Adaptado de HistorialVentasView) -->
+    <!-- MODAL DE CONFIRMACIÓN DE ANULACIÓN -->
     <div v-if="mostrarConfirmarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[70] backdrop-blur-sm p-4 text-center">
       <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
@@ -89,17 +103,34 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import Button from 'primevue/button';
+import Paginator from 'primevue/paginator';
 import CreditoEstadoBadge from './CreditoEstadoBadge.vue';
 
-defineProps({
+const props = defineProps({
   visible: Boolean,
   abonos: { type: Array, default: () => [] }
 });
 
 const emit = defineEmits(['update:visible', 'anular-abono']);
 
+// --- Paginación ---
+const filasPorPagina = 5;
+const paginaActual = ref(1);
+
+const totalPaginas = computed(() => Math.ceil(props.abonos.length / filasPorPagina));
+
+const abonosPaginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * filasPorPagina;
+  return props.abonos.slice(inicio, inicio + filasPorPagina);
+});
+
+const cambiarPagina = (event) => {
+  paginaActual.value = event.page + 1;
+};
+
+// --- Lógica de anulación ---
 const mostrarConfirmarAnular = ref(false);
 const abonoAAnular = ref(null);
 
@@ -122,5 +153,10 @@ const confirmarAnulacion = () => {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+:deep(.custom-paginator .p-paginator-page.p-highlight) {
+  background: #0a3622 !important;
+  color: white !important;
+  font-weight: bold;
 }
 </style>
