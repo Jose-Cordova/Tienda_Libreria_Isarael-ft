@@ -1,57 +1,52 @@
 <template>
   <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
-    <!-- Encabezado -->
-    <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
+    <!-- Encabezado responsivo -->
+    <section class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
       <div class="flex items-center gap-3 text-left">
         <i class="pi pi-shield text-xl text-green-600"></i>
         <h1 class="text-lg font-extrabold text-[#0a3622]">Roles del Sistema</h1>
       </div>
-      <div class="flex items-center gap-3">
-        <!-- Buscador -->
-        <span class="relative group">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <!-- Buscador (ocupa todo el ancho en móvil) -->
+        <span class="relative group w-full sm:w-auto">
           <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-black text-sm z-10"></i>
           <InputText
             v-model="busqueda"
             placeholder="Buscar rol..."
-            class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-56 focus:border-green-600 transition-all"
+            class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-full sm:w-56 focus:border-green-600 transition-all"
           />
         </span>
-        <!-- Botón Nuevo -->
+        <!-- Botón Nuevo Rol -->
         <Button
           label="Nuevo Rol"
           icon="pi pi-plus"
-          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all duration-300"
+          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all duration-300 w-full sm:w-auto justify-center"
           @click="abrirNuevo"
         />
       </div>
     </section>
-    <!-- Tabla de roles -->
-    <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 text-left max-w-2xl">
+
+    <!-- Tabla de roles responsiva (scroll horizontal en móvil si es necesario) -->
+    <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 text-left">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
+        <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
-              <th class="py-3 px-5">Nombre del Rol</th>
-              <th class="py-3 px-5 text-center w-32">Acciones</th>
+              <th class="py-2 sm:py-3 px-3 sm:px-5">Nombre del Rol</th>
+              <th class="py-2 sm:py-3 px-3 sm:px-5 text-center w-32">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
             <tr v-for="rol in filteredRoles" :key="rol.id" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">
+              <td class="py-3 sm:py-4 px-3 sm:px-5 font-bold text-gray-800 text-sm">
                 <div class="flex items-center gap-3">
                   <span class="uppercase tracking-tight">{{ rol.nombre }}</span>
                 </div>
               </td>
-              <td class="py-4 px-5">
+              <td class="py-3 sm:py-4 px-3 sm:px-5">
                 <div class="flex items-center justify-center gap-1">
-                  <!-- Botón Editar -->
                   <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirEditar(rol)" />
-                  <!-- Botón de eliminar -->
-                  <Button
-                    icon="pi pi-trash"
-                    class="p-button-rounded p-button-text p-button-sm p-button-danger"
-                    @click="borrar(rol)"
-                  />
+                  <Button icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm p-button-danger" @click="borrar(rol)" />
                 </div>
               </td>
             </tr>

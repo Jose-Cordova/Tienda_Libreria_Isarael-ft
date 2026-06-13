@@ -1,8 +1,9 @@
 <template>
-  <aside class="w-64 bg-shop-sidebar-bg text-white flex flex-col h-full border-r border-white/10 shadow-shop overflow-hidden font-dm-sans">
-
+  <aside
+    class="w-64 bg-shop-sidebar-bg text-white flex flex-col h-full border-r border-white/10 shadow-shop overflow-hidden font-dm-sans"
+    @click="$emit('close-sidebar')"
+  >
     <div class="flex-1 overflow-y-auto py-6 custom-scrollbar">
-
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Principal</p>
         <RouterLink to="/" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
@@ -10,7 +11,6 @@
           <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Inicio</span>
         </RouterLink>
       </div>
-
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Ventas</p>
         <div class="space-y-0.5">
@@ -30,7 +30,6 @@
           </RouterLink>
         </div>
       </div>
-
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Inventario</p>
         <div class="space-y-0.5">
@@ -56,7 +55,6 @@
           </RouterLink>
         </div>
       </div>
-
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Compras</p>
         <div class="space-y-0.5">
@@ -70,17 +68,6 @@
           </RouterLink>
         </div>
       </div>
-
-      <div class="mb-6">
-        <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Devoluciones</p>
-        <div class="space-y-0.5">
-          <RouterLink to="/devoluciones-compras" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
-            <i class="pi pi-replay text-lg text-shop-accent"></i>
-            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Devolución de Compras</span>
-          </RouterLink>
-        </div>
-      </div>
-
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Gestiones</p>
         <div class="space-y-0.5">
@@ -112,6 +99,7 @@
 </template>
 <script setup>
 import { RouterLink } from 'vue-router';
+defineEmits(['close-sidebar'])
 </script>
 
 <style scoped>

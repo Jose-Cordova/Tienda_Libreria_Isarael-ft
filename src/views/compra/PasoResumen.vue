@@ -35,64 +35,88 @@
       </div>
     </section>
     <!-- TABLA DE PRODUCTOS -->
-    <section class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden text-left">
-      <div class="bg-gray-50 px-8 py-4 border-b border-gray-600 flex items-center gap-3">
-        <i class="pi pi-list text-[#0a3622] text-lg"></i>
-        <h3 class="text-[#0a3622] font-black text-sm uppercase tracking-widest">Detalle de Productos y Lotes</h3>
+    <section class="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 shadow-xl overflow-hidden text-left">
+      <div class="bg-gray-50 px-4 sm:px-8 py-3 sm:py-4 border-b border-gray-200 sm:border-gray-600 flex items-center gap-2 sm:gap-3">
+        <i class="pi pi-list text-[#0a3622] text-base sm:text-lg"></i>
+        <h3 class="text-[#0a3622] font-black text-xs sm:text-sm uppercase tracking-widest">Detalle de Productos y Lotes</h3>
       </div>
-      <div class="overflow-x-auto">
+
+      <!-- VERSIÓN DESKTOP: Tabla -->
+      <div class="hidden sm:block overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-[#a1bba7] text-[#032b19] text-[11px] font-black uppercase tracking-widest border-b border-gray-600">
-              <th class="py-4 px-8">Producto</th>
-              <th class="py-4 px-6 text-center">Cantidad Total</th>
-              <th class="py-4 px-6 text-center">Costo Unitario</th>
-              <th class="py-4 px-8 text-right">Subtotal</th>
+            <tr class="bg-[#a1bba7] text-[#032b19] text-[10px] sm:text-[11px] font-black uppercase tracking-widest border-b border-gray-600">
+              <th class="py-3 sm:py-4 px-4 sm:px-8">Producto</th>
+              <th class="py-3 sm:py-4 px-3 sm:px-6 text-center">Cantidad Total</th>
+              <th class="py-3 sm:py-4 px-3 sm:px-6 text-center">Costo Unitario</th>
+              <th class="py-3 sm:py-4 px-4 sm:px-8 text-right">Subtotal</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-400">
+          <tbody class="divide-y divide-gray-200 sm:divide-gray-400">
             <tr v-for="(item, index) in datos.detalles" :key="index" class="hover:bg-gray-50/50 transition-colors">
-              <td class="py-5 px-8">
+              <td class="py-3 sm:py-5 px-4 sm:px-8">
                 <div class="flex flex-col gap-1">
-                  <span class="font-black text-[#000000] text-sm tracking-tight">{{ item.nombre }}</span>
-                  <!-- Desglose de Lotes si es Perecedero -->
-                  <div v-if="item.perecedero === 'PERECEDERO'" class="flex flex-wrap gap-2 mt-2">
-                    <span v-for="(lote, lIdx) in item.lotes" :key="lIdx" class="bg-blue-50 text-blue-700 text-[9px] font-black px-2 py-0.5 rounded-md border border-blue-100 uppercase flex items-center gap-1 shadow-sm">
-                      <i class="pi pi-tag text-[8px]"></i> {{ lote.codigo_lote }} | <i class="pi pi-calendar text-[8px] ml-1"></i> {{ lote.fecha_vencimiento }}
+                  <span class="font-black text-gray-900 text-xs sm:text-sm tracking-tight">{{ item.nombre }}</span>
+                  <div v-if="item.perecedero === 'PERECEDERO'" class="flex flex-wrap gap-1 sm:gap-2 mt-1">
+                    <span v-for="lote in item.lotes" :key="lote.codigo_lote" class="bg-blue-50 text-blue-700 text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-md border border-blue-100 uppercase">
+                      {{ lote.codigo_lote }} | {{ lote.fecha_vencimiento }}
                     </span>
                   </div>
                 </div>
               </td>
-              <td class="py-5 px-6 text-center font-black text-[#000000] text-sm">
-                {{ calcularCantidad(item) }} <span class="text-[9px] text-gray-400 font-bold ml-0.5 uppercase tracking-tighter"></span>
+              <td class="py-3 sm:py-5 px-3 sm:px-6 text-center font-black text-gray-900 text-xs sm:text-sm">
+                {{ calcularCantidad(item) }}
               </td>
-              <td class="py-5 px-6 text-center font-black text-[#000000] text-sm">
-                ${{ parseFloat(item.precio_unitario).toFixed(2) }}
+              <td class="py-3 sm:py-5 px-3 sm:px-6 text-center font-black text-gray-900 text-xs sm:text-sm">
+                ${{ item.precio_unitario }}
               </td>
-              <td class="py-5 px-8 text-right font-black text-[#000000] text-base tracking-tighter">
-                $ {{ (parseFloat(item.precio_unitario) * calcularCantidad(item)).toFixed(2) }}
+              <td class="py-3 sm:py-5 px-4 sm:px-8 text-right font-black text-gray-900 text-sm sm:text-base">
+                ${{ (item.precio_unitario * calcularCantidad(item)).toFixed(2) }}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Total -->
-      <div class="bg-[#0a3622] p-5 flex justify-between items-center text-white relative overflow-hidden">
-        <div class="z-10">
-          <p class="text-[11px] font-black text-green-300 uppercase tracking-[0.4em] mb-0.5">Total de la Compra</p>
+      <!-- VERSIÓN MÓVIL: Tarjetas -->
+      <div class="sm:hidden divide-y divide-gray-200">
+        <div v-for="(item, index) in datos.detalles" :key="index" class="p-4 space-y-2">
+          <div class="flex justify-between items-start">
+            <span class="font-black text-gray-900 text-sm">{{ item.nombre }}</span>
+            <span class="font-black text-gray-900 text-sm">${{ (item.precio_unitario * calcularCantidad(item)).toFixed(2) }}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-800 font-bold">Cantidad:</span>
+            <span class="font-bold">{{ calcularCantidad(item) }}</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-800 font-bold">Costo unitario:</span>
+            <span class="font-bold">${{ item.precio_unitario }}</span>
+          </div>
+          <!-- Mostrar lotes si es perecedero -->
+          <div v-if="item.perecedero === 'PERECEDERO'" class="flex flex-wrap gap-1 pt-1">
+            <span v-for="lote in item.lotes" :key="lote.codigo_lote" class="bg-blue-50 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded-md">
+              {{ lote.codigo_lote }}<br>vence: {{ lote.fecha_vencimiento }}
+            </span>
+          </div>
         </div>
-        <p class="text-2xl font-black text-gray-200 tracking-tighter z-10 shadow-sm leading-none">$ {{ totalFactura }}</p>
-        <!-- Decoración abstracta escalada -->
+      </div>
+
+      <!-- TOTAL -->
+      <div class="bg-[#0a3622] p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-center text-white relative overflow-hidden gap-2">
+        <div class="z-10 text-center sm:text-left">
+          <p class="text-[11px] font-black text-green-300 uppercase tracking-[0.4em]">Total de la Compra</p>
+        </div>
+        <p class="text-2xl sm:text-3xl font-black text-gray-200 tracking-tighter z-10">$ {{ totalFactura }}</p>
         <div class="absolute -right-16 -bottom-16 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
       </div>
     </section>
 
     <!-- NAVEGACIÓN -->
-    <div class="flex justify-between items-center px-4">
+    <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-0 px-2 sm:px-4 mt-6">
       <button
         @click="$emit('atras')"
-        class="px-10 py-4 bg-white border border-gray-300 text-[#0a3622] font-black rounded-2xl hover:bg-gray-50 transition-all text-xs uppercase tracking-widest flex items-center gap-3 shadow-md"
+        class="w-full sm:w-auto py-3 sm:py-4 px-4 sm:px-10 bg-white border border-gray-300 text-[#0a3622] font-black rounded-2xl hover:bg-gray-50 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-md"
       >
         <i class="pi pi-arrow-left text-[10px]"></i> Regresar a productos
       </button>
@@ -100,14 +124,13 @@
       <button
         @click="confirmarYGuardar"
         :disabled="cargando"
-        class="px-16 py-5 bg-[#0a3622] text-white font-black rounded-2xl hover:bg-[#115033] transition-all text-xs uppercase tracking-[0.2em] flex items-center gap-4 shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed group"
+        class="w-full sm:w-auto py-3 sm:py-5 px-4 sm:px-16 bg-[#0a3622] text-white font-black rounded-2xl hover:bg-[#115033] transition-all text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 sm:gap-4 shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed group"
       >
         <i v-if="cargando" class="pi pi-spin pi-spinner text-sm"></i>
         <span v-else>Confirmar y Registrar Compra</span>
         <i v-if="!cargando" class="pi pi-check-circle text-sm group-hover:scale-110 transition-transform"></i>
       </button>
     </div>
-
   </div>
 </template>
 
@@ -192,6 +215,7 @@
             const detalle = {
               producto_id: d.producto_id || null,
               precio_unitario: d.precio_unitario,
+              factor_conversion: d.factor_conversion || 1,
               margen_detalle: d.margen_detalle,
               margen_mayor: d.margen_mayor
             }

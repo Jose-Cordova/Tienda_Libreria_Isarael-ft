@@ -94,11 +94,6 @@ const router = createRouter({
           component: () => import('../views/ProductoDanado.vue')
         },
         {
-          path: 'devoluciones-compras',
-          name: 'devoluciones-compras',
-          component: () => import('../views/DevolucionCompraView.vue')
-        },
-        {
           path: 'cronograma-proveedores',
           name: 'cronograma-proveedores',
           component: () => import('../views/CronogramaView.vue')
