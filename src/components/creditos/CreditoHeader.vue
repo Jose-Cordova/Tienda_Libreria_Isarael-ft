@@ -5,23 +5,23 @@
       <h1 class="text-lg font-extrabold text-[#0a3622]">Crédito/Fiados</h1>
     </div>
 
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
       <Dropdown
         :modelValue="filtroCredito"
         @update:modelValue="$emit('update:filtroCredito', $event)"
         :options="opcionesEstadoCredito"
         optionLabel="label"
         placeholder="Todos los créditos"
-        class="p-dropdown-sm border-gray-500 rounded-lg text-sm text-[#0a3622] w-48 focus:border-green-600"
+        class="p-dropdown-sm border-gray-500 rounded-lg text-sm text-[#0a3622] w-full sm:w-48 focus:border-green-600"
       />
 
-      <span class="relative">
+      <span class="relative w-full sm:w-56">
         <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-black text-sm z-10"></i>
         <InputText
           :modelValue="buscarCliente"
           @update:modelValue="$emit('update:buscarCliente', $event)"
           placeholder="Buscar cliente..."
-          class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-56 focus:border-green-600"
+          class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-full focus:border-green-600"
         />
       </span>
     </div>

@@ -1,19 +1,19 @@
 <template>
-  <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
+  <main class="flex-1 bg-[#f4f7f6] p-3 sm:p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
     <!-- Encabezado -->
     <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
         <i class="pi pi-truck text-xl text-green-600"></i>
         <h1 class="text-lg font-extrabold text-[#0a3622]">Proveedores</h1>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
         <!-- Filtro para buscar -->
-        <span class="relative">
+        <span class="relative flex-1 sm:flex-none">
           <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-black text-sm z-10"></i>
           <InputText
             v-model="store.searchQuery"
             placeholder="Buscar..."
-            class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-56 focus:border-green-600"
+            class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-full sm:w-56 focus:border-green-600 transition-all"
             @input="buscar"
           />
         </span>
@@ -21,7 +21,7 @@
         <Button
           label="Nuevo Proveedor"
           icon="pi pi-plus"
-          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all duration-300"
+          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all duration-300 w-full sm:w-auto"
           @click="abirNuevo"
         />
       </div>
@@ -73,18 +73,18 @@
     </section>
     <!-- MODAL: Nuevo/Editar -->
     <div v-if="mostrarModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-full max-w-2xl shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
+      <div class="bg-white rounded-[24px] w-[95vw] max-w-2xl shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 overflow-y-auto max-h-[90vh]">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
         <button @click="mostrarModal = false" class="absolute top-6 right-7 text-gray-400 hover:text-gray-700 transition">
           <i class="pi pi-times text-xl"></i>
         </button>
-        <div class="p-12">
+        <div class="p-8 sm:p-12">
           <div class="mb-10 text-left">
             <h2 class="text-xl font-extrabold text-[#003d00] mb-1">{{ esEdicion ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</h2>
             <p class="text-[15px] text-gray-400 font-medium">Datos del proveedor</p>
           </div>
           <form @submit.prevent="procesarGuradado" class="space-y-6">
-            <div class="grid grid-cols-2 gap-x-8 gap-y-6 text-left">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-left">
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Nombre</label>
                 <InputText v-model="formulario.nombre" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: Distribuidora García" />

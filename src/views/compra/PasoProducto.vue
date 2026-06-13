@@ -1,15 +1,15 @@
 <template>
-  <div class="w-full font-dm-sans px-4 pb-24 space-y-6">
+  <div class="w-full font-dm-sans px-0 sm:px-4 pb-24 space-y-6">
     <!-- Buscar -->
-    <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-gray-200 shadow-md relative overflow-visible text-left">
-      <div class="flex-1 min-w-[250px]">
+    <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl sm:rounded-2xl border-y sm:border border-gray-200 shadow-md relative overflow-visible text-left">
+      <div class="flex-1 w-full sm:min-w-[250px] px-4 sm:px-0">
         <div class="relative group">
           <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-[#0a3622] z-10 text-xs font-bold"></i>
           <InputText
             ref="inputBusqueda"
             v-model="busqueda"
             @input="buscarProducto"
-            placeholder="Buscar producto en el catálogo..."
+            placeholder="Buscar producto..."
             class="w-full !pl-10 border-gray-300 rounded-xl p-3 text-xs font-bold text-[#0a3622] focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/10 outline-none shadow-sm bg-white transition-all"
           />
           <!-- Dropdown de Resultados -->
@@ -34,7 +34,7 @@
       <Button
         label="Producto nuevo"
         icon="pi pi-plus"
-        class="p-button-sm !bg-[#0a3622] hover:!bg-[#115033] border-none rounded-xl px-6 py-2.5 font-black shadow-lg transition-all text-white text-[10px] tracking-widest"
+        class="p-button-sm !bg-[#0a3622] hover:!bg-[#115033] border-none rounded-xl px-6 py-2.5 font-black shadow-lg transition-all text-white text-[10px] tracking-widest w-full sm:w-auto justify-center"
         @click="prepararNuevoProducto"
       />
     </section>
@@ -49,20 +49,23 @@
 
       <div v-for="(item, index) in productosAgregados" :key="item.producto_id" class="bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden text-left relative transition-all hover:shadow-lg">
         <!-- Cabecera de la Tarjeta -->
-        <div class="flex items-center justify-between bg-[#0a3622] px-6 py-3 border-b border-[#0a3622]">
-          <div class="flex items-center gap-4">
-            <span class="w-7 h-7 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow-inner">{{ index + 1 }}</span>
-            <span class="font-black text-white text-sm uppercase tracking-wide">{{ item.nombre }}</span>
-            <span v-if="item.perecedero === 'PERECEDERO'" class="bg-green-400/20 text-green-500 text-[10px] px-2 py-0.5 rounded font-black uppercase border border-green-400/30 ml-2 shadow-sm">Perecedero</span>
+        <div class="flex items-center justify-between bg-[#0a3622] px-3 sm:px-6 py-3 border-b border-[#0a3622] gap-2">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <span class="w-7 h-7 bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-[10px] font-black text-white shadow-inner shrink-0">{{ index + 1 }}</span>
+            <span class="font-black text-white text-[10px] sm:text-sm uppercase tracking-wide truncate">{{ item.nombre }}</span>
           </div>
-          <button @click="quitarProducto(index)" class="w-8 h-8 flex items-center justify-center bg-white/10 text-white/70 rounded-lg hover:bg-red-500 hover:text-white transition-all border border-white/10 group">
-            <i class="pi pi-trash text-xs group-hover:scale-110 transition-transform"></i>
-          </button>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <span v-if="item.perecedero === 'PERECEDERO'" class="bg-green-400/20 text-green-500 text-[10px] sm:text-[10px] px-2 py-0.5 rounded font-black uppercase border border-green-400/30 shadow-sm">Perecedero</span>
+            <button @click="quitarProducto(index)" class="w-8 h-8 flex items-center justify-center bg-white/10 text-white/70 rounded-lg hover:bg-red-500 hover:text-white transition-all border border-white/10 group">
+              <i class="pi pi-trash text-xs group-hover:scale-110 transition-transform"></i>
+            </button>
+          </div>
         </div>
 
-        <div class="p-8 space-y-8 bg-[#fcfdfc]">
+        <div class="p-4 sm:p-8 space-y-6 sm:space-y-8 bg-[#fcfdfc]">
           <!-- Grid de Inputs -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
             <div class="space-y-2 text-left">
               <label class="text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Costo Unitario ($)</label>
               <div class="relative group">
@@ -106,7 +109,7 @@
             <div class="space-y-2 text-left">
               <div class="flex items-center gap-2 mb-1">
                 <label class="text-[10px] font-black text-blue-700 uppercase tracking-[0.2em] ml-1">Factor Conversión</label>
-                <Checkbox v-model="item.usar_factor" :binary="true" @change="recalcular(index)" inputId="chkFactor{{index}}" class="scale-90" />
+                <Checkbox v-model="item.usar_factor" :binary="true" @change="recalcular(index)" :inputId="'chkFactor'+index" class="scale-90" />
               </div>
               <div v-if="item.usar_factor" class="relative group animate-fade-in">
                 <i class="pi pi-box absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 text-xs z-10 font-bold"></i>
@@ -121,21 +124,21 @@
           </div>
 
           <!-- Barra de Precios Sugeridos -->
-          <div class="bg-green-50/60 p-4 rounded-xl flex flex-wrap items-center gap-8 text-[12px] font-bold text-[#0a3622] px-6 border border-green-400 shadow-inner">
+          <div class="bg-green-50/60 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 text-[12px] font-bold text-[#0a3622] px-6 border border-green-400 shadow-inner">
             <span class="flex items-center gap-2">Venta al Detalle: <b class="text-[#0a3622] text-sm font-black tracking-tight">${{ item.precio_detalle_sugerido }}</b></span>
-            <div class="w-1 h-4 bg-green-200 rounded-full hidden md:block"></div>
+            <div class="w-1 h-4 bg-green-200 rounded-full hidden sm:block"></div>
             <span class="flex items-center gap-2">Venta al Mayor: <b class="text-[#0a3622] text-sm font-black tracking-tight">${{ item.precio_mayor_sugerido }}</b></span>
           </div>
 
           <!-- SECCIÓN DE LOTES / CANTIDAD -->
-          <div class="border-t border-gray-400 pt-8">
+          <div class="border-t border-gray-400 pt-6 sm:pt-8 text-left">
             <p class="text-[10px] font-black text-[#0a3622] uppercase tracking-[0.3em] mb-5 flex items-center gap-2">
               <i class="pi pi-box text-xs"></i> {{ item.perecedero === 'PERECEDERO' ? 'REGISTRO DE LOTES' : 'CANTIDAD DE INGRESO' }}
             </p>
 
             <div v-if="item.perecedero === 'PERECEDERO'" class="space-y-4">
-              <div v-for="(lote, lIdx) in item.lotes" :key="lIdx" class="grid grid-cols-12 gap-4 items-center bg-white p-4 rounded-2xl border border-gray-400 shadow-sm text-left">
-                <div class="col-span-5 space-y-1.5">
+              <div v-for="(lote, lIdx) in item.lotes" :key="lIdx" class="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 items-start sm:items-center bg-white p-4 rounded-2xl border border-gray-400 shadow-sm text-left relative">
+                <div class="w-full sm:col-span-5 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Código Lote</span>
                   <input
                     v-model="lote.codigo_lote"
@@ -144,11 +147,11 @@
                     placeholder="EJ: L-100"
                   />
                 </div>
-                <div class="col-span-4 space-y-1.5">
+                <div class="w-full sm:col-span-4 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Vencimiento</span>
                   <input type="date" :min="fechaMinimaLote" v-model="lote.fecha_vencimiento" class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-gray-700 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm" />
                 </div>
-                <div class="col-span-2 space-y-1.5">
+                <div class="w-full sm:col-span-2 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Cantidad</span>
                   <input
                     type="number"
@@ -157,7 +160,7 @@
                     class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-center text-[#0a3622] outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm"
                   />
                 </div>
-                <div class="col-span-1 flex items-center justify-end pt-5">
+                <div class="absolute top-4 right-4 sm:relative sm:top-0 sm:right-0 sm:col-span-1 flex items-center justify-end sm:pt-5">
                   <button
                     @click="quitarLote(index, lIdx)"
                     class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-400 rounded-full hover:bg-red-600 hover:text-white transition-all duration-300 border border-red-100 hover:border-red-600 shadow-sm group"
@@ -186,10 +189,12 @@
           </div>
 
           <!-- Pie del Item: Resumen -->
-          <div class="flex flex-wrap justify-between items-center border-t-2 border-gray-50 mt-4 text-left">
-            <div class="flex items-center gap-4">
-              <span class="text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Subtotal Producto</span>
-              <b class="text-[#0a3622] text-xl font-black tracking-tighter bg-green-50 px-5 py-2 rounded-xl border border-green-100 shadow-sm">$ {{ ((parseFloat(item.precio_unitario) || 0) * calcularCantidad(index)).toFixed(2) }}</b>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t-2 border-gray-100 pt-4 text-left">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <span class="text-[10px] sm:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Subtotal de este producto</span>
+              <b class="text-[#0a3622] text-lg sm:text-xl font-black tracking-tighter bg-green-50 px-4 sm:px-5 py-2 rounded-xl border border-green-100 shadow-sm w-fit">
+                $ {{ ((parseFloat(item.precio_unitario) || 0) * calcularCantidad(index)).toFixed(2) }}
+              </b>
             </div>
           </div>
         </div>
@@ -205,24 +210,24 @@
       </button>
     </section>
 
-    <!-- RESUMEN FINAL Y NAVEGACIÓN (Escalado hacia abajo) -->
+    <!-- RESUMEN FINAL Y NAVEGACIÓN -->
     <div v-if="productosAgregados.length > 0" class="space-y-4 mt-8 pb-32 text-left">
       <!-- Tarjeta de Total General -->
-      <div class="bg-[#0a3622] p-5 rounded-xl shadow-xl flex justify-between items-center text-white relative overflow-hidden border border-white/10">
-        <div class="relative z-10 text-left">
+      <div class="bg-[#0a3622] p-5 rounded-xl shadow-xl text-white relative overflow-hidden border border-white/10 flex flex-col items-center gap-2 md:flex-row md:justify-between md:items-center">
+        <div class="relative z-10 text-center md:text-left">
           <p class="text-[12px] font-black text-green-300 uppercase tracking-[0.4em] mb-0.5">Inversión total de factura</p>
         </div>
-        <div class="text-right z-10">
+        <div class="text-center md:text-right z-10">
            <p class="text-3xl font-black text-white tracking-tighter shadow-sm leading-none">$ {{ totalFactura }}</p>
         </div>
         <div class="absolute -right-12 -bottom-12 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
       </div>
 
-      <div class="flex justify-between items-center px-1">
-        <button @click="$emit('atras')" class="px-7 py-2.5 bg-white border border-gray-300 text-[#0a3622] font-black rounded-xl hover:bg-gray-50 transition-all text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm text-left">
+      <div class="flex flex-col gap-3 md:flex-row md:justify-between md:items-center px-1">
+        <button @click="$emit('atras')" class="w-full md:w-auto px-7 py-2.5 bg-white border border-gray-300 text-[#0a3622] font-black rounded-xl hover:bg-gray-50 transition-all text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm">
           <i class="pi pi-arrow-left text-[9px]"></i> Volver
         </button>
-        <button @click="finalizarPaso" class="px-10 py-3 bg-[#0a3622] text-white font-black rounded-xl hover:bg-[#115033] transition-all text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-md group">
+        <button @click="finalizarPaso" class="w-full md:w-auto px-10 py-3 bg-[#0a3622] text-white font-black rounded-xl hover:bg-[#115033] transition-all text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-md group">
           Ver resumen <i class="pi pi-arrow-right text-[9px] group-hover:translate-x-1 transition-transform"></i>
         </button>
       </div>
@@ -553,30 +558,6 @@ const nuevoItem = {
     emit('siguiente', { detalles: productosAgregados.value })
   }
 </script>
-
-<style scoped>
-  .animate-fade-in{
-    animation: fadeIn 0.4s ease-out forwards;
-  }
-  .animate-fade-up{
-    animation: fadeUp 0.3s ease-out forwards;
-  }
-  @keyframes fadeIn{
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeUp{
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button{
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  .shadow-text {
-    text-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
-</style>
 
 <style scoped>
   .animate-fade-in{

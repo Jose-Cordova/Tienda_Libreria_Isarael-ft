@@ -5,7 +5,7 @@
     <transition name="toast">
       <div
         v-if="toast.visible"
-        class="fixed top-5 right-5 z-[99999] flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl min-w-[340px] max-w-md border"
+        class="fixed top-5 right-5 sm:right-5 left-5 sm:left-auto z-[99999] flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl min-w-0 sm:min-w-[340px] max-w-md border"
         :class="toast.tipo === 'success' ? 'bg-green-100 border-green-300 text-green-900' : 'bg-red-100 border-red-300 text-red-900'"
       >
         <i v-if="toast.tipo === 'success'" class="pi pi-check-circle text-green-600 text-xl shrink-0"></i>
@@ -16,24 +16,24 @@
 
     <!-- Encabezado -->
     <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
         <i class="pi pi-box text-xl text-green-600"></i>
         <h1 class="text-lg font-extrabold text-[#0a3622]">Productos</h1>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="relative">
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <span class="relative flex-1 sm:flex-none">
           <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-black text-sm z-10"></i>
           <InputText
             v-model="buscar"
             placeholder="Buscar..."
-            class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-56 focus:border-green-600"
+            class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-full sm:w-56 focus:border-green-600 transition-all"
             @input="buscarProductos"
           />
         </span>
         <Button
           label="Nuevo Producto"
           icon="pi pi-plus"
-          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all duration-300"
+          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all duration-300 w-full sm:w-auto"
           @click="abrirDialogoTipo"
         />
       </div>
@@ -115,7 +115,7 @@
 
     <!-- Diálogo tipo de producto -->
     <div v-if="dialogoTipoVisible" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-full max-w-md shadow-2xl relative overflow-hidden">
+      <div class="bg-white rounded-[24px] w-[90vw] max-w-md shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
         <div class="p-8 text-center">
           <i class="pi pi-box text-5xl text-[#034e03] mb-4 block"></i>
@@ -133,7 +133,7 @@
 
     <!-- Modal principal de Producto (crear/editar) -->
     <div v-if="mostrarModalProducto" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-full max-w-4xl shadow-2xl relative overflow-y-auto max-h-[90vh] animate-fade-up border border-gray-100">
+      <div class="bg-white rounded-[24px] w-[95vw] max-w-4xl shadow-2xl relative overflow-y-auto max-h-[90vh] animate-fade-up border border-gray-100">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
         <button @click="cerrarModalProducto" class="absolute top-6 right-7 text-gray-400 hover:text-gray-700 transition">
           <i class="pi pi-times text-xl"></i>
@@ -234,7 +234,7 @@
 
     <!-- Submodal Categoría -->
     <div v-if="subModal.categoria" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-full max-w-lg shadow-2xl relative overflow-hidden">
+      <div class="bg-white rounded-[24px] w-[90vw] max-w-lg shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
         <div class="p-8">
           <h3 class="text-xl font-extrabold text-[#003d00] mb-4">Nueva Categoría</h3>
@@ -249,7 +249,7 @@
 
     <!-- Submodal Marca -->
     <div v-if="subModal.marca" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-full max-w-lg shadow-2xl relative overflow-hidden">
+      <div class="bg-white rounded-[24px] w-[90vw] max-w-lg shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
         <div class="p-8">
           <h3 class="text-xl font-extrabold text-[#003d00] mb-4">Nueva Marca</h3>
@@ -264,7 +264,7 @@
 
     <!-- Submodal Unidad de Medida -->
     <div v-if="subModal.unidad" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-full max-w-lg shadow-2xl relative overflow-hidden">
+      <div class="bg-white rounded-[24px] w-[90vw] max-w-lg shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
         <div class="p-8">
           <h3 class="text-xl font-extrabold text-[#003d00] mb-4">Nueva Unidad</h3>

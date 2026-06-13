@@ -1,5 +1,5 @@
 <template>
-  <section class="grid grid-cols-4 gap-4 mb-6">
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="bg-white border border-red-600 border-l-[8px] rounded-xl px-4 py-2.5 shadow-sm flex flex-col justify-center">
       <p class="text-[12px] font-bold text-red-700 uppercase tracking-wider mb-0.5">TOTAL DE DEUDAS</p>
       <p class="text-3xl font-extrabold text-red-600 leading-none my-1">${{ totalDeuda }}</p>

@@ -1,30 +1,30 @@
 <template>
-  <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
+  <main class="flex-1 bg-[#f4f7f6] p-3 sm:p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
     <!-- Encabezado -->
     <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
-      <div class="flex items-center gap-3 text-left">
+      <div class="flex items-center gap-3 text-left w-full sm:w-auto">
         <i class="pi pi-box text-xl text-green-600"></i>
         <h1 class="text-lg font-extrabold text-[#0a3622]">Registro de Productos Dañados</h1>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
         <!-- Buscador -->
-        <span class="relative">
+        <span class="relative flex-1 sm:flex-none">
           <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-black text-sm z-10"></i>
           <InputText
             v-model="busqueda"
             placeholder="Buscar..."
-            class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-48 focus:border-green-600 transition-all"
+            class="p-inputtext-sm !pl-10 border-gray-500 rounded-lg text-sm text-[#0a3622] w-full sm:w-48 focus:border-green-600 transition-all"
           />
         </span>
         <!-- Filtros de fecha (Igual a Compras) -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
           <Calendar
             v-model="fechaInicio"
             placeholder="Desde"
             dateFormat="dd/mm/yy"
             showIcon
             :maxDate="fechaFin || null"
-            class="p-calendar-sm w-32 custom-prime-calendar"
+            class="p-calendar-sm flex-1 sm:w-32 custom-prime-calendar"
           />
           <Calendar
             v-model="fechaFin"
@@ -32,12 +32,12 @@
             placeholder="Hasta"
             showIcon
             :minDate="fechaInicio || null"
-            class="p-calendar-sm w-32 custom-prime-calendar"
+            class="p-calendar-sm flex-1 sm:w-32 custom-prime-calendar"
           />
           <Button
             v-if="fechaInicio || fechaFin"
             icon="pi pi-filter-slash"
-            class="p-button-rounded p-button-text p-button-sm !text-red-900 !w-9 !h-9"
+            class="p-button-rounded p-button-text p-button-sm !text-red-900 !w-9 !h-9 shrink-0"
             @click="limpiarFechas"
           />
         </div>
@@ -45,7 +45,7 @@
         <Button
           label="Registrar"
           icon="pi pi-plus"
-          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all"
+          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all w-full sm:w-auto"
           @click="abrirNuevo"
         />
       </div>
@@ -124,7 +124,7 @@
     <!-- MODAL: NUEVO / EDITAR -->
     <Teleport to="body">
       <div v-if="mostrarModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] backdrop-blur-sm p-4 font-dm-sans text-left">
-        <div class="bg-white rounded-[24px] w-full max-w-xl shadow-2xl relative overflow-hidden border border-gray-100">
+        <div class="bg-white rounded-[24px] w-[95vw] max-w-xl shadow-2xl relative overflow-hidden border border-gray-100">
           <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
           <button @click="mostrarModal = false" class="absolute top-6 right-7 text-gray-400 hover:text-gray-700 transition">
             <i class="pi pi-times text-xl"></i>
