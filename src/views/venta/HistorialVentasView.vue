@@ -1,5 +1,5 @@
 <template>
-  <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar">
+  <main class="flex-1 bg-[#f4f7f6] p-3 sm:p-6 overflow-y-auto custom-scrollbar">
     <!-- Filtros y cabecera -->
     <FiltrosHistorial
       :filtros="store.filters"

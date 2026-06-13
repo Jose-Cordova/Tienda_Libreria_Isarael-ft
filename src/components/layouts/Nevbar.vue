@@ -1,32 +1,41 @@
 <template>
   <div>
-    <nav class="bg-shop-sidebar-bg text-white px-6 py-2 flex items-center justify-between shadow-shop border-b border-white/5 font-dm-sans">
-      <div class="flex items-center gap-3">
-        <span class="text-xl font-bold tracking-tight">
+    <nav class="bg-shop-sidebar-bg text-white px-4 sm:px-6 py-1 sm:py-2 flex items-center justify-between shadow-shop border-b border-white/5 font-dm-sans">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Botón Hamburguesa (Solo móvil) -->
+        <button
+          @click="emit('toggle-sidebar')"
+          class="lg:hidden w-9 h-9 flex items-center justify-center bg-white/5 border border-white/10 rounded-lg text-shop-accent hover:bg-white/10 transition-all active:scale-95"
+        >
+          <i class="pi pi-bars text-lg"></i>
+        </button>
+
+        <span class="text-lg sm:text-xl font-bold tracking-tight">
           Tienda y <span class="text-shop-accent">Librería Israel</span>
         </span>
       </div>
 
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-3 sm:gap-6">
         <div class="hidden md:block font-jetbrains text-sm text-gray-400 font-bold opacity-80">
           {{ currentTime }}
         </div>
 
-        <div class="flex items-center bg-white/10 rounded-full pl-1 pr-4 py-1 border border-white/10 gap-3">
-          <div class="w-8 h-8 rounded-full bg-shop-accent flex items-center justify-center text-xs font-black border border-shop-sidebar-bg">
+        <div class="flex items-center bg-white/10 rounded-full pl-1 pr-3 sm:pr-4 py-0.5 sm:py-1 border border-white/10 gap-2 sm:gap-3">
+          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-shop-accent flex items-center justify-center text-[9px] sm:text-xs font-black border border-shop-sidebar-bg">
             {{ getInitials(authStore.user?.name) }}
           </div>
-          <span class="text-sm font-bold tracking-wide">
+          <span class="text-xs sm:text-sm font-bold tracking-wide">
             {{ authStore.user?.name || 'Administrador' }}
           </span>
         </div>
 
         <button
           @click="mostrarConfirmacion = true"
-          class="flex items-center gap-2 bg-transparent border border-white/20 hover:bg-shop-red/20 hover:border-shop-red px-3 py-1.5 rounded-shop-sm text-sm font-bold transition-all group text-white"
+          class="flex items-center gap-1.5 sm:gap-2 bg-transparent border border-white/20 hover:bg-shop-red/20 hover:border-shop-red px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-shop-sm text-xs sm:text-sm font-bold transition-all group text-white"
         >
-          <i class="pi pi-power-off text-xs text-white/70 group-hover:text-shop-red"></i>
-          <span>Cerrar Sesión</span>
+          <i class="pi pi-power-off text-[10px] sm:text-xs text-white/70 group-hover:text-shop-red"></i>
+          <span class="hidden sm:inline">Cerrar Sesión</span>
+          <span class="sm:hidden">Salir</span>
         </button>
       </div>
     </nav>
@@ -71,6 +80,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()
+const emit = defineEmits(['toggle-sidebar'])
 const mostrarConfirmacion = ref(false)
 const currentTime = ref(new Date().toLocaleTimeString('es-ES', { hour12: false }))
 let timer

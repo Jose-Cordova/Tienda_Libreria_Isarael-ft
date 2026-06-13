@@ -2,30 +2,30 @@
   <div>
     <!-- SECCIÓN: Encabezado -->
     <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-100 border-l-[8px] border-l-[#0a3622]">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
           <i class="pi pi-shopping-bag text-xl text-[#068a4e]"></i>
         <div>
           <h1 class="text-lg font-extrabold text-[#0a3622]">Historial de Compras</h1>
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
         <!-- Buscador -->
-        <span class="relative">
+        <span class="relative flex-1 sm:flex-none">
           <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm z-10"></i>
           <InputText
             v-model="store.textoBusqueda"
             placeholder="Buscar factura..."
-            class="p-inputtext-sm !pl-10 border-gray-200 rounded-xl text-sm text-[#0a3622] w-56 focus:border-green-600 shadow-sm"
+            class="p-inputtext-sm !pl-10 border-gray-200 rounded-xl text-sm text-[#0a3622] w-full sm:w-56 focus:border-green-600 shadow-sm"
             @input="alBuscar"
           />
         </span>
 
         <!-- Filtro por Estado -->
-        <div class="relative bg-white border border-gray-200 rounded-xl px-2 h-[38px] flex items-center shadow-sm focus-within:border-green-600 transition-all">
+        <div class="relative bg-white border border-gray-200 rounded-xl px-2 h-[38px] flex items-center shadow-sm focus-within:border-green-600 transition-all w-full sm:w-48">
           <select
             v-model="store.filtros.estado"
             @change="store.obtenerCompras(1)"
-            class="bg-transparent border-none pr-6 text-[12px] font-black text-[#0a3622] focus:ring-0 cursor-pointer uppercase appearance-none"
+            class="bg-transparent border-none pr-6 text-[12px] font-black text-[#0a3622] focus:ring-0 cursor-pointer uppercase appearance-none w-full"
           >
             <option value="">TODOS LOS ESTADOS</option>
             <option value="REGISTRADA">REGISTRADAS</option>
@@ -34,14 +34,14 @@
           <i class="pi pi-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[9px]"></i>
         </div>
         <!-- Filtros de fecha -->
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 w-full sm:w-auto">
             <Calendar
               v-model="store.filtros.fecha_inicio"
               placeholder="Desde"
               dateFormat="dd/mm/yy"
               showIcon
               :maxDate="store.filtros.fecha_fin || null"
-              class="p-calendar-sm w-32 custom-prime-calendar"
+              class="p-calendar-sm flex-1 sm:w-32 custom-prime-calendar"
               @date-select="store.obtenerCompras(1)"
             />
             <Calendar
@@ -50,21 +50,21 @@
               placeholder="Hasta"
               showIcon
               :minDate="store.filtros.fecha_inicio || null"
-              class="p-calendar-sm w-32 custom-prime-calendar"
+              class="p-calendar-sm flex-1 sm:w-32 custom-prime-calendar"
               @date-select="store.obtenerCompras(1)"
             />
             <Button
               v-if="store.filtros.fecha_inicio || store.filtros.fecha_fin"
               icon="pi pi-filter-slash"
               v-tooltip.top="'Limpiar fechas'"
-              class="p-button-rounded p-button-text p-button-sm !text-red-900 !w-9 !h-9"
+              class="p-button-rounded p-button-text p-button-sm !text-red-900 !w-9 !h-9 shrink-0"
               @click="limpiarFechas"
             />
          </div>
         <Button
           label="Nueva Compra"
           icon="pi pi-plus"
-          class="p-button-sm font-bold text-sm !bg-[#0a3622] hover:!bg-[#115033] text-white border-none shadow-sm transition-all duration-300 px-5 h-[38px] rounded-xl"
+          class="p-button-sm font-bold text-sm !bg-[#0a3622] hover:!bg-[#115033] text-white border-none shadow-sm transition-all duration-300 px-5 h-[38px] rounded-xl w-full sm:w-auto"
           @click="$emit('nueva-compra')"
         />
       </div>

@@ -3,7 +3,7 @@
     v-if="visible"
     class="fixed inset-0 bg-black/40 flex items-center justify-center z-[70] backdrop-blur-sm p-4"
   >
-    <div class="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden animate-fade-up border border-gray-100">
+    <div class="bg-white rounded-xl w-[90vw] max-w-md shadow-2xl overflow-hidden animate-fade-up border border-gray-100">
       <!-- Cabecera -->
       <div class="bg-[#0a3622] text-white px-6 py-4 flex items-center justify-between">
         <h2 class="text-lg font-extrabold flex items-center gap-2">

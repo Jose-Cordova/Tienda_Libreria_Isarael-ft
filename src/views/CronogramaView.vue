@@ -1,8 +1,8 @@
 <template>
   <!-- Contenedor principal con altura fija para evitar desorden -->
-  <div class="flex flex-col lg:flex-row h-[calc(100vh-140px)] bg-[#f8faf9] font-dm-sans overflow-hidden">
+  <div class="flex flex-col lg:flex-row h-full lg:h-[calc(100vh-140px)] bg-[#f8faf9] font-dm-sans overflow-hidden">
     <!-- BARRA LATERAL: AGENDA DEL MES -->
-    <aside class="w-full lg:w-80 bg-white border-r border-gray-100 flex flex-col shadow-sm z-10 flex-none">
+    <aside class="w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm z-10 flex-none h-[350px] lg:h-full">
       <div class="p-6 border-b border-gray-50 bg-[#fcfdfc] relative">
         <div class="absolute top-0 left-0 w-1.5 h-full bg-[#0a3622]"></div>
         <h2 class="text-[11px] font-black text-[#0a3622] uppercase tracking-[0.3em] flex items-center gap-3">
@@ -27,37 +27,37 @@
       </div>
     </aside>
     <!-- ÁREA PRINCIPAL: CALENDARIO -->
-    <section class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <section class="flex-1 flex flex-col min-w-0 overflow-hidden h-full">
       <!-- CABECERA DE NAVEGACIÓN -->
-      <div class="bg-white px-6 py-4 border-b border-gray-500 flex flex-wrap items-center justify-between gap-4 shadow-sm z-20">
-        <div class="flex items-center gap-4">
+      <div class="bg-white px-4 sm:px-6 py-4 border-b border-gray-500 flex flex-wrap items-center justify-between gap-4 shadow-sm z-20">
+        <div class="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
           <Button
             label="Registrar"
             icon="pi pi-plus"
-            class="p-button-sm font-black text-[12px] !bg-[#0a3622] hover:!bg-[#115033] text-white border-none rounded-xl px-4 h-[40px] shadow-md transition-all tracking-widest"
+            class="p-button-sm font-black text-[12px] !bg-[#0a3622] hover:!bg-[#115033] text-white border-none rounded-xl px-4 h-[40px] shadow-md transition-all tracking-widest flex-1 sm:flex-none justify-center"
             @click="abrirNuevo"
           />
           <div class="h-6 w-px bg-gray-500 hidden sm:block"></div>
-          <h1 class="text-base font-black text-[#0a3622] tracking-tighter hidden md:block">Cronograma Logístico</h1>
+          <h1 class="text-base font-black text-[#0a3622] uppercase tracking-tighter hidden md:block">Cronograma Logístico</h1>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <Button
             label="Hoy"
-            class="p-button-sm font-black text-[10px] !bg-[#0a3622] hover:!bg-[#115033] text-white border-none rounded-xl px-5 h-[40px] shadow-md transition-all uppercase tracking-widest"
+            class="p-button-sm font-black text-[10px] !bg-[#0a3622] hover:!bg-[#115033] text-white border-none rounded-xl px-4 h-[40px] shadow-md transition-all uppercase tracking-widest"
             @click="irAHoy"
           />
-          <div class="flex items-center gap-2 bg-gray-50 rounded-xl p-1 px-3 border border-gray-200">
+          <div class="flex items-center gap-2 bg-gray-50 rounded-xl p-1 px-3 border border-gray-200 flex-1 sm:flex-none justify-between">
              <Button icon="pi pi-chevron-left" class="p-button-text p-button-sm !text-[#0a3622] !w-7 !h-7 hover:!bg-white" @click="prev" />
-             <div class="min-w-[120px] text-center">
-               <span class="text-xs font-black text-[#0a3622] uppercase tracking-widest">{{ mesAnioActual }}</span>
+             <div class="min-w-[100px] sm:min-w-[120px] text-center">
+               <span class="text-[10px] sm:text-xs font-black text-[#0a3622] uppercase tracking-widest">{{ mesAnioActual }}</span>
              </div>
              <Button icon="pi pi-chevron-right" class="p-button-text p-button-sm !text-[#0a3622] !w-7 !h-7 hover:!bg-white" @click="next" />
           </div>
         </div>
       </div>
       <!-- Contenedor del Calendario -->
-      <div class="flex-1 p-4 sm:p-6 bg-[#f8faf9] overflow-hidden">
-        <div class="bg-white p-4 rounded-[24px] border border-gray-600 shadow-xl h-full overflow-hidden relative">
+      <div class="flex-none p-4 sm:p-6 bg-[#f8faf9] overflow-hidden h-[350px] lg:h-full lg:flex-1">
+        <div class="bg-white p-4 rounded-[24px] border border-gray-600 shadow-xl h-full relative overflow-hidden">
           <FullCalendar
             ref="fullCalendar"
             :options="calendarOptions"
@@ -69,7 +69,7 @@
     <!-- MODAL: NUEVO / EDITAR -->
     <Teleport to="body">
       <div v-if="mostrarModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] backdrop-blur-sm p-4 font-dm-sans">
-        <div class="bg-white rounded-[24px] w-full max-w-md shadow-2xl relative overflow-hidden border border-gray-100">
+        <div class="bg-white rounded-[24px] w-[90vw] max-w-md shadow-2xl relative overflow-hidden border border-gray-100">
           <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
           <button @click="mostrarModal = false" class="absolute top-6 right-7 text-gray-400 hover:text-gray-700 transition">
             <i class="pi pi-times text-xl"></i>
@@ -127,6 +127,7 @@
   import Dropdown from 'primevue/dropdown';
   import Calendar from 'primevue/calendar';
   import Textarea from 'primevue/textarea';
+  import { onMounted, onUnmounted } from 'vue';
 
   // --- REFERENCIAS Y ESTADOS ---
   const fullCalendar = ref(null);
@@ -134,6 +135,12 @@
   const mostrarModal = ref(false);
   const esEdicion = ref(false);
   const formulario = ref({ id: null, proveedor_id: null, fecha: null, descripcion: '' });
+
+  // Reactividad para el ancho de pantalla
+  const windowWidth = ref(window.innerWidth);
+  const updateWidth = () => { windowWidth.value = window.innerWidth; };
+  onMounted(() => window.addEventListener('resize', updateWidth));
+  onUnmounted(() => window.removeEventListener('resize', updateWidth));
 
   // --- DATOS ESTÁTICOS ---
   const proveedoresMock = [
@@ -149,27 +156,30 @@
   ]);
 
   // --- CONFIGURACIÓN DE FULLCALENDAR ---
-  const calendarOptions = {
+  const calendarOptions = computed(() => ({
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
     locale: esLocale,
-    headerToolbar: false, // Desactivamos la cabecera nativa para usar la nuestra
-    dayHeaderFormat: { weekday: 'long' }, // Nombres de días completos (Lunes, Martes...)
+    headerToolbar: false,
+    // Nombres cortos en móvil (ej: Lun, Mar) y largos en PC (Lunes, Martes)
+    dayHeaderFormat: { weekday: windowWidth.value < 768 ? 'short' : 'long' },
+    // Ajustamos la proporción para que en movil sea mas pequeño
+    aspectRatio: windowWidth.value < 768 ? 2.5 : 1.8,
     events: eventos.value,
     editable: true,
     selectable: true,
-    height: '100%',
+    // En PC forzamos a que use el 100% del contenedor, en movil una altura fija pequeña
+    height: windowWidth.value < 768 ? 280 : '100%',
     dayMaxEvents: true,
     eventDisplay: 'block',
     eventClassNames: 'font-bold uppercase text-[10px] border-none !bg-[#0a3622] text-white rounded-md p-1 shadow-sm',
     datesSet: (info) => {
-      // Actualizamos el nombre del mes/año en nuestra cabecera personalizada
       mesAnioActual.value = info.view.title;
     },
     eventClick: (info) => {
       abrirEditar(info.event);
     }
-  };
+  }));
 
   // --- LÓGICA DE AGENDA (Sidebar) ---
   const agendaEventos = computed(() => {
@@ -262,5 +272,12 @@
   :deep(.fc-event:hover) {
     transform: scale(1.02);
     filter: brightness(1.1);
+  }
+  /* Estilo para el popover (ventana emergente de eventos) */
+  :deep(.fc-popover) {
+    z-index: 100 !important;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
   }
 </style>

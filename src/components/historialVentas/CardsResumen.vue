@@ -1,5 +1,5 @@
 <template>
-  <section class="grid grid-cols-4 gap-4 mb-6">
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <!-- Cantidad de ventas pagadas -->
     <div class="bg-white border border-[#0a3622] border-l-[8px] rounded-xl px-4 py-2.5 shadow-sm flex flex-col justify-center">
       <p class="text-[12px] font-bold text-[#145a32] uppercase tracking-wider mb-0.5">Ventas Pagadas</p>

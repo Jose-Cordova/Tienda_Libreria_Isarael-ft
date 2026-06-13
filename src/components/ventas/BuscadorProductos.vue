@@ -1,16 +1,16 @@
 <template>
   <div class="flex flex-col h-full bg-shop-bg">
     <!-- Barra de búsqueda -->
-    <div class="p-4 bg-white border-b border-shop-border shrink-0">
-      <span class="p-input-icon-left w-full flex items-center">
-        <i class="pi pi-search absolute z-10 ml-0 text-shop-green" />
+    <div class="p-3 sm:p-4 bg-white border-b border-shop-border shrink-0">
+      <div class="relative w-full flex items-center group">
+        <i class="pi pi-search absolute left-4 z-10 text-shop-green text-sm" />
         <InputText
           v-model="busqueda"
-          placeholder="Buscar por nombre..."
-          class="w-full pl-14 border-2 focus:border-shop-green transition-colors font-bold rounded-shop"
+          placeholder="Buscar producto..."
+          class="w-full !pl-12 border-2 focus:border-shop-green transition-colors font-bold rounded-shop text-sm"
           @input="debouncedSearch"
         />
-      </span>
+      </div>
     </div>
 
     <!-- Estado de carga yes-->
@@ -73,7 +73,7 @@
       v-model:visible="mostrarModalProducto"
       modal
       :header="productoSeleccionado?.nombre"
-      :style="{ width: '350px' }"
+      class="w-[90vw] max-w-[350px]"
       :pt="{ root: { class: 'rounded-shop overflow-hidden' }, header: { class: 'bg-white pb-2' } }"
     >
       <div class="flex flex-col gap-4 pt-4" v-if="productoSeleccionado">
