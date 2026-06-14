@@ -74,6 +74,21 @@ const router = createRouter({
           component: () => import('../views/Reporte.vue')
         },
         {
+          path: 'reporte-historial',
+          name: 'reporte-historial',
+          component: () => import('../views/ReporteHistorialVenta.vue')
+        },
+        {
+          path: 'reporte-compras',
+          name: 'reporte-compras',
+          component: () => import('../views/ReporteCompras.vue')
+        },
+        {
+          path: 'reporte-creditos',
+          name: 'reporte-creditos',
+          component: () => import('../views/ReporteCredito.vue')
+        },
+        {
           path: 'compras',
           name: 'compras',
           component: () => import('../views/compra/CompraIndex.vue')

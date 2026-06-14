@@ -71,14 +71,15 @@
         Limpiar
       </button>
 
-      <!-- Botón Imprimir (placeholder) -->
+      <!-- Botón Imprimir -->
       <button
-        disabled
-        class="flex items-center gap-1 px-4 py-2 text-sm font-bold rounded-lg border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-70"
-        title="Disponible próximamente"
+        @click="$emit('imprimir')"
+        :disabled="generandoReporte"
+        class="flex items-center gap-1 px-4 py-2 text-sm font-bold rounded-lg border border-gray-300 bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        title="Imprimir historial"
       >
-        <i class="pi pi-print text-xs"></i>
-        Imprimir
+        <i :class="generandoReporte ? 'pi pi-spin pi-spinner' : 'pi pi-print'" class="text-xs"></i>
+        {{ generandoReporte ? 'Generando...' : 'Imprimir' }}
       </button>
     </div>
   </section>
@@ -95,7 +96,11 @@ defineProps({
   metodosPago: {
     type: Array,
     default: () => []
-  }
+  },
+  generandoReporte: {
+    type: Boolean,
+    default: false
+  },
 });
 
 defineEmits(['update:filtros', 'limpiar']);

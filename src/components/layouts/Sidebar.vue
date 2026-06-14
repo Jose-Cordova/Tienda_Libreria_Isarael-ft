@@ -73,8 +73,21 @@
         <div class="space-y-0.5">
           <RouterLink to="/reportes" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-chart-line text-lg text-shop-accent"></i>
-            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Reportes</span>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Reporte General</span>
+
           </RouterLink>
+          <RouterLink to="/reporte-historial" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-history text-lg text-shop-accent"></i>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white"> Reporte Historial de Ventas</span>
+          </RouterLink>
+          <RouterLink to="/reporte-compras" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-file text-lg text-shop-accent"></i>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Reporte de Compras</span>
+          </RouterLink>
+          <RouterLink to="/reporte-creditos" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-wallet text-lg text-shop-accent"></i>
+              <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Reporte Créditos</span>
+              </RouterLink>
           <RouterLink to="/cronograma-proveedores" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-calendar text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Cronograma</span>
