@@ -132,19 +132,26 @@
     </div>
 
     <!-- Modal principal de Producto (crear/editar) -->
-    <div v-if="mostrarModalProducto" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-[95vw] max-w-4xl shadow-2xl relative overflow-y-auto max-h-[90vh] animate-fade-up border border-gray-100">
-        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
-        <button @click="cerrarModalProducto" class="absolute top-6 right-7 text-gray-400 hover:text-gray-700 transition">
-          <i class="pi pi-times text-xl"></i>
-        </button>
-        <div class="p-8">
-          <div class="mb-6 text-left">
+    <Teleport to="body">
+      <div v-if="mostrarModalProducto" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] backdrop-blur-sm p-4">
+        <form @submit.prevent="guardarProducto" class="bg-white rounded-[24px] w-[95vw] max-w-4xl shadow-2xl relative animate-fade-up border border-gray-100 flex flex-col max-h-[85vh] overflow-hidden">
+          <!-- Barra decorativa superior -->
+          <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03] z-20"></div>
+          
+          <!-- Botón cerrar (X) -->
+          <button type="button" @click="cerrarModalProducto" class="absolute top-6 right-7 text-gray-400 hover:text-gray-700 transition z-10">
+            <i class="pi pi-times text-xl"></i>
+          </button>
+
+          <!-- Cabecera fija del Modal -->
+          <div class="p-6 md:p-8 pb-4 border-b border-gray-100 text-left pr-16">
             <h2 class="text-2xl font-extrabold text-[#003d00] mb-1">{{ esEdicion ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
-            <p class="text-gray-400 font-medium">Complete los datos del producto</p>
+            <p class="text-gray-400 font-medium text-sm">Complete los datos del producto</p>
           </div>
-          <form @submit.prevent="guardarProducto" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Contenido deslizable (Formulario y campos) -->
+          <div class="p-6 md:p-8 overflow-y-auto flex-1 space-y-4 md:space-y-6 text-left">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div>
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Nombre</label>
                 <InputText v-model="productoForm.nombre" class="w-full border border-gray-200 rounded-xl p-3 focus:border-[#003d00]" :class="{ 'border-red-500': errors.nombre }" />
@@ -205,9 +212,9 @@
               </div>
             </div>
             <!-- Campos solo para perecedero -->
-            <div v-if="!esEdicion && productoForm.perecedero" class="border-t border-gray-200 pt-6 mt-4">
-              <h3 class="text-md font-extrabold text-[#003d00] uppercase tracking-wide mb-4">Datos del Lote</h3>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div v-if="!esEdicion && productoForm.perecedero" class="border-t border-gray-200 pt-4 md:pt-6 mt-4">
+              <h3 class="text-md font-extrabold text-[#003d00] uppercase tracking-wide mb-3 md:mb-4">Datos del Lote</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Código de Lote</label>
                   <InputText v-model="productoForm.codigo_lote" class="w-full border border-gray-200 rounded-xl p-3" :class="{ 'border-red-500': errors.codigo_lote }" />
@@ -220,65 +227,72 @@
                 </div>
               </div>
             </div>
-            <!-- Botones -->
-            <div class="flex items-center gap-4 pt-6 border-t border-gray-200">
-              <button type="button" @click="cerrarModalProducto" class="px-8 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition">Cancelar</button>
-              <button type="submit" :disabled="loading" class="flex-1 py-3 bg-[#003d00] hover:bg-[#002800] text-white font-bold rounded-xl shadow-lg transition disabled:opacity-50">
-                {{ loading ? 'GUARDANDO...' : 'Guardar' }}
-              </button>
-            </div>
-          </form>
-        </div>
+          </div>
+
+          <!-- Pie de página fijo con Botones -->
+          <div class="p-6 md:p-8 pt-4 border-t border-gray-200 flex items-center gap-4 bg-gray-50/50 rounded-b-[24px]">
+            <button type="button" @click="cerrarModalProducto" class="px-8 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition">Cancelar</button>
+            <button type="submit" :disabled="loading" class="flex-1 py-3 bg-[#003d00] hover:bg-[#002800] text-white font-bold rounded-xl shadow-lg transition disabled:opacity-50">
+              {{ loading ? 'GUARDANDO...' : 'Guardar' }}
+            </button>
+          </div>
+        </form>
       </div>
-    </div>
+    </Teleport>
 
     <!-- Submodal Categoría -->
-    <div v-if="subModal.categoria" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-[90vw] max-w-lg shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
-        <div class="p-8">
-          <h3 class="text-xl font-extrabold text-[#003d00] mb-4">Nueva Categoría</h3>
-          <InputText v-model="nuevaCategoria.nombre" placeholder="Nombre" class="w-full border border-gray-200 rounded-xl p-3" />
-          <div class="flex gap-3 mt-8">
-            <button @click="cerrarSubModal('categoria')" class="flex-1 py-3 bg-gray-200 text-gray-800 font-bold rounded-xl shadow-sm hover:bg-red-600 hover:text-white transition-all duration-200">Cancelar</button>
-            <button @click="crearCategoriaDesdeSub" class="flex-1 py-3 bg-[#003d00] text-white font-bold rounded-xl shadow-md hover:bg-[#002800] transition">Guardar</button>
+    <Teleport to="body">
+      <div v-if="subModal.categoria" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4">
+        <div class="bg-white rounded-[24px] w-[90vw] max-w-lg shadow-2xl relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
+          <div class="p-8">
+            <h3 class="text-xl font-extrabold text-[#003d00] mb-4">Nueva Categoría</h3>
+            <InputText v-model="nuevaCategoria.nombre" placeholder="Nombre" class="w-full border border-gray-200 rounded-xl p-3" />
+            <div class="flex gap-3 mt-8">
+              <button @click="cerrarSubModal('categoria')" class="flex-1 py-3 bg-gray-200 text-gray-800 font-bold rounded-xl shadow-sm hover:bg-red-600 hover:text-white transition-all duration-200">Cancelar</button>
+              <button @click="crearCategoriaDesdeSub" class="flex-1 py-3 bg-[#003d00] text-white font-bold rounded-xl shadow-md hover:bg-[#002800] transition">Guardar</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
     <!-- Submodal Marca -->
-    <div v-if="subModal.marca" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-[90vw] max-w-lg shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
-        <div class="p-8">
-          <h3 class="text-xl font-extrabold text-[#003d00] mb-4">Nueva Marca</h3>
-          <InputText v-model="nuevaMarca.nombre" placeholder="Nombre" class="w-full border border-gray-200 rounded-xl p-3" />
-          <div class="flex gap-3 mt-8">
-            <button @click="cerrarSubModal('marca')" class="flex-1 py-3 bg-gray-200 text-gray-800 font-bold rounded-xl shadow-sm hover:bg-red-600 hover:text-white transition-all duration-200">Cancelar</button>
-            <button @click="crearMarcaDesdeSub" class="flex-1 py-3 bg-[#003d00] text-white font-bold rounded-xl shadow-md hover:bg-[#002800] transition">Guardar</button>
+    <Teleport to="body">
+      <div v-if="subModal.marca" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4">
+        <div class="bg-white rounded-[24px] w-[90vw] max-w-lg shadow-2xl relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
+          <div class="p-8">
+            <h3 class="text-xl font-extrabold text-[#003d00] mb-4">Nueva Marca</h3>
+            <InputText v-model="nuevaMarca.nombre" placeholder="Nombre" class="w-full border border-gray-200 rounded-xl p-3" />
+            <div class="flex gap-3 mt-8">
+              <button @click="cerrarSubModal('marca')" class="flex-1 py-3 bg-gray-200 text-gray-800 font-bold rounded-xl shadow-sm hover:bg-red-600 hover:text-white transition-all duration-200">Cancelar</button>
+              <button @click="crearMarcaDesdeSub" class="flex-1 py-3 bg-[#003d00] text-white font-bold rounded-xl shadow-md hover:bg-[#002800] transition">Guardar</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
     <!-- Submodal Unidad de Medida -->
-    <div v-if="subModal.unidad" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-[90vw] max-w-lg shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
-        <div class="p-8">
-          <h3 class="text-xl font-extrabold text-[#003d00] mb-4">Nueva Unidad</h3>
-          <div class="space-y-4">
-            <InputText v-model="nuevaUnidad.nombre" placeholder="Nombre" class="w-full border border-gray-200 rounded-xl p-3" />
-            <InputNumber v-model="nuevaUnidad.equivalencia" placeholder="Equivalencia" :min="1" class="w-full border border-gray-200 rounded-xl p-3" />
-          </div>
-          <div class="flex gap-3 mt-8">
-            <button @click="cerrarSubModal('unidad')" class="flex-1 py-3 bg-gray-200 text-gray-800 font-bold rounded-xl shadow-sm hover:bg-red-600 hover:text-white transition-all duration-200">Cancelar</button>
-            <button @click="crearUnidadDesdeSub" class="flex-1 py-3 bg-[#003d00] text-white font-bold rounded-xl shadow-md hover:bg-[#002800] transition">Guardar</button>
+    <Teleport to="body">
+      <div v-if="subModal.unidad" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4">
+        <div class="bg-white rounded-[24px] w-[90vw] max-w-lg shadow-2xl relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
+          <div class="p-8">
+            <h3 class="text-xl font-extrabold text-[#003d00] mb-4">Nueva Unidad</h3>
+            <div class="space-y-4">
+              <InputText v-model="nuevaUnidad.nombre" placeholder="Nombre" class="w-full border border-gray-200 rounded-xl p-3" />
+              <InputNumber v-model="nuevaUnidad.equivalencia" placeholder="Equivalencia" :min="1" class="w-full border border-gray-200 rounded-xl p-3" />
+            </div>
+            <div class="flex gap-3 mt-8">
+              <button @click="cerrarSubModal('unidad')" class="flex-1 py-3 bg-gray-200 text-gray-800 font-bold rounded-xl shadow-sm hover:bg-red-600 hover:text-white transition-all duration-200">Cancelar</button>
+              <button @click="crearUnidadDesdeSub" class="flex-1 py-3 bg-[#003d00] text-white font-bold rounded-xl shadow-md hover:bg-[#002800] transition">Guardar</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
   </main>
 </template>
@@ -302,30 +316,38 @@ import Tag from 'primevue/tag'
 import Paginator from 'primevue/paginator'
 import Swal from 'sweetalert2'
 
+// -----------------------------------------------
+// Stores y estado global
+// -----------------------------------------------
 const productoStore = useProductoStore()
 const categoriaStore = useCategoriaStore()
 const marcaStore = useMarcaStore()
 const unidadStore = useUnidadMedidaStore()
 
-const buscar = ref('')
-const dialogoTipoVisible = ref(false)
-const mostrarModalProducto = ref(false)
-const esEdicion = ref(false)
-const loading = ref(false)
-// Se elimina la variable perPage, ahora fijo a 10
+// -----------------------------------------------
+// Estado reactivo (Refs)
+// -----------------------------------------------
+const buscar = ref('')                      // Filtro de búsqueda textual
+const dialogoTipoVisible = ref(false)       // Controla el selector de tipo (Normal/Perecedero)
+const mostrarModalProducto = ref(false)     // Controla la visibilidad del formulario de producto
+const esEdicion = ref(false)                // Indica si se está editando o creando
+const loading = ref(false)                  // Estado de carga del botón guardar
+
+// Estructura de datos para el formulario de producto
 const productoForm = ref({
   id: null, nombre: '', categoria_id: null, marca_id: null, unidad_medida_id: null,
   precio_detalle: null, precio_mayor: null, stock_minimo: 1, perecedero: false,
   codigo_lote: '', fecha_vencimiento: null, cantidad_inicial: 1
 })
-const errors = ref({})
+const errors = ref({})                       // Errores de validación devueltos por el backend
 
+// Estado para la creación rápida de catálogos desde el mismo modal
 const subModal = ref({ categoria: false, marca: false, unidad: false })
 const nuevaCategoria = ref({ nombre: '' })
 const nuevaMarca = ref({ nombre: '' })
 const nuevaUnidad = ref({ nombre: '', equivalencia: 1 })
 
-// Toast nativo (sin cambios)
+// Estado y configuración del Toast nativo
 const toast = ref({ visible: false, tipo: 'success', mensaje: '' })
 let toastTimer = null
 const mostrarToast = (tipo, mensaje) => {
@@ -334,27 +356,37 @@ const mostrarToast = (tipo, mensaje) => {
   toastTimer = setTimeout(() => { toast.value.visible = false }, 4000)
 }
 
+// -----------------------------------------------
+// Propiedades computadas
+// -----------------------------------------------
 const categorias = computed(() => categoriaStore.categorias || [])
 const marcas = computed(() => marcaStore.marcas || [])
 const unidades = computed(() => unidadStore.unidadesMedida || [])
 const productos = computed(() => productoStore.productos)
 const pagination = computed(() => productoStore.pagination)
 
+// -----------------------------------------------
+// Métodos auxiliares y de búsqueda
+// -----------------------------------------------
+
+// Formateador visual de precios a dos decimales
 const formatPrice = (value) => Number(value).toFixed(2)
 
-// Cargar productos: siempre per_page = 10
+// Carga los productos paginados y filtrados (fijo a 10 registros por página)
 const cargarProductos = async (page = null) => {
   const params = { page: page ?? pagination.value.current_page ?? 1, per_page: 10 }
   if (buscar.value) params.search = buscar.value
   await productoStore.fetchProductos(params)
 }
 
+// Evento disparado al cambiar de página en el componente Paginator
 const cambiarPagina = async (event) => {
   const params = { page: event.page + 1, per_page: 10 }
   if (buscar.value) params.search = buscar.value
   await productoStore.fetchProductos(params)
 }
 
+// Filtro de búsqueda con retraso (debounce de 500ms) para evitar múltiples peticiones
 let timer = null
 const buscarProductos = () => {
   clearTimeout(timer)
@@ -363,8 +395,14 @@ const buscarProductos = () => {
   }, 500)
 }
 
+// Limpia los errores de validación activos
 const limpiarErrores = () => { errors.value = {} }
 
+// -----------------------------------------------
+// Control de Modales de Producto
+// -----------------------------------------------
+
+// Cierra el modal de productos y reinicia los campos del formulario
 const cerrarModalProducto = () => {
   mostrarModalProducto.value = false
   esEdicion.value = false
@@ -376,8 +414,10 @@ const cerrarModalProducto = () => {
   limpiarErrores()
 }
 
+// Abre el pre-diálogo para seleccionar si el producto es normal o perecedero
 const abrirDialogoTipo = () => { dialogoTipoVisible.value = true }
 
+// Selecciona el tipo de producto, configura el formulario e inicializa el modal
 const seleccionarTipo = (tipo) => {
   dialogoTipoVisible.value = false
   esEdicion.value = false
@@ -386,6 +426,7 @@ const seleccionarTipo = (tipo) => {
   mostrarModalProducto.value = true
 }
 
+// Abre el modal cargando los datos del producto seleccionado para su edición
 const abrirModalEditar = (producto) => {
   esEdicion.value = true
   productoForm.value = {
@@ -394,8 +435,8 @@ const abrirModalEditar = (producto) => {
     categoria_id: producto.categoria_id,
     marca_id: producto.marca_id,
     unidad_medida_id: producto.unidad_medida_id,
-    precio_detalle: Number(producto.precio_detalle),   // ← conversión explícita
-    precio_mayor: Number(producto.precio_mayor),       // ← conversión explícita
+    precio_detalle: Number(producto.precio_detalle),   // Conversión explícita a número para PrimeVue
+    precio_mayor: Number(producto.precio_mayor),       // Conversión explícita a número para PrimeVue
     stock_minimo: producto.stock_minimo,
     perecedero: producto.perecedero === 'PERECEDERO',
     codigo_lote: '',
@@ -406,6 +447,11 @@ const abrirModalEditar = (producto) => {
   mostrarModalProducto.value = true
 }
 
+// -----------------------------------------------
+// Operaciones CRUD principales
+// -----------------------------------------------
+
+// Guarda el producto (Crear/Editar) realizando validación previa y manejo de errores 422
 const guardarProducto = async () => {
   limpiarErrores()
   loading.value = true
@@ -421,6 +467,7 @@ const guardarProducto = async () => {
     perecedero: productoForm.value.perecedero ? 'PERECEDERO' : 'NORMAL'
   }
 
+  // Los campos de lote y cantidad inicial solo aplican en la creación
   if (!esEdicion.value) {
     data.cantidad_inicial = productoForm.value.cantidad_inicial
     if (productoForm.value.perecedero) {
@@ -448,6 +495,7 @@ const guardarProducto = async () => {
       })
     }
   } catch (error) {
+    // Mapeo de errores de validación HTTP 422 para mostrar en campos de texto en rojo
     if (error.response?.status === 422) {
       const validationErrors = error.response.data.errors || error.response.data.error
       errors.value = {}
@@ -473,6 +521,7 @@ const guardarProducto = async () => {
   }
 }
 
+// Activa o desactiva (estado lógico) el producto mediante alerta de SweetAlert2
 const cambiarEstado = async (id, estadoActual) => {
   const confirmacion = await Swal.fire({
     title: `¿${estadoActual === 'ACTIVO' ? 'Desactivar' : 'Activar'} producto?`,
@@ -499,6 +548,9 @@ const cambiarEstado = async (id, estadoActual) => {
   }
 }
 
+// -----------------------------------------------
+// Sub-modales para creación rápida de catálogos
+// -----------------------------------------------
 const abrirSubModal = (tipo) => { subModal.value[tipo] = true }
 
 const cerrarSubModal = (tipo) => {
@@ -508,6 +560,7 @@ const cerrarSubModal = (tipo) => {
   if (tipo === 'unidad') nuevaUnidad.value = { nombre: '', equivalencia: 1 }
 }
 
+// Crea categoría de forma inmediata y la selecciona en el dropdown del producto
 const crearCategoriaDesdeSub = async () => {
   if (!nuevaCategoria.value.nombre) {
     mostrarToast('error', 'El nombre de la categoría es obligatorio.')
@@ -515,15 +568,27 @@ const crearCategoriaDesdeSub = async () => {
   }
   try {
     await categoriaStore.createCategoria({ nombre: nuevaCategoria.value.nombre })
-    await categoriaStore.fetchCategorias()
-    productoForm.value.categoria_id = categoriaStore.categorias[categoriaStore.categorias.length - 1]?.id
+    await categoriaStore.fetchCategorias({ per_page: 9999 })
+    const nueva = categoriaStore.categorias.find(c => c.nombre === nuevaCategoria.value.nombre)
+    productoForm.value.categoria_id = nueva?.id ?? categoriaStore.categorias[categoriaStore.categorias.length - 1]?.id
     cerrarSubModal('categoria')
     mostrarToast('success', 'Categoría creada correctamente.')
   } catch (error) {
-    mostrarToast('error', error.response?.data?.message || 'Error al crear categoría.')
+    let msg = 'Error al crear categoría.'
+    if (error.response?.status === 422) {
+      const valErrors = error.response.data.errors || error.response.data.error
+      if (valErrors) {
+        const first = Object.values(valErrors)[0]
+        msg = Array.isArray(first) ? first[0] : (first || msg)
+      }
+    } else {
+      msg = error.response?.data?.message || msg
+    }
+    mostrarToast('error', msg)
   }
 }
 
+// Crea marca de forma inmediata y la selecciona en el dropdown del producto
 const crearMarcaDesdeSub = async () => {
   if (!nuevaMarca.value.nombre) {
     mostrarToast('error', 'El nombre de la marca es obligatorio.')
@@ -531,15 +596,27 @@ const crearMarcaDesdeSub = async () => {
   }
   try {
     await marcaStore.createMarca({ nombre: nuevaMarca.value.nombre })
-    await marcaStore.fetchMarcas()
-    productoForm.value.marca_id = marcaStore.marcas[marcaStore.marcas.length - 1]?.id
+    await marcaStore.fetchMarcas({ per_page: 9999 })
+    const nueva = marcaStore.marcas.find(m => m.nombre === nuevaMarca.value.nombre)
+    productoForm.value.marca_id = nueva?.id ?? marcaStore.marcas[marcaStore.marcas.length - 1]?.id
     cerrarSubModal('marca')
     mostrarToast('success', 'Marca creada correctamente.')
   } catch (error) {
-    mostrarToast('error', error.response?.data?.message || 'Error al crear marca.')
+    let msg = 'Error al crear marca.'
+    if (error.response?.status === 422) {
+      const valErrors = error.response.data.errors || error.response.data.error
+      if (valErrors) {
+        const first = Object.values(valErrors)[0]
+        msg = Array.isArray(first) ? first[0] : (first || msg)
+      }
+    } else {
+      msg = error.response?.data?.message || msg
+    }
+    mostrarToast('error', msg)
   }
 }
 
+// Crea unidad de medida de forma inmediata y la selecciona en el dropdown del producto
 const crearUnidadDesdeSub = async () => {
   if (!nuevaUnidad.value.nombre || !nuevaUnidad.value.equivalencia) {
     mostrarToast('error', 'Debe completar el nombre y la equivalencia.')
@@ -547,20 +624,34 @@ const crearUnidadDesdeSub = async () => {
   }
   try {
     await unidadStore.createUnidadMedida({ nombre: nuevaUnidad.value.nombre, equivalencia: nuevaUnidad.value.equivalencia })
-    await unidadStore.fetchUnidadesMedida()
-    productoForm.value.unidad_medida_id = unidadStore.unidadesMedida[unidadStore.unidadesMedida.length - 1]?.id
+    await unidadStore.fetchUnidadesMedida({ per_page: 9999 })
+    const nueva = unidadStore.unidadesMedida.find(u => u.nombre === nuevaUnidad.value.nombre)
+    productoForm.value.unidad_medida_id = nueva?.id ?? unidadStore.unidadesMedida[unidadStore.unidadesMedida.length - 1]?.id
     cerrarSubModal('unidad')
     mostrarToast('success', 'Unidad de medida creada correctamente.')
   } catch (error) {
-    mostrarToast('error', error.response?.data?.message || 'Error al crear unidad.')
+    let msg = 'Error al crear unidad.'
+    if (error.response?.status === 422) {
+      const valErrors = error.response.data.errors || error.response.data.error
+      if (valErrors) {
+        const first = Object.values(valErrors)[0]
+        msg = Array.isArray(first) ? first[0] : (first || msg)
+      }
+    } else {
+      msg = error.response?.data?.message || msg
+    }
+    mostrarToast('error', msg)
   }
 }
 
+// -----------------------------------------------
+// Ciclo de vida inicial de la vista
+// -----------------------------------------------
 onMounted(async () => {
   await Promise.all([
-    categoriaStore.fetchCategorias(),
-    marcaStore.fetchMarcas(),
-    unidadStore.fetchUnidadesMedida(),
+    categoriaStore.fetchCategorias({ per_page: 9999 }),
+    marcaStore.fetchMarcas({ per_page: 9999 }),
+    unidadStore.fetchUnidadesMedida({ per_page: 9999 }),
     cargarProductos(1)
   ])
 })

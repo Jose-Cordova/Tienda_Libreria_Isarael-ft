@@ -24,7 +24,7 @@ export const useCategoriaStore = defineStore('categoria', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await categoriaService.getCategorias({ params });
+        const response = await categoriaService.getCategorias(params);
         // La respuesta de Laravel paginada tiene data, current_page, etc.
         this.categorias = response.data.data || [];
         this.pagination = {
