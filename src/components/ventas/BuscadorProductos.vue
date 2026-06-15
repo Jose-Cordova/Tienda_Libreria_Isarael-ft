@@ -13,7 +13,7 @@
       </div>
     </div>
 
-    <!-- Estado de carga yes-->
+    <!-- Estado de carga -->
     <div v-if="loading" class="flex-1 flex justify-center items-center">
       <ProgressSpinner />
     </div>
@@ -51,13 +51,13 @@
         No se encontraron productos
       </div>
 
-      <!-- Paginador -->
-      <div v-if="!loading && productos.length > 0" class="flex justify-center mt-4">
+      <!-- Paginador corregido -->
+      <div v-if="!loading && totalRegistros > 0" class="flex justify-center mt-4">
         <Paginator
-          :rows="20"
+          :rows="10"
           :totalRecords="totalRegistros"
-          v-model:first="first"
-          @update:first="onPageChange"
+          :first="(pagina - 1) * 10"
+          @page="onPageChange"
           template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
           class="bg-transparent p-0"
           :pt="{
@@ -126,9 +126,7 @@ const cantidadSeleccionada = ref(1)
 const productos = ref([])
 const loading = ref(true)
 const pagina = ref(1)
-const ultimaPagina = ref(1)
 const totalRegistros = ref(0)
-const first = ref(0)
 
 const cargarProductos = async (search = '', page = 1) => {
   loading.value = true
@@ -138,9 +136,7 @@ const cargarProductos = async (search = '', page = 1) => {
     const { data } = await api.get('/productos', { params })
     productos.value = data.data
     pagina.value = data.current_page
-    ultimaPagina.value = data.last_page
     totalRegistros.value = data.total
-    first.value = (data.current_page - 1) * data.per_page
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los productos', life: 4000 })
   } finally {
@@ -152,25 +148,22 @@ let timeout
 const debouncedSearch = () => {
   clearTimeout(timeout)
   timeout = setTimeout(() => {
-    pagina.value = 1
     cargarProductos(busqueda.value.trim(), 1)
   }, 300)
 }
 
+// ✅ Paginación corregida: recibe event.page (índice base 0) y calcula página real
 const onPageChange = (event) => {
-  const nuevaPagina = Math.floor(event / 20) + 1
-  pagina.value = nuevaPagina
+  const nuevaPagina = event.page + 1
   cargarProductos(busqueda.value.trim(), nuevaPagina)
 }
 
 onMounted(() => cargarProductos())
 
-// Precio según tipo de cliente (convertido a número)
 const precioMostrar = (prod) => {
-  const precio = ventaStore.tipo_cliente === 'MAYORISTA'
+  return ventaStore.tipo_cliente === 'MAYORISTA'
     ? Number(prod.precio_mayor)
     : Number(prod.precio_detalle)
-  return precio
 }
 
 const precioCalculado = computed(() => {
