@@ -21,7 +21,7 @@
           <p class="text-1xl font-bold text-[#000000]">{{ datos.numero_factura }}</p>
         </div>
         <div class="space-y-1">
-          <p class="text-[12px] font-black text-gray-800 uppercase tracking-widest">Código Interno</p>
+          <p class="text-[12px] font-black text-gray-800 uppercase tracking-widest">Código de Generación</p>
           <p class="text-1xl font-bold text-[#000000]">{{ datos.codigo_factura }}</p>
         </div>
         <div class="space-y-1">
