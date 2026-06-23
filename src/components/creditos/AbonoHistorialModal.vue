@@ -55,7 +55,7 @@
             </table>
           </div>
 
-          <!-- Paginación -->
+          <!-- paginación -->
           <div v-if="totalPaginas > 1" class="mt-4 flex justify-center">
             <Paginator
               :rows="filasPorPagina"
