@@ -258,9 +258,13 @@
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Marca *</label>
                   <Dropdown v-model="nuevoProducto.marca_id" :options="marcas" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" filter />
                 </div>
-                <div class="space-y-2">
-                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Unidad de Medida *</label>
-                  <Dropdown v-model="nuevoProducto.unidad_medida_id" :options="unidades" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" />
+                 <div class="space-y-2">
+                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Sesión *</label>
+                  <select v-model="nuevoProducto.sesion" class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] outline-none transition-all shadow-sm focus:border-[#0a3622]">
+                    <option value="DESPENSA">DESPENSA</option>
+                    <option value="LIBRERIA">LIBRERIA</option>
+                    <option value="MEDICAMENTO">MEDICAMENTO</option>
+                  </select>
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Stock Mínimo *</label>
@@ -295,7 +299,7 @@
 
 <script setup>
   import { ref, computed } from 'vue';
-  import axios from 'axios';
+  import api from '@/services/api';
   import Swal from 'sweetalert2';
   import InputText from 'primevue/inputtext';
   import InputNumber from 'primevue/inputnumber';
@@ -318,15 +322,14 @@
   // --- ESTADOS PARA EL NUEVO PRODUCTO ---
   const categorias = ref([]);
   const marcas = ref([]);
-  const unidades = ref([]);
 
   const nuevoProducto = ref({
     nombre: '',
     categoria_id: null,
     marca_id: null,
-    unidad_medida_id: null,
     stock_minimo: 0,
-    perecedero: 'NORMAL'
+    perecedero: 'NORMAL',
+    sesion: null
   });
 
   //Solo enteros positivos
@@ -369,7 +372,7 @@
     }
   }
 
-  //Busqueda de producto con Debounce
+  //Busqueda de producto
   let searchTimer = null;
   const buscarProducto = () => {
     if(searchTimer) clearTimeout(searchTimer);
@@ -381,7 +384,7 @@
         return
       }
       try{
-        const {data} = await axios.get(`http://localhost:8000/api/productos?search=${busqueda.value}`)
+        const {data} = await api.get(`/productos?search=${busqueda.value}`)
         // Como el backend pagina, extraemos los datos de data.data
         resultados.value = data.data || data;
         mostrarResultados.value = true
@@ -421,20 +424,20 @@
       mostrarResultados.value = false
       return
     }
-const nuevoItem = {
-  producto_id: prod.id,
-  nombre: prod.nombre,
-  perecedero: prod.perecedero,
-  precio_unitario: 0.00,
-  usar_factor: false,
-  factor_conversion: 1,
-  margen_detalle: 0,
-  margen_mayor: 0,
-  precio_detalle_sugerido: '0.00',
-  precio_mayor_sugerido: '0.00',
-  cantidad: 1,
-  lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
-}
+  const nuevoItem = {
+    producto_id: prod.id,
+    nombre: prod.nombre,
+    perecedero: prod.perecedero,
+    precio_unitario: 0.00,
+    usar_factor: false,
+    factor_conversion: 1,
+    margen_detalle: 0,
+    margen_mayor: 0,
+    precio_detalle_sugerido: '0.00',
+    precio_mayor_sugerido: '0.00',
+    cantidad: 1,
+    lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
+  }
     productosAgregados.value.unshift(nuevoItem)
     recalcular(0);
     busqueda.value = ''
@@ -444,18 +447,24 @@ const nuevoItem = {
   // Función para abrir el modal y cargar los selectores
   const prepararNuevoProducto = async () => {
     try {
-      const [resCat, resMar, resUni] = await Promise.all([
-        axios.get('http://localhost:8000/api/categorias?per_page=100'),
-        axios.get('http://localhost:8000/api/marcas?per_page=100'),
-        axios.get('http://localhost:8000/api/unidades-medidas?per_page=100')
+      const [resCat, resMar] = await Promise.all([
+        api.get('/categorias?per_page=100'),
+        api.get('/marcas?per_page=100')
       ]);
 
       // Extraemos .data.data porque el backend pagina
       categorias.value = resCat.data.data || resCat.data;
       marcas.value = resMar.data.data || resMar.data;
-      unidades.value = resUni.data.data || resUni.data;
 
-      nuevoProducto.value = { nombre: '', categoria_id: null, marca_id: null, unidad_medida_id: null, stock_minimo: 5, perecedero: 'NORMAL' };
+      nuevoProducto.value = {
+        nombre: '',
+        categoria_id: null,
+        marca_id: null,
+        stock_minimo: 5,
+        perecedero: 'NORMAL',
+        sesion: null
+
+      };
       mostrarModalNuevo.value = true;
     } catch (error) {
       console.error("Error al cargar catálogos:", error);
@@ -465,7 +474,7 @@ const nuevoItem = {
 
   // Función que añade el producto "en memoria" a la lista de compra
   const confirmarCreacionRapida = () => {
-    if (!nuevoProducto.value.nombre || !nuevoProducto.value.categoria_id || !nuevoProducto.value.marca_id || !nuevoProducto.value.unidad_medida_id) {
+    if (!nuevoProducto.value.nombre || !nuevoProducto.value.categoria_id || !nuevoProducto.value.marca_id){
       return Swal.fire('Incompleto', 'Complete los campos obligatorios del producto', 'warning');
     }
 
@@ -474,9 +483,9 @@ const nuevoItem = {
       nombre: nuevoProducto.value.nombre,
       categoria_id: nuevoProducto.value.categoria_id,
       marca_id: nuevoProducto.value.marca_id,
-      unidad_medida_id: nuevoProducto.value.unidad_medida_id,
       stock_minimo: nuevoProducto.value.stock_minimo,
       perecedero: nuevoProducto.value.perecedero,
+      sesion: nuevoProducto.value.sesion,
       precio_unitario: 0.00,
       usar_factor: false,
       factor_conversion: 1,
