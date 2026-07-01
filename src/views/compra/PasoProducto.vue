@@ -116,7 +116,7 @@
                 <InputNumber
                   v-model="item.factor_conversion"
                   :min="1"
-                  @input="recalcular(index)"
+                  @update:modelValue="recalcular(index)"
                   inputClass="w-full border border-gray-400 rounded-xl p-3 !pl-11 text-sm font-bold text-gray-800 outline-none focus:border-blue-500 bg-blue-50/20 shadow-sm transition-all"
                 />
               </div>
@@ -138,8 +138,28 @@
 
             <div v-if="item.perecedero === 'PERECEDERO'" class="space-y-4">
               <div v-for="(lote, lIdx) in item.lotes" :key="lIdx" class="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 items-start sm:items-center bg-white p-4 rounded-2xl border border-gray-400 shadow-sm text-left relative">
-                <div class="w-full sm:col-span-5 space-y-1.5">
-                  <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Código Lote</span>
+                <div class="w-full sm:col-span-5 space-y-1.5 pr-10 sm:pr-0">
+                  <!-- En desktop: label + selector en la misma fila. En móvil: apilados -->
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
+                    <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1 shrink-0">Código Lote</span>
+
+                    <!-- Selector rápido de lotes activos existentes -->
+                    <select
+                      v-if="item.lotes_existentes && item.lotes_existentes.length > 0"
+                      @change="seleccionarLoteExistente($event, index, lIdx)"
+                      class="w-full sm:w-auto sm:max-w-[200px] text-[9px] font-black text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 outline-none cursor-pointer hover:bg-blue-100 transition-colors truncate"
+                    >
+                      <option value="">-- Copiar Lote --</option>
+                      <option
+                        v-for="lex in item.lotes_existentes"
+                        :key="lex.id"
+                        :value="JSON.stringify(lex)"
+                      >
+                        {{ lex.codigo_lote }} ({{ (lex.fecha_vencimiento || '').slice(0, 10) }})
+                      </option>
+                    </select>
+                  </div>
+
                   <input
                     v-model="lote.codigo_lote"
                     @input="lote.codigo_lote = lote.codigo_lote.toUpperCase()"
@@ -424,25 +444,28 @@
       mostrarResultados.value = false
       return
     }
-  const nuevoItem = {
-    producto_id: prod.id,
-    nombre: prod.nombre,
-    perecedero: prod.perecedero,
-    precio_unitario: 0.00,
-    usar_factor: false,
-    factor_conversion: 1,
-    margen_detalle: 0,
-    margen_mayor: 0,
-    precio_detalle_sugerido: '0.00',
-    precio_mayor_sugerido: '0.00',
-    cantidad: 1,
-    lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
-  }
-    productosAgregados.value.unshift(nuevoItem)
-    recalcular(0);
-    busqueda.value = ''
-    mostrarResultados.value = false
-  }
+    //Extraemos la ultima informacion de la compra
+    const ultimoDetalle = prod.ultimo_detalle_compra || {}
+    const nuevoItem = {
+      producto_id: prod.id,
+      nombre: prod.nombre,
+      perecedero: prod.perecedero,
+      precio_unitario: ultimoDetalle.precio_unitario ? parseFloat(ultimoDetalle.precio_unitario) : 0.00,
+      usar_factor: ultimoDetalle.factor_conversion && parseInt(ultimoDetalle.factor_conversion) > 1,
+      factor_conversion: ultimoDetalle.factor_conversion ? parseInt(ultimoDetalle.factor_conversion) : 1,
+      margen_detalle: ultimoDetalle.margen_detalle ? parseFloat(ultimoDetalle.margen_detalle) : 0,
+      margen_mayor: ultimoDetalle.margen_mayor ? parseFloat(ultimoDetalle.margen_mayor) : 0,
+      precio_detalle_sugerido: '0.00',
+      precio_mayor_sugerido: '0.00',
+      cantidad: 1,
+      lotes_existentes: prod.lotes || [],
+      lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
+    }
+      productosAgregados.value.unshift(nuevoItem)
+      recalcular(0);
+      busqueda.value = ''
+      mostrarResultados.value = false
+    }
 
   // Función para abrir el modal y cargar los selectores
   const prepararNuevoProducto = async () => {
@@ -536,6 +559,21 @@
   const agregarLote = (idx) => {
     productosAgregados.value[idx].lotes.push({ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 })
   }
+  //Funcion para buscar y selecionar lotes existentes
+  const seleccionarLoteExistente  = (event, pIdx, lIdx) => {
+    const value = event.target.value
+    if(!value) return
+
+    const loteSeleccionado = JSON.parse(value)
+    const loteActual = productosAgregados.value[pIdx].lotes[lIdx]
+
+    loteActual.codigo_lote = loteSeleccionado.codigo_lote
+    // Recortamos a YYYY-MM-DD porque el input type="date" no acepta el timestamp completo
+    loteActual.fecha_vencimiento = (loteSeleccionado.fecha_vencimiento || '').slice(0, 10)
+
+    event.target.value = ""
+  }
+
   const quitarLote = (pIdx, lIdx) => {
     if(productosAgregados.value[pIdx].lotes.length > 1){
       productosAgregados.value[pIdx].lotes.splice(lIdx, 1)
