@@ -116,7 +116,7 @@
                 <InputNumber
                   v-model="item.factor_conversion"
                   :min="1"
-                  @input="recalcular(index)"
+                  @update:modelValue="recalcular(index)"
                   inputClass="w-full border border-gray-400 rounded-xl p-3 !pl-11 text-sm font-bold text-gray-800 outline-none focus:border-blue-500 bg-blue-50/20 shadow-sm transition-all"
                 />
               </div>
@@ -138,8 +138,28 @@
 
             <div v-if="item.perecedero === 'PERECEDERO'" class="space-y-4">
               <div v-for="(lote, lIdx) in item.lotes" :key="lIdx" class="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 items-start sm:items-center bg-white p-4 rounded-2xl border border-gray-400 shadow-sm text-left relative">
-                <div class="w-full sm:col-span-5 space-y-1.5">
-                  <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Código Lote</span>
+                <div class="w-full sm:col-span-5 space-y-1.5 pr-10 sm:pr-0">
+                  <!-- En desktop: label + selector en la misma fila. En móvil: apilados -->
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5">
+                    <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1 shrink-0">Código Lote</span>
+
+                    <!-- Selector rápido de lotes activos existentes -->
+                    <select
+                      v-if="item.lotes_existentes && item.lotes_existentes.length > 0"
+                      @change="seleccionarLoteExistente($event, index, lIdx)"
+                      class="w-full sm:w-auto sm:max-w-[200px] text-[9px] font-black text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 outline-none cursor-pointer hover:bg-blue-100 transition-colors truncate"
+                    >
+                      <option value="">-- Copiar Lote --</option>
+                      <option
+                        v-for="lex in item.lotes_existentes"
+                        :key="lex.id"
+                        :value="JSON.stringify(lex)"
+                      >
+                        {{ lex.codigo_lote }} ({{ (lex.fecha_vencimiento || '').slice(0, 10) }})
+                      </option>
+                    </select>
+                  </div>
+
                   <input
                     v-model="lote.codigo_lote"
                     @input="lote.codigo_lote = lote.codigo_lote.toUpperCase()"
@@ -258,9 +278,13 @@
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Marca *</label>
                   <Dropdown v-model="nuevoProducto.marca_id" :options="marcas" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" filter />
                 </div>
-                <div class="space-y-2">
-                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Unidad de Medida *</label>
-                  <Dropdown v-model="nuevoProducto.unidad_medida_id" :options="unidades" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" />
+                 <div class="space-y-2">
+                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Sesión *</label>
+                  <select v-model="nuevoProducto.sesion" class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] outline-none transition-all shadow-sm focus:border-[#0a3622]">
+                    <option value="DESPENSA">DESPENSA</option>
+                    <option value="LIBRERIA">LIBRERIA</option>
+                    <option value="MEDICAMENTO">MEDICAMENTO</option>
+                  </select>
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Stock Mínimo *</label>
@@ -295,7 +319,7 @@
 
 <script setup>
   import { ref, computed } from 'vue';
-  import axios from 'axios';
+  import api from '@/services/api';
   import Swal from 'sweetalert2';
   import InputText from 'primevue/inputtext';
   import InputNumber from 'primevue/inputnumber';
@@ -318,15 +342,14 @@
   // --- ESTADOS PARA EL NUEVO PRODUCTO ---
   const categorias = ref([]);
   const marcas = ref([]);
-  const unidades = ref([]);
 
   const nuevoProducto = ref({
     nombre: '',
     categoria_id: null,
     marca_id: null,
-    unidad_medida_id: null,
     stock_minimo: 0,
-    perecedero: 'NORMAL'
+    perecedero: 'NORMAL',
+    sesion: null
   });
 
   //Solo enteros positivos
@@ -369,7 +392,7 @@
     }
   }
 
-  //Busqueda de producto con Debounce
+  //Busqueda de producto
   let searchTimer = null;
   const buscarProducto = () => {
     if(searchTimer) clearTimeout(searchTimer);
@@ -381,7 +404,7 @@
         return
       }
       try{
-        const {data} = await axios.get(`http://localhost:8000/api/productos?search=${busqueda.value}`)
+        const {data} = await api.get(`/productos?search=${busqueda.value}`)
         // Como el backend pagina, extraemos los datos de data.data
         resultados.value = data.data || data;
         mostrarResultados.value = true
@@ -421,41 +444,50 @@
       mostrarResultados.value = false
       return
     }
-const nuevoItem = {
-  producto_id: prod.id,
-  nombre: prod.nombre,
-  perecedero: prod.perecedero,
-  precio_unitario: 0.00,
-  usar_factor: false,
-  factor_conversion: 1,
-  margen_detalle: 0,
-  margen_mayor: 0,
-  precio_detalle_sugerido: '0.00',
-  precio_mayor_sugerido: '0.00',
-  cantidad: 1,
-  lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
-}
-    productosAgregados.value.unshift(nuevoItem)
-    recalcular(0);
-    busqueda.value = ''
-    mostrarResultados.value = false
-  }
+    //Extraemos la ultima informacion de la compra
+    const ultimoDetalle = prod.ultimo_detalle_compra || {}
+    const nuevoItem = {
+      producto_id: prod.id,
+      nombre: prod.nombre,
+      perecedero: prod.perecedero,
+      precio_unitario: ultimoDetalle.precio_unitario ? parseFloat(ultimoDetalle.precio_unitario) : 0.00,
+      usar_factor: ultimoDetalle.factor_conversion && parseInt(ultimoDetalle.factor_conversion) > 1,
+      factor_conversion: ultimoDetalle.factor_conversion ? parseInt(ultimoDetalle.factor_conversion) : 1,
+      margen_detalle: ultimoDetalle.margen_detalle ? parseFloat(ultimoDetalle.margen_detalle) : 0,
+      margen_mayor: ultimoDetalle.margen_mayor ? parseFloat(ultimoDetalle.margen_mayor) : 0,
+      precio_detalle_sugerido: '0.00',
+      precio_mayor_sugerido: '0.00',
+      cantidad: 1,
+      lotes_existentes: prod.lotes || [],
+      lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
+    }
+      productosAgregados.value.unshift(nuevoItem)
+      recalcular(0);
+      busqueda.value = ''
+      mostrarResultados.value = false
+    }
 
   // Función para abrir el modal y cargar los selectores
   const prepararNuevoProducto = async () => {
     try {
-      const [resCat, resMar, resUni] = await Promise.all([
-        axios.get('http://localhost:8000/api/categorias?per_page=100'),
-        axios.get('http://localhost:8000/api/marcas?per_page=100'),
-        axios.get('http://localhost:8000/api/unidades-medidas?per_page=100')
+      const [resCat, resMar] = await Promise.all([
+        api.get('/categorias?per_page=100'),
+        api.get('/marcas?per_page=100')
       ]);
 
       // Extraemos .data.data porque el backend pagina
       categorias.value = resCat.data.data || resCat.data;
       marcas.value = resMar.data.data || resMar.data;
-      unidades.value = resUni.data.data || resUni.data;
 
-      nuevoProducto.value = { nombre: '', categoria_id: null, marca_id: null, unidad_medida_id: null, stock_minimo: 5, perecedero: 'NORMAL' };
+      nuevoProducto.value = {
+        nombre: '',
+        categoria_id: null,
+        marca_id: null,
+        stock_minimo: 5,
+        perecedero: 'NORMAL',
+        sesion: null
+
+      };
       mostrarModalNuevo.value = true;
     } catch (error) {
       console.error("Error al cargar catálogos:", error);
@@ -465,7 +497,7 @@ const nuevoItem = {
 
   // Función que añade el producto "en memoria" a la lista de compra
   const confirmarCreacionRapida = () => {
-    if (!nuevoProducto.value.nombre || !nuevoProducto.value.categoria_id || !nuevoProducto.value.marca_id || !nuevoProducto.value.unidad_medida_id) {
+    if (!nuevoProducto.value.nombre || !nuevoProducto.value.categoria_id || !nuevoProducto.value.marca_id){
       return Swal.fire('Incompleto', 'Complete los campos obligatorios del producto', 'warning');
     }
 
@@ -474,9 +506,9 @@ const nuevoItem = {
       nombre: nuevoProducto.value.nombre,
       categoria_id: nuevoProducto.value.categoria_id,
       marca_id: nuevoProducto.value.marca_id,
-      unidad_medida_id: nuevoProducto.value.unidad_medida_id,
       stock_minimo: nuevoProducto.value.stock_minimo,
       perecedero: nuevoProducto.value.perecedero,
+      sesion: nuevoProducto.value.sesion,
       precio_unitario: 0.00,
       usar_factor: false,
       factor_conversion: 1,
@@ -527,6 +559,21 @@ const nuevoItem = {
   const agregarLote = (idx) => {
     productosAgregados.value[idx].lotes.push({ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 })
   }
+  //Funcion para buscar y selecionar lotes existentes
+  const seleccionarLoteExistente  = (event, pIdx, lIdx) => {
+    const value = event.target.value
+    if(!value) return
+
+    const loteSeleccionado = JSON.parse(value)
+    const loteActual = productosAgregados.value[pIdx].lotes[lIdx]
+
+    loteActual.codigo_lote = loteSeleccionado.codigo_lote
+    // Recortamos a YYYY-MM-DD porque el input type="date" no acepta el timestamp completo
+    loteActual.fecha_vencimiento = (loteSeleccionado.fecha_vencimiento || '').slice(0, 10)
+
+    event.target.value = ""
+  }
+
   const quitarLote = (pIdx, lIdx) => {
     if(productosAgregados.value[pIdx].lotes.length > 1){
       productosAgregados.value[pIdx].lotes.splice(lIdx, 1)

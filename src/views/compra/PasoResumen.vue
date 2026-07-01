@@ -224,9 +224,9 @@
               detalle.nombre = d.nombre
               detalle.categoria_id = d.categoria_id
               detalle.marca_id = d.marca_id
-              detalle.unidad_medida_id = d.unidad_medida_id
               detalle.stock_minimo = d.stock_minimo
               detalle.perecedero = d.perecedero
+              detalle.sesion = d.sesion
             }
             //PERECEDERO → lotes, NORMAL → cantidad
             if(d.perecedero === 'PERECEDERO'){
