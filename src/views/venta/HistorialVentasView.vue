@@ -147,22 +147,10 @@ const limpiarFiltros = () => {
 // -----------------------------------------------
 const abrirDetalle = async (ventaResumen) => {
   try {
-    console.log('Iniciando carga para venta ID:', ventaResumen.id);
-
     const response = await api.get(`/ventas/${ventaResumen.id}`);
-
-    console.log('Respuesta completa de la API:', response.data);
-    console.log('Objeto venta:', response.data.venta);
-    console.log('detalle_ventas:', response.data.venta?.detalle_ventas);
-    console.log('Cantidad de detalles:', response.data.venta?.detalle_ventas?.length);
-
     ventaDetalle.value = response.data.venta;
     mostrarDetalle.value = true;
-
-    console.log('ventaDetalle asignado:', ventaDetalle.value);
-    console.log('mostrarDetalle:', mostrarDetalle.value);
   } catch (error) {
-    console.error('Error al cargar detalle:', error);
     Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -183,8 +171,8 @@ const confirmarAnulacion = (venta) => {
 
 const ejecutarAnulacion = async () => {
   try {
-    // TODO: llamar al endpoint de anulación cuando esté implementado
-    // await store.anularVenta(ventaAnular.value.id);
+    // Llamada real al backend para anular
+    await api.delete(`/ventas/${ventaAnular.value.id}`);
 
     Swal.fire({
       icon: 'success',
@@ -195,13 +183,15 @@ const ejecutarAnulacion = async () => {
     });
 
     mostrarAnular.value = false;
+    // Recargar la lista del historial
     store.fetchVentas(store.currentPage);
   } catch (error) {
     mostrarAnular.value = false;
+    const mensaje = error.response?.data?.message || 'No se pudo anular la venta.';
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'No se pudo anular la venta.'
+      text: mensaje
     });
   }
 };
