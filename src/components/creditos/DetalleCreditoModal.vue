@@ -56,11 +56,19 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-              <tr v-for="credito in cliente.creditos" :key="credito.id">
+              <tr v-for="credito in creditosPaginados" :key="credito.id">
                 <td class="py-3 px-3 font-bold text-gray-600">{{ credito.fecha }}</td>
                 <td class="py-3 px-3 font-extrabold text-gray-800">${{ Number(credito.montoOriginal).toFixed(2) }}</td>
                 <td class="py-3 px-3 font-bold text-green-700">${{ Number(credito.abonado).toFixed(2) }}</td>
-                <td class="py-3 px-3 font-extrabold text-red-600">${{ Number(credito.saldoPendiente).toFixed(2) }}</td>
+
+                <!-- Saldo pendiente con color condicional -->
+                <td
+                  class="py-3 px-3 font-extrabold"
+                  :class="Number(credito.saldoPendiente) === 0 ? 'text-gray-800' : 'text-red-600'"
+                >
+                  ${{ Number(credito.saldoPendiente).toFixed(2) }}
+                </td>
+
                 <td class="py-3 px-3">
                   <CreditoEstadoBadge :estado="credito.estado" />
                 </td>
@@ -85,6 +93,18 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Paginador de créditos -->
+        <div v-if="totalPaginasCreditos > 1" class="mt-4 flex justify-center">
+          <Paginator
+            :rows="porPaginaCreditos"
+            :totalRecords="cliente?.creditos?.length || 0"
+            :first="(paginaCreditos - 1) * porPaginaCreditos"
+            @page="cambiarPaginaCreditos"
+            template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+            class="custom-paginator text-xs"
+          />
+        </div>
       </div>
 
       <!-- Cargando -->
@@ -104,8 +124,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import Button from 'primevue/button';
+import Paginator from 'primevue/paginator';
 import CreditoEstadoBadge from './CreditoEstadoBadge.vue';
 import AbonoHistorialModal from './AbonoHistorialModal.vue';
 
@@ -118,6 +139,22 @@ defineEmits(['update:visible', 'registrar-abono', 'anular-abono']);
 
 const mostrarHistorial = ref(false);
 const abonosSeleccionados = ref([]);
+
+// Paginación de créditos
+const paginaCreditos = ref(1);
+const porPaginaCreditos = 10; // Ajustá según necesites
+
+const creditosPaginados = computed(() => {
+  if (!props.cliente?.creditos) return [];
+  const inicio = (paginaCreditos.value - 1) * porPaginaCreditos;
+  return props.cliente.creditos.slice(inicio, inicio + porPaginaCreditos);
+});
+
+const totalPaginasCreditos = computed(() => Math.ceil((props.cliente?.creditos?.length || 0) / porPaginaCreditos));
+
+const cambiarPaginaCreditos = (event) => {
+  paginaCreditos.value = event.page + 1;
+};
 
 const abrirHistorial = (credito) => {
   abonosSeleccionados.value = credito.abonos || [];
@@ -132,5 +169,10 @@ const abrirHistorial = (credito) => {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+:deep(.custom-paginator .p-paginator-page.p-highlight) {
+  background: #0b580b !important;
+  color: white !important;
+  font-weight: bold;
 }
 </style>

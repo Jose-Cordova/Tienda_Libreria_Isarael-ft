@@ -336,8 +336,16 @@ const procesarVenta = async () => {
       }
     }
     if (opcionImprimirTicket.value) {
-      console.log("Ticket pendiente para venta ID:", response.venta.id);
+    try {
+    const pdfResponse = await api.get(`/ventas/${response.venta.id}/ticket`, {
+      responseType: 'blob'
+    });
+    const url = window.URL.createObjectURL(new Blob([pdfResponse.data], { type: 'application/pdf' }));
+    window.open(url, '_blank');
+    } catch (err) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el ticket.', life: 3000 });
     }
+}
     limpiarTodo();
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'No se pudo registrar la venta', life: 5000 });

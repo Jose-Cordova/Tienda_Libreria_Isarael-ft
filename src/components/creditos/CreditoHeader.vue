@@ -11,6 +11,7 @@
         @update:modelValue="$emit('update:filtroCredito', $event)"
         :options="opcionesEstadoCredito"
         optionLabel="label"
+        optionValue="value"
         placeholder="Todos los créditos"
         class="p-dropdown-sm border-gray-500 rounded-lg text-sm text-[#0a3622] w-full sm:w-48 focus:border-green-600"
       />
