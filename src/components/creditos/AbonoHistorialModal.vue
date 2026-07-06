@@ -116,7 +116,7 @@ const props = defineProps({
 const emit = defineEmits(['update:visible', 'anular-abono']);
 
 // --- paginación ---
-const filasPorPagina = 5;
+const filasPorPagina = 10;
 const paginaActual = ref(1);
 
 const totalPaginas = computed(() => Math.ceil(props.abonos.length / filasPorPagina));

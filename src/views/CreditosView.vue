@@ -1,11 +1,13 @@
 <template>
-  <main class="flex-1 bg-[#f4f7f6] p-3 sm:p-6 overflow-y-auto custom-scrollbar relative">
+  <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative">
+    <!-- Encabezado con filtros -->
     <CreditoHeader
       v-model:filtro-credito="filtroCredito"
       v-model:buscar-cliente="buscarCliente"
       :opciones-estado-credito="opcionesEstadoCredito"
     />
 
+    <!-- KPIs resumen -->
     <CreditoCards
       :total-deuda="kpiResumen.totalDeuda"
       :clientes-con-deuda="kpiResumen.clientesConDeuda"
@@ -13,23 +15,41 @@
       :total-abonado="kpiResumen.totalAbonado"
     />
 
+    <!-- Tabla principal de créditos -->
     <CreditoTable
       :clientes="clientesFiltrados"
       @ver-detalle="abrirDetalleCliente"
     />
 
+    <!-- Paginación (con selector de filas por página) -->
+    <div v-if="store.total > 0" class="p-3 border-t border-gray-400 bg-gray-50/50">
+      <Paginator
+        :rows="store.perPage"
+        :totalRecords="store.total"
+        :rowsPerPageOptions="[5, 10, 20, 30]"
+        :first="(store.currentPage - 1) * store.perPage"
+        @page="onPageChange"
+        @update:rows="store.setPerPage"
+        template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+        class="custom-paginator text-[10px]"
+      />
+    </div>
+
+    <!-- Modal de detalle de crédito -->
     <DetalleCreditoModal
       :visible="detalleVisible"
-      :cliente="clienteSeleccionado"
+      :cliente="clienteCompleto"
       @update:visible="detalleVisible = false"
       @registrar-abono="prepararAbono"
       @anular-abono="anularAbono"
     />
 
+    <!-- Modal para registrar abono -->
     <AbonoModal
+      :key="abonoActual?.id"
       :visible="abonoVisible"
       :saldo-pendiente="abonoActual?.saldoPendiente || 0"
-      :metodos="metodosPago"
+      :metodos="store.metodosPago"
       @update:visible="abonoVisible = false"
       @confirmar="confirmarAbono"
     />
@@ -37,187 +57,176 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useCreditoStore } from '@/stores/credito/creditoStore';
 import CreditoHeader from '../components/creditos/CreditoHeader.vue';
 import CreditoCards from '../components/creditos/CreditoCards.vue';
 import CreditoTable from '../components/creditos/CreditoTable.vue';
 import DetalleCreditoModal from '../components/creditos/DetalleCreditoModal.vue';
 import AbonoModal from '../components/creditos/AbonoModal.vue';
-import Swal from 'sweetalert2';
+import Paginator from 'primevue/paginator';
+import { useToast } from 'primevue/usetoast';
 
-// --- Filtros ---
+const toast = useToast();
+const store = useCreditoStore();
+
+// Filtros: iniciar en PENDIENTE por defecto
+const filtroCredito = ref('PENDIENTE');
 const buscarCliente = ref('');
-const filtroCredito = ref(null);
 
+// Orden lógico: Todos, Pendientes, Pagados
 const opcionesEstadoCredito = [
-  { label: 'Todos los créditos', value: 'todos' },
+  { label: 'Todos los créditos', value: null },
   { label: 'Pendientes', value: 'PENDIENTE' },
   { label: 'Pagados', value: 'PAGADO' }
 ];
 
-// --- KPIs de resumen (simulados) ---
-const kpiResumen = ref({
-  totalDeuda: 14.50,
-  clientesConDeuda: 2,
-  creditosPagados: 3,
-  totalAbonado: 17.50
+watch([filtroCredito, buscarCliente], ([estado, search]) => {
+  store.setFiltroEstado(estado);
+  store.setSearch(search);
+  store.fetchClientes(1);
 });
 
-// --- Datos de prueba (clientes con créditos) ---
-const clientes = ref([
-  {
-    id: 1,
-    nombre: 'Ana González',
-    dui: '12345678-9',
-    creditosActivos: 1,
-    totalDeuda: 6.25,
-    totalAbonado: 0.00,
-    estado: 'CON DEUDA',
-    telefono: '7123-4567',
-    iniciales: 'AG',
-    fechaRegistro: '2026-05-20',
-    creditos: [
-      {
-        id: 101,
-        fecha: '2026-05-20',
-        montoOriginal: 6.25,
-        abonado: 0,
-        saldoPendiente: 6.25,
-        estado: 'PENDIENTE',
-        abonos: []
-      }
-    ]
-  },
-  {
-    id: 2,
-    nombre: 'Carlos Pérez',
-    dui: '98765432-1',
-    creditosActivos: 2,
-    totalDeuda: 12.00,
-    totalAbonado: 3.50,
-    estado: 'CON DEUDA',
-    telefono: '7654-1234',
-    iniciales: 'CP',
-    fechaRegistro: '2026-04-10',
-    creditos: [
-      {
-        id: 102,
-        fecha: '2026-04-10',
-        montoOriginal: 10.00,
-        abonado: 3.50,
-        saldoPendiente: 6.50,
-        estado: 'PENDIENTE',
-        abonos: [
-          { id: 1001, fecha: '2026-04-15', monto: 3.50, metodo: 'Efectivo', estado: 'PAGADO' }
-        ]
-      },
-      {
-        id: 103,
-        fecha: '2026-05-22',
-        montoOriginal: 5.50,
-        abonado: 0,
-        saldoPendiente: 5.50,
-        estado: 'PENDIENTE',
-        abonos: []
-      }
-    ]
-  }
-]);
+// KPIs calculados desde los datos reales
+const kpiResumen = computed(() => {
+  const clientes = Array.isArray(store.clientes) ? store.clientes : [];
 
-// --- Filtrado de clientes ---
-const clientesFiltrados = computed(() => {
-  return clientes.value.filter(cliente => {
-    const coincideBusqueda =
-      cliente.nombre.toLowerCase().includes(buscarCliente.value.toLowerCase()) ||
-      cliente.dui.includes(buscarCliente.value);
+  let totalDeudaPendiente = 0;
+  let clientesConDeuda = 0;
+  let totalAbonado = 0;
+  let creditosPagados = 0;
 
-    if (!filtroCredito.value || filtroCredito.value === 'todos') {
-      return coincideBusqueda;
+  clientes.forEach(c => {
+    const deudaOriginal = parseFloat(c.total_deuda || c.totalDeuda || 0);
+    const abonado = parseFloat(c.total_abonado || c.totalAbonado || 0);
+    const pendiente = deudaOriginal - abonado;
+
+    totalDeudaPendiente += pendiente;
+    totalAbonado += abonado;
+
+    if (pendiente > 0) {
+      clientesConDeuda++;
+    } else {
+      creditosPagados++;
     }
-    const tieneCreditoConEstado = cliente.creditos.some(c => c.estado === filtroCredito.value);
-    return coincideBusqueda && tieneCreditoConEstado;
   });
+
+  return {
+    totalDeuda: parseFloat(totalDeudaPendiente.toFixed(2)),
+    clientesConDeuda,
+    creditosPagados,
+    totalAbonado: parseFloat(totalAbonado.toFixed(2)),
+  };
 });
 
-// --- Lógica de modales ---
+// Mapear para la tabla
+const clientesFiltrados = computed(() => {
+  return store.clientes.map(c => ({
+    id: c.id,
+    nombre: c.nombre,
+    dui: c.dui,
+    creditosActivos: c.creditos_activos,
+    totalDeuda: parseFloat(c.total_deuda || c.totalDeuda || 0).toFixed(2),
+    totalAbonado: parseFloat(c.total_abonado || c.totalAbonado || 0).toFixed(2),
+    estado: c.estado === 'CON DEUDA' ? 'CON DEUDA' : 'SIN DEUDA'
+  }));
+});
+
+// Detalle
 const detalleVisible = ref(false);
-const clienteSeleccionado = ref(null);
 const abonoVisible = ref(false);
 const abonoActual = ref(null);
 
-const metodosPago = ref([
-  { id: 1, nombre: 'Efectivo' },
-  { id: 2, nombre: 'Transferencia' }
-]);
-
-const abrirDetalleCliente = (cliente) => {
-  const kpi = calcularKpiCliente(cliente);
-  clienteSeleccionado.value = { ...cliente, kpi };
-  detalleVisible.value = true;
-};
-
-const calcularKpiCliente = (cliente) => {
-  let pendiente = 0;
-  let abonado = 0;
-  cliente.creditos.forEach(c => {
-    pendiente += c.saldoPendiente;
-    abonado += c.abonado;
+const clienteCompleto = computed(() => {
+  if (!store.clienteSeleccionado) return null;
+  const creditos = store.creditosCliente.map(c => ({
+    id: c.id,
+    fecha: c.fecha,
+    montoOriginal: c.monto_original,
+    abonado: c.abonado,
+    saldoPendiente: c.saldo_pendiente,
+    estado: c.estado,
+    abonos: c.abonos || []
+  }));
+  let saldoPendienteTotal = 0, abonadoTotal = 0;
+  creditos.forEach(c => {
+    saldoPendienteTotal += parseFloat(c.saldoPendiente);
+    abonadoTotal += parseFloat(c.abonado);
   });
   return {
-    saldoPendiente: pendiente,
-    totalAbonado: abonado,
-    creditosTotales: cliente.creditos.length
-  };
-};
-
-const prepararAbono = (credito) => {
-  abonoActual.value = credito;
-  abonoVisible.value = true;
-};
-
-const confirmarAbono = (datos) => {
-  console.log('Abono registrado:', datos);
-  abonoVisible.value = false;
-  if (abonoActual.value) {
-    abonoActual.value.abonado += datos.monto;
-    abonoActual.value.saldoPendiente -= datos.monto;
-    if (abonoActual.value.saldoPendiente <= 0) {
-      abonoActual.value.estado = 'PAGADO';
+    ...store.clienteSeleccionado,
+    creditos,
+    kpi: {
+      saldoPendiente: parseFloat(saldoPendienteTotal.toFixed(2)),
+      totalAbonado: parseFloat(abonadoTotal.toFixed(2)),
+      creditosTotales: creditos.length
     }
-    abonoActual.value.abonos.push({
-      id: Date.now(),
-      fecha: new Date().toISOString().split('T')[0],
-      monto: datos.monto,
-      metodo: metodosPago.value.find(m => m.id === datos.metodo_pago_id)?.nombre,
-      estado: 'PAGADO'
-    });
+  };
+});
+
+// Acciones
+const abrirDetalleCliente = async (cliente) => {
+  try {
+    await store.fetchDetalleCliente(cliente.id);
+    detalleVisible.value = true;
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar el detalle del cliente', life: 3000 });
   }
 };
 
-const anularAbono = (abono) => {
-  console.log('Anular abono:', abono);
-  abono.estado = 'ANULADO';
-
-  Swal.fire({
-    icon: 'success',
-    title: '¡Hecho!',
-    text: `El abono del día ${abono.fecha} por $${Number(abono.monto).toFixed(2)} ha sido anulado.`,
-    showConfirmButton: false,
-    timer: 2500
-  });
+const prepararAbono = (credito) => {
+  abonoActual.value = {
+    ...credito,
+    saldoPendiente: credito.saldoPendiente ?? credito.saldo_pendiente ?? 0,
+  };
+  abonoVisible.value = true;
 };
+
+const confirmarAbono = async (datos) => {
+  try {
+    const response = await store.storeAbono(abonoActual.value.id, datos);
+    abonoVisible.value = false;
+    await store.fetchDetalleCliente(store.clienteSeleccionado.id);
+    await store.fetchClientes(store.currentPage);
+    if (response.ticket_url) {
+      window.open(response.ticket_url, '_blank');
+    }
+    toast.add({ severity: 'success', summary: 'Abono registrado', life: 3000 });
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'No se pudo registrar el abono', life: 4000 });
+  }
+};
+
+const anularAbono = async (abono) => {
+  try {
+    await store.anularAbono(abono.id);
+    await store.fetchDetalleCliente(store.clienteSeleccionado.id);
+    await store.fetchClientes(store.currentPage);
+    toast.add({ severity: 'success', summary: 'Abono anulado', life: 3000 });
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'No se pudo anular el abono', life: 4000 });
+  }
+};
+
+// Manejador de paginación local
+const onPageChange = (event) => {
+  const page = event.page + 1; // PrimeVue usa base 0
+  store.fetchClientes(page);
+};
+
+onMounted(() => {
+  store.cargarMetodosPago();
+  store.setFiltroEstado(filtroCredito.value); // Aplicar el filtro inicial
+  store.fetchClientes(1);
+});
 </script>
 
 <style scoped>
-.p-inputtext {
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-}
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #c6e5d3;
-  border-radius: 4px;
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c6e5d3; border-radius: 4px; }
+:deep(.custom-paginator .p-paginator-page.p-highlight) {
+  background: #0b580b !important;
+  color: white !important;
+  font-weight: bold;
 }
 </style>
