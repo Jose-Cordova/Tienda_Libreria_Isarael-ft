@@ -64,6 +64,12 @@
         </div>
 
         <div class="p-4 sm:p-8 space-y-6 sm:space-y-8 bg-[#fcfdfc]">
+          <!-- Barra informativa de contexto: stock y costo promedio anterior -->
+          <div v-if="item.producto_id" class="flex flex-wrap gap-x-5 gap-y-2 text-[10px] sm:text-[11px] text-gray-800 font-bold ml-1">
+            <span>STOCK ACTUAL EN TIENDA: <b class="text-gray-800 bg-gray-100 px-2 py-0.5 rounded shadow-sm">{{ item.stock_inventario_previo }} u.</b></span>
+            <span>COSTO PROMEDIO ANTERIOR: <b class="text-gray-800 bg-gray-100 px-2 py-0.5 rounded shadow-sm">${{ (item.costo_promedio_previo || 0).toFixed(2) }}</b></span>
+          </div>
+
           <!-- Grid de Inputs -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
             <div class="space-y-2 text-left">
@@ -123,11 +129,32 @@
             </div>
           </div>
 
-          <!-- Barra de Precios Sugeridos -->
-          <div class="bg-green-50/60 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 text-[12px] font-bold text-[#0a3622] px-6 border border-green-400 shadow-inner">
-            <span class="flex items-center gap-2">Venta al Detalle: <b class="text-[#0a3622] text-sm font-black tracking-tight">${{ item.precio_detalle_sugerido }}</b></span>
-            <div class="w-1 h-4 bg-green-200 rounded-full hidden sm:block"></div>
-            <span class="flex items-center gap-2">Venta al Mayor: <b class="text-[#0a3622] text-sm font-black tracking-tight">${{ item.precio_mayor_sugerido }}</b></span>
+          <!-- Barra de Costos y Precios Sugeridos (Desglosada con CPP) -->
+          <div class="bg-emerald-50/80 p-4 sm:p-5 rounded-2xl border border-emerald-300 shadow-inner space-y-3">
+
+            <!-- Fila superior: Costo neto y Nuevo CPP -->
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-[10px] text-emerald-800 font-bold border-b border-emerald-200/70 pb-2.5">
+              <span>COSTO NETO DE ESTA FACTURA:
+                <b class="text-emerald-950 text-[11px] font-black ml-1">${{ ((parseFloat(item.precio_unitario) || 0) / (parseInt(item.factor_conversion) || 1)).toFixed(2) }} / u.</b>
+              </span>
+              <span class="hidden sm:inline text-emerald-300">|</span>
+              <span>NUEVO COSTO PROMEDIO (CPP):
+                <b class="text-emerald-950 text-[11px] font-black ml-1">${{ obtenerCppSimuladoText(index) }} / u.</b>
+              </span>
+            </div>
+
+            <!-- Fila inferior: Precios de venta sugeridos -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-8 text-[11px] font-bold text-emerald-900">
+              <span class="flex items-center gap-2 flex-wrap">
+                VENTA AL DETALLE:
+                <b class="text-emerald-950 text-sm font-black">${{ item.precio_detalle_sugerido }}</b>
+              </span>
+              <div class="w-1 h-4 bg-emerald-200 rounded-full hidden sm:block"></div>
+              <span class="flex items-center gap-2 flex-wrap">
+                VENTA AL MAYOR:
+                <b class="text-emerald-950 text-sm font-black">${{ item.precio_mayor_sugerido }}</b>
+              </span>
+            </div>
           </div>
 
           <!-- SECCIÓN DE LOTES / CANTIDAD -->
@@ -177,6 +204,7 @@
                     type="number"
                     v-model="lote.cantidad"
                     @keydown="soloEnteroPositivo"
+                    @input="recalcular(index)"
                     class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-center text-[#0a3622] outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm"
                   />
                 </div>
@@ -200,6 +228,7 @@
                 type="number"
                 v-model="item.cantidad"
                 @keydown="soloEnteroPositivo"
+                @input="recalcular(index)"
                 class="w-20 border border-gray-300 rounded-xl p-2 text-base font-bold text-center text-[#0a3622] outline-none focus:border-[#0a3622] focus:ring-4 focus:ring-green-50 shadow-md bg-white"
               />
               <div class="flex flex-col">
@@ -458,6 +487,9 @@
       precio_detalle_sugerido: '0.00',
       precio_mayor_sugerido: '0.00',
       cantidad: 1,
+      //Almacenamos los valores actuales para el calculo ponderado
+      stock_inventario_previo: prod.stock || 0,
+      costo_promedio_previo: parseFloat(prod.costo_promedio) || 0,
       lotes_existentes: prod.lotes || [],
       lotes: prod.perecedero === 'PERECEDERO' ? [{ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 }] : []
     }
@@ -539,8 +571,20 @@
     // El costo base por unidad real
     const costoUnitarioBase = costoFactura / factor
 
-    item.precio_detalle_sugerido = (costoUnitarioBase * (1 + item.margen_detalle / 100)).toFixed(2)
-    item.precio_mayor_sugerido = (costoUnitarioBase * (1 + item.margen_mayor / 100)).toFixed(2)
+    //Datos del stock anterior
+    const stockPrevio = item.stock_inventario_previo || 0
+    const cppAnterior = item.costo_promedio_previo || 0
+    //Unidades nuevas que ingresaran en la compra actual
+    const cantidadComprada = calcularCantidad(index) * factor
+    //Aplicamos la formula del cpp
+    const totalUnidades = stockPrevio + cantidadComprada
+    let cppCalculado = costoUnitarioBase
+    if(totalUnidades > 0){
+      cppCalculado = ((stockPrevio * cppAnterior) + (cantidadComprada * costoUnitarioBase)) / totalUnidades
+    }
+
+    item.precio_detalle_sugerido = (cppCalculado * (1 + item.margen_detalle / 100)).toFixed(2)
+    item.precio_mayor_sugerido = (cppCalculado * (1 + item.margen_mayor / 100)).toFixed(2)
   }
   const calcularCantidad = (index) => {
     const item = productosAgregados.value[index]
@@ -548,6 +592,24 @@
       return item.lotes.reduce((sum, l) => sum + (parseInt(l.cantidad) || 0), 0)
     }
     return parseInt(item.cantidad) || 0
+  }
+
+  // Helper para mostrar el CPP simulado en la barra de sugerencias
+  const obtenerCppSimuladoText = (index) => {
+    const item = productosAgregados.value[index]
+    const costoFactura = parseFloat(item.precio_unitario) || 0
+    const factor = parseInt(item.factor_conversion) || 1
+    const costoUnitarioCompra = costoFactura / factor
+
+    const stockPrevio = item.stock_inventario_previo || 0
+    const cppAnterior = item.costo_promedio_previo || 0
+    const cantidadComprada = calcularCantidad(index) * factor
+
+    const totalUnidades = stockPrevio + cantidadComprada
+    if (totalUnidades > 0) {
+      return (((stockPrevio * cppAnterior) + (cantidadComprada * costoUnitarioCompra)) / totalUnidades).toFixed(2)
+    }
+    return costoUnitarioCompra.toFixed(2)
   }
   const totalFactura = computed(() => {
      return productosAgregados.value.reduce((sum, item, idx) => {
