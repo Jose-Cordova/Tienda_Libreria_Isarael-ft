@@ -101,8 +101,10 @@
                 />
                 <Button
                   icon="pi pi-ban"
-                  class="p-button-rounded p-button-text p-button-sm p-button-danger"
-                  v-tooltip="'Anular'"
+                  class="p-button-rounded p-button-text p-button-sm"
+                  :class="venta.estado === 'Anulada' ? 'opacity-30 cursor-not-allowed' : 'p-button-danger'"
+                  :disabled="venta.estado === 'Anulada'"
+                  v-tooltip="venta.estado === 'Anulada' ? 'Venta anulada' : 'Anular'"
                   @click="$emit('anular', venta)"
                 />
               </div>
