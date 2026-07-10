@@ -77,7 +77,7 @@
               <div class="relative group">
                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0a3622] font-black text-xs z-10">$</span>
                 <input
-                  type="text"
+                  type="text" 
                   v-model="item.precio_unitario"
                   @input="recalcular(index)"
                   @keydown="soloDecimalPositivo"
@@ -308,8 +308,8 @@
                   <Dropdown v-model="nuevoProducto.marca_id" :options="marcas" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" filter />
                 </div>
                  <div class="space-y-2">
-                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Sesión *</label>
-                  <select v-model="nuevoProducto.sesion" class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] outline-none transition-all shadow-sm focus:border-[#0a3622]">
+                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Sección *</label>
+                  <select v-model="nuevoProducto.seccion" class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] outline-none transition-all shadow-sm focus:border-[#0a3622]">
                     <option value="DESPENSA">DESPENSA</option>
                     <option value="LIBRERIA">LIBRERIA</option>
                     <option value="MEDICAMENTO">MEDICAMENTO</option>
@@ -378,7 +378,7 @@
     marca_id: null,
     stock_minimo: 0,
     perecedero: 'NORMAL',
-    sesion: null
+    seccion: null
   });
 
   //Solo enteros positivos
@@ -517,7 +517,7 @@
         marca_id: null,
         stock_minimo: 5,
         perecedero: 'NORMAL',
-        sesion: null
+        seccion: null
 
       };
       mostrarModalNuevo.value = true;
@@ -540,7 +540,7 @@
       marca_id: nuevoProducto.value.marca_id,
       stock_minimo: nuevoProducto.value.stock_minimo,
       perecedero: nuevoProducto.value.perecedero,
-      sesion: nuevoProducto.value.sesion,
+      seccion: nuevoProducto.value.seccion,
       precio_unitario: 0.00,
       usar_factor: false,
       factor_conversion: 1,

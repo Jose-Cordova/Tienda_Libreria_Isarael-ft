@@ -226,7 +226,7 @@
               detalle.marca_id = d.marca_id
               detalle.stock_minimo = d.stock_minimo
               detalle.perecedero = d.perecedero
-              detalle.sesion = d.sesion
+              detalle.seccion = d.seccion
             }
             //PERECEDERO → lotes, NORMAL → cantidad
             if(d.perecedero === 'PERECEDERO'){

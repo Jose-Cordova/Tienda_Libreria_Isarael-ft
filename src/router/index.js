@@ -71,7 +71,7 @@ const router = createRouter({
           name: 'reporte-historial',
           component: () => import('../views/ReporteHistorialVenta.vue')
         },
-        {
+        { 
           path: 'reporte-compras',
           name: 'reporte-compras',
           component: () => import('../views/ReporteCompras.vue')
