@@ -46,22 +46,39 @@
           <thead>
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Nombre</th>
+              <th class="py-3 px-5">Sección</th>
               <th class="py-3 px-5 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
-            <tr v-for="marca in marcas" :key="marca.id" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ marca.nombre }}</td>
-              <td class="py-4 px-5">
-                <div class="flex items-center justify-center gap-1">
-                  <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirModalEditar(marca)" />
-                  <Button icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm p-button-danger" @click="confirmarEliminar(marca.id)" />
-                </div>
-              </td>
-            </tr>
-            <tr v-if="marcas.length === 0">
-              <td colspan="2" class="py-10 text-center italic text-gray-400">No se encontraron marcas.</td>
-            </tr>
+            <!-- Loading Skeleton -->
+            <template v-if="isTableLoading">
+              <tr v-for="i in perPage" :key="'skel-'+i">
+                <td class="py-4 px-5"><Skeleton width="100%" height="1.5rem" /></td>
+                <td class="py-4 px-5"><Skeleton width="60%" height="1.5rem" /></td>
+                <td class="py-4 px-5"><Skeleton width="40%" height="1.5rem" class="mx-auto" /></td>
+              </tr>
+            </template>
+            <!-- Normal Data -->
+            <template v-else>
+              <tr v-for="marca in marcas" :key="marca.id" class="hover:bg-gray-50 transition">
+                <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ marca.nombre }}</td>
+                <td class="py-4 px-5">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold border" :class="getSeccionClass(marca.seccion)">
+                    {{ formatSeccion(marca.seccion) }}
+                  </span>
+                </td>
+                <td class="py-4 px-5">
+                  <div class="flex items-center justify-center gap-1">
+                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirModalEditar(marca)" />
+                    <Button icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm p-button-danger" @click="confirmarEliminar(marca.id)" />
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="marcas.length === 0">
+                <td colspan="3" class="py-10 text-center italic text-gray-400">No se encontraron marcas.</td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -93,10 +110,24 @@
           </div>
 
           <form @submit.prevent="guardar">
-            <div class="mb-6">
+            <div class="mb-4">
               <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Nombre *</label>
               <InputText v-model="form.nombre" :maxlength="50" class="w-full border border-gray-200 rounded-xl p-3 focus:border-[#003d00]" :class="{ 'border-red-500': errorNombre }" />
               <small class="text-red-500">{{ errorNombre }}</small>
+            </div>
+
+            <div class="mb-6">
+              <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Sección *</label>
+              <Dropdown
+                v-model="form.seccion"
+                :options="secciones"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccionar sección"
+                class="w-full border border-gray-200 rounded-xl"
+                :class="{ 'border-red-500': errorSeccion }"
+              />
+              <small class="text-red-500">{{ errorSeccion }}</small>
             </div>
 
             <div class="flex gap-4 pt-4">
@@ -120,7 +151,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useMarcaStore } from '@/stores/marcaStore'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import Dropdown from 'primevue/dropdown'
 import Paginator from 'primevue/paginator'
+import Skeleton from 'primevue/skeleton'
 import Swal from 'sweetalert2'
 
 defineOptions({ name: 'MarcaView' })
@@ -131,12 +164,39 @@ const buscar = ref('')
 const mostrarModal = ref(false)
 const esEdicion = ref(false)
 const loading = ref(false)
+const isInitialLoading = ref(true)
 const perPage = ref(5)
-const form = ref({ id: null, nombre: '' })
+const isTableLoading = computed(() => marcaStore.loading || isInitialLoading.value)
+const form = ref({ id: null, nombre: '', seccion: '' })
 const errorNombre = ref('')
+const errorSeccion = ref('')
+
+const secciones = [
+  { label: 'Tienda', value: 'TIENDA' },
+  { label: 'Librería', value: 'LIBRERIA' },
+  { label: 'Medicamentos', value: 'MEDICAMENTO' }
+]
 
 const marcas = computed(() => marcaStore.marcas || [])
 const pagination = computed(() => marcaStore.pagination)
+
+const getSeccionClass = (seccion) => {
+  switch (seccion) {
+    case 'TIENDA': return 'bg-blue-50 text-blue-700 border-blue-200'
+    case 'MEDICAMENTO': return 'bg-purple-50 text-purple-700 border-purple-200'
+    case 'LIBRERIA': return 'bg-orange-50 text-orange-700 border-orange-200'
+    default: return 'bg-gray-50 text-gray-700 border-gray-200'
+  }
+}
+
+const formatSeccion = (seccion) => {
+  switch (seccion) {
+    case 'TIENDA': return 'Tienda'
+    case 'MEDICAMENTO': return 'Medicamento'
+    case 'LIBRERIA': return 'Librería'
+    default: return seccion || 'N/A'
+  }
+}
 
 // Toast nativo
 const toast = ref({ visible: false, tipo: 'success', mensaje: '' })
@@ -153,6 +213,7 @@ const cargarMarcas = async () => {
     per_page: perPage.value,
     search: buscar.value || undefined
   })
+  isInitialLoading.value = false
 }
 
 const cambiarPagina = async (event) => {
@@ -176,44 +237,59 @@ const buscarMarcas = () => {
   }, 500)
 }
 
-const limpiarErrores = () => { errorNombre.value = '' }
+const limpiarErrores = () => {
+  errorNombre.value = ''
+  errorSeccion.value = ''
+}
+
 const cerrarModal = () => {
   mostrarModal.value = false
-  form.value = { id: null, nombre: '' }
+  form.value = { id: null, nombre: '', seccion: '' }
   esEdicion.value = false
   limpiarErrores()
 }
 
 const abrirModalNueva = () => {
   esEdicion.value = false
-  form.value = { id: null, nombre: '' }
+  form.value = { id: null, nombre: '', seccion: '' }
   limpiarErrores()
   mostrarModal.value = true
 }
 
 const abrirModalEditar = (marca) => {
   esEdicion.value = true
-  form.value = { id: marca.id, nombre: marca.nombre }
+  form.value = { id: marca.id, nombre: marca.nombre, seccion: marca.seccion }
   limpiarErrores()
   mostrarModal.value = true
 }
 
 const guardar = async () => {
+  let valid = true
   if (!form.value.nombre.trim()) {
     errorNombre.value = 'El nombre es obligatorio'
-    return
+    valid = false
   }
+  if (!form.value.seccion) {
+    errorSeccion.value = 'Debe seleccionar una sección'
+    valid = false
+  }
+  if (!valid) return
+
   loading.value = true
   try {
     if (esEdicion.value) {
-      // EDICIÓN → Toast flotante nativo
-      await marcaStore.updateMarca(form.value.id, { nombre: form.value.nombre })
+      await marcaStore.updateMarca(form.value.id, {
+        nombre: form.value.nombre,
+        seccion: form.value.seccion
+      })
       cerrarModal()
       await cargarMarcas()
       mostrarToast('success', 'Marca actualizada correctamente.')
     } else {
-      // CREACIÓN → Swal modal clásico
-      await marcaStore.createMarca({ nombre: form.value.nombre })
+      await marcaStore.createMarca({
+        nombre: form.value.nombre,
+        seccion: form.value.seccion
+      })
       cerrarModal()
       await cargarMarcas()
       Swal.fire({
@@ -227,15 +303,10 @@ const guardar = async () => {
   } catch (error) {
     if (error.response?.status === 422) {
       const errors = error.response.data.errors || error.response.data.error
-      if (errors?.nombre) {
-        errorNombre.value = errors.nombre[0]
-      }
+      if (errors?.nombre) errorNombre.value = errors.nombre[0]
+      if (errors?.seccion) errorSeccion.value = errors.seccion[0]
       if (esEdicion.value) {
-        mostrarToast('error', errors?.nombre?.[0] || 'Error de validación en los datos.')
-      } else {
-        if (!errors?.nombre) {
-          Swal.fire({ title: 'Error de validación', text: 'Revisa los datos ingresados.', icon: 'error', confirmButtonColor: '#d33' })
-        }
+        mostrarToast('error', errors?.nombre?.[0] || errors?.seccion?.[0] || 'Error de validación')
       }
     } else {
       const msg = error.response?.data?.message || 'Error al guardar.'
@@ -260,9 +331,7 @@ const confirmarEliminar = async (id) => {
     cancelButtonColor: '#d6dfd6',
     confirmButtonText: 'Sí, eliminar',
     cancelButtonText: 'Cancelar',
-    customClass: {
-      cancelButton: '!text-[#3a5a3a] !font-bold'
-    },
+    customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
     reverseButtons: true
   })
   if (result.isConfirmed) {

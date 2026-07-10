@@ -45,10 +45,7 @@
             <i class="pi pi-bookmark text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Marcas</span>
           </RouterLink>
-          <RouterLink to="/unidades" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
-            <i class="pi pi-sliders-h text-lg text-shop-accent"></i>
-            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Unidades</span>
-          </RouterLink>
+
           <RouterLink to="/productos-danados" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-trash text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Productos Dañados</span>

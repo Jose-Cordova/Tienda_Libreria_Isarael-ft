@@ -19,12 +19,16 @@ export const useProductoStore = defineStore('producto', {
   },
 
   actions: {
-    async fetchProductos({ page = 1, per_page = 10, search = '' } = {}) {
+    async fetchProductos({ page = 1, per_page = 10, search = '', seccion = '' } = {}) {
       this.loading = true
       this.error = null
       try {
-        const response = await productoService.getProductos({ page, per_page, ...(search && { search }) })
-        // La respuesta de Laravel paginate tiene esta estructura
+        const params = { page, per_page }
+        if (search) params.search = search
+        if (seccion) params.seccion = seccion
+        if (seccion) params.seccion = seccion
+
+        const response = await productoService.getProductos(params)
         this.productos = response.data.data
         this.pagination = {
           current_page: response.data.current_page,
