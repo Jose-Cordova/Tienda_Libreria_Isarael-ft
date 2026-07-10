@@ -2,8 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import HomeView from '../views/HomeView.vue'
 
-
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -46,7 +44,7 @@ const router = createRouter({
         {
           path: 'productos',
           name: 'productos',
-          component: () => import('../views/Producto.vue'),
+          component: () => import('../views/producto/Producto.vue'),
         },
         {
           path: 'categorias',
@@ -57,11 +55,6 @@ const router = createRouter({
           path: 'marcas',
           name: 'marcas',
           component: () => import('../views/Marca.vue'),
-        },
-        {
-          path: 'unidades',
-          name: 'unidades',
-          component: () => import('../views/Unidad.vue'),
         },
         {
           path: 'proveedores',
