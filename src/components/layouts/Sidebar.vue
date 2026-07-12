@@ -28,6 +28,10 @@
               <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Crédito/Fiados</span>
             </div>
           </RouterLink>
+          <RouterLink to="/devoluciones-ventas" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-replay text-shop-accent"></i>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Devoluciones de Ventas</span>
+          </RouterLink>
         </div>
       </div>
       <div class="mb-6">

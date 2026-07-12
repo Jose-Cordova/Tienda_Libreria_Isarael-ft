@@ -17,6 +17,11 @@ import Column from 'primevue/column';
 import Calendar from 'primevue/calendar';
 import Tag from 'primevue/tag';
 
+// 🆕 Componentes para el módulo de devoluciones
+import Checkbox from 'primevue/checkbox';
+import RadioButton from 'primevue/radiobutton';
+import Textarea from 'primevue/textarea';
+
 export {
   Button,
   Dialog,
@@ -31,4 +36,7 @@ export {
   Calendar,
   Tag,
   InputMask,
+  Checkbox,
+  RadioButton,
+  Textarea,
 };

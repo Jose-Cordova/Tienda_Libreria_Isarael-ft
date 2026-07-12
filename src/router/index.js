@@ -71,7 +71,7 @@ const router = createRouter({
           name: 'reporte-historial',
           component: () => import('../views/ReporteHistorialVenta.vue')
         },
-        { 
+        {
           path: 'reporte-compras',
           name: 'reporte-compras',
           component: () => import('../views/ReporteCompras.vue')
@@ -80,6 +80,11 @@ const router = createRouter({
           path: 'reporte-creditos',
           name: 'reporte-creditos',
           component: () => import('../views/ReporteCredito.vue')
+        },
+        {
+          path: 'devoluciones-ventas',
+          name: 'devoluciones-ventas',
+          component: () => import('../views/DevolucionesVentasView.vue')
         },
         {
           path: 'compras',
