@@ -4,6 +4,7 @@
     @update:visible="$emit('update:visible', $event)"
     header="Registrar Devolución"
     :modal="true"
+    :closable="false"
     :style="{ width: '90%', maxWidth: '750px' }"
     class="rounded-xl"
   >
@@ -68,9 +69,18 @@
           </div>
           <div>Método: {{ ventaEncontrada.metodo_pago?.nombre || 'Sin método' }}</div>
         </div>
+
+        <!-- Aviso si la venta no es válida para devolución -->
+        <div
+          v-if="!ventaValida"
+          class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm font-bold mt-3"
+        >
+          Esta venta no permite devoluciones porque su estado es {{ ventaEncontrada.estado }}.
+          Solo se pueden devolver ventas en estado PAGADA o CREDITO.
+        </div>
       </div>
 
-      <!-- 3. Productos de la venta (con múltiples detalles por producto) -->
+      <!-- 3. Productos de la venta -->
       <div v-if="ventaEncontrada && ventaEncontrada.detalle_ventas">
         <h3 class="text-sm font-extrabold text-[#0a3622] uppercase tracking-wide mb-3">
           Productos de la venta
@@ -82,7 +92,6 @@
             :key="detalleVenta.id"
             class="border border-gray-200 rounded-lg p-3"
           >
-            <!-- Cabecera del producto -->
             <div class="flex justify-between items-center mb-2">
               <span class="font-bold text-sm text-gray-800">
                 {{ detalleVenta.producto?.nombre || `Producto #${detalleVenta.producto_id}` }}
@@ -92,7 +101,6 @@
               </span>
             </div>
 
-            <!-- Sub-detalles de devolución para este producto -->
             <div
               v-for="(sub, subIndex) in selecciones[index]"
               :key="subIndex"
@@ -100,15 +108,14 @@
               :class="{ 'bg-red-50 border-red-200 -mx-3 px-3 rounded': sub.activo && sub.condicion === 'DANIADO' }"
             >
               <div class="flex items-start gap-3">
-                <!-- Checkbox para activar este sub-detalle -->
                 <Checkbox
                   v-model="sub.activo"
                   :binary="true"
                   class="mt-1"
+                  :disabled="!ventaValida"
                 />
 
                 <div class="flex-1 space-y-3">
-                  <!-- Cantidad a devolver -->
                   <div class="flex items-center gap-2">
                     <label class="text-xs font-bold text-gray-600">Cantidad:</label>
                     <InputNumber
@@ -117,10 +124,10 @@
                       :max="detalleVenta.cantidad"
                       class="w-24"
                       inputClass="text-center font-bold text-sm"
+                      :disabled="!ventaValida"
                     />
                   </div>
 
-                  <!-- Condición -->
                   <div class="flex items-center gap-4">
                     <span class="text-xs font-bold text-gray-600">Condición:</span>
                     <div class="flex items-center gap-1">
@@ -128,6 +135,7 @@
                         v-model="sub.condicion"
                         value="PERFECTO"
                         :inputId="`perfecto-${index}-${subIndex}`"
+                        :disabled="!ventaValida"
                       />
                       <label :for="`perfecto-${index}-${subIndex}`" class="text-xs cursor-pointer">Perfecto</label>
                     </div>
@@ -136,12 +144,12 @@
                         v-model="sub.condicion"
                         value="DANIADO"
                         :inputId="`daniado-${index}-${subIndex}`"
+                        :disabled="!ventaValida"
                       />
                       <label :for="`daniado-${index}-${subIndex}`" class="text-xs cursor-pointer">Dañado</label>
                     </div>
                   </div>
 
-                  <!-- Descripción del daño -->
                   <div v-if="sub.condicion === 'DANIADO'" class="flex flex-col gap-1">
                     <label class="text-xs font-bold text-gray-600">Descripción del daño:</label>
                     <Textarea
@@ -149,29 +157,30 @@
                       rows="2"
                       class="w-full border border-gray-300 rounded-lg text-xs"
                       placeholder="Describa el daño..."
+                      :disabled="!ventaValida"
                     />
                   </div>
 
-                  <!-- Botón para eliminar este sub-detalle (si hay más de uno) -->
                   <div v-if="selecciones[index].length > 1" class="text-right">
                     <Button
                       icon="pi pi-trash"
                       class="p-button-rounded p-button-text p-button-sm p-button-danger"
                       @click="eliminarSubDetalle(index, subIndex)"
                       v-tooltip.left="'Quitar este detalle'"
+                      :disabled="!ventaValida"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Botón para agregar otro detalle para este mismo producto -->
             <div class="mt-2 text-right">
               <Button
                 label="Agregar otra condición"
                 icon="pi pi-plus-circle"
                 class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
                 @click="agregarSubDetalle(index)"
+                :disabled="!ventaValida"
               />
             </div>
           </div>
@@ -179,7 +188,7 @@
       </div>
 
       <!-- 4. Resumen y Motivo -->
-      <div v-if="ventaEncontrada && totalSeleccionado > 0" class="border-t pt-4">
+      <div v-if="ventaEncontrada && ventaValida && totalSeleccionado > 0" class="border-t pt-4">
         <div class="flex justify-between items-center mb-3">
           <span class="text-sm font-extrabold text-[#0a3622]">Total a devolver:</span>
           <span class="text-lg font-extrabold text-[#0a3622]">${{ totalSeleccionado.toFixed(2) }}</span>
@@ -194,6 +203,7 @@
             rows="2"
             class="w-full border border-gray-300 rounded-lg text-sm font-bold"
             placeholder="Ej: Producto en mal estado, cliente no deseado..."
+            :disabled="!ventaValida"
           />
           <small v-if="errorMotivo" class="text-red-500 text-xs">{{ errorMotivo }}</small>
         </div>
@@ -211,7 +221,7 @@
         label="Registrar Devolución"
         icon="pi pi-check"
         class="p-button-sm bg-[#0a3622] border-none"
-        :disabled="!ventaEncontrada || totalSeleccionado === 0 || !motivo.trim() || registrando"
+        :disabled="!ventaEncontrada || !ventaValida || totalSeleccionado === 0 || !motivo.trim() || registrando"
         @click="registrarDevolucion"
       />
     </template>
@@ -250,10 +260,14 @@ const motivo = ref('');
 const errorMotivo = ref('');
 const registrando = ref(false);
 
-// selecciones ahora es un array de arrays
 const selecciones = reactive([]);
 
-// Computed: total a devolver
+// Computed para validar si la venta encontrada permite devolución
+const ventaValida = computed(() => {
+  if (!ventaEncontrada.value) return false;
+  return ['PAGADA', 'CREDITO'].includes(ventaEncontrada.value.estado);
+});
+
 const totalSeleccionado = computed(() => {
   if (!ventaEncontrada.value) return 0;
   let total = 0;
@@ -279,7 +293,6 @@ const formatearFecha = (fecha) => {
   });
 };
 
-// Agregar un sub-detalle a un producto
 const agregarSubDetalle = (index) => {
   selecciones[index].push({
     activo: false,
@@ -289,12 +302,10 @@ const agregarSubDetalle = (index) => {
   });
 };
 
-// Eliminar un sub-detalle
 const eliminarSubDetalle = (index, subIndex) => {
   selecciones[index].splice(subIndex, 1);
 };
 
-// Buscar venta
 const buscarVenta = async () => {
   if (!correlativo.value.trim()) return;
 
@@ -313,7 +324,6 @@ const buscarVenta = async () => {
 
     if (response.data.data && response.data.data.length === 1) {
       ventaEncontrada.value = response.data.data[0];
-      // Inicializar: para cada detalle de venta, un array con un sub-detalle
       ventaEncontrada.value.detalle_ventas.forEach(() => {
         selecciones.push([{ activo: false, cantidad: 1, condicion: 'PERFECTO', descripcion: '' }]);
       });
@@ -326,7 +336,6 @@ const buscarVenta = async () => {
   }
 };
 
-// Limpiar
 const limpiarBusqueda = () => {
   correlativo.value = '';
   ventaEncontrada.value = null;
@@ -336,9 +345,8 @@ const limpiarBusqueda = () => {
   selecciones.length = 0;
 };
 
-// Registrar devolución
 const registrarDevolucion = async () => {
-  if (!ventaEncontrada.value) return;
+  if (!ventaEncontrada.value || !ventaValida.value) return;
   if (!motivo.value.trim()) {
     errorMotivo.value = 'El motivo es obligatorio.';
     return;
