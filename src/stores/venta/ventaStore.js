@@ -148,12 +148,16 @@ export const useVentaStore = defineStore('venta', {
     })),
   };
 
-  // Solo se agrega método_pago_id si NO es crédito
   if (this.estado !== 'CREDITO') {
     payload.metodo_pago_id = this.metodo_pago_id;
   } else {
-    // Por seguridad, eliminar cualquier rastro de método de pago en crédito
     delete payload.metodo_pago_id;
+  }
+
+
+
+  if (this.estado === 'PAGADA' && this.metodo_pago_id && this.isTransferencia === false && this.montoRecibido !== null && this.montoRecibido !== undefined) {
+    payload.monto_recibido = this.montoRecibido;
   }
 
   if (this.estado === 'CREDITO') {
