@@ -70,9 +70,9 @@
               <td class="py-4 px-5 font-bold text-gray-800 text-sm">
                 <div class="flex items-center gap-3">
                   <div class="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-[9px] font-black text-[#0a3622] uppercase border border-white shadow-sm">
-                    {{ user.nombre.substring(0,2) }}
+                    {{ user.name.substring(0,2) }}
                   </div>
-                  {{ user.nombre }}
+                  {{ user.name }}
                 </div>
               </td>
               <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ user.email }}</td>
@@ -110,9 +110,9 @@
                       class="p-button-rounded p-button-text p-button-sm"
                       @click="cambiarEstado(user)"
                     />
-                    <!-- Botón Borrar (SOLO si es Pendiente) -->
+                    <!-- Botón Borrar -->
                     <Button
-                      v-if="user.estado === 'PENDIENTE'"
+                      v-if="user.estado === 'PENDIENTE' || user.estado === 'INACTIVO'"
                       icon="pi pi-trash"
                       class="p-button-rounded p-button-text p-button-sm p-button-danger"
                       @click="borrar(user)"
@@ -135,10 +135,10 @@
       <!-- Paginación -->
       <div class="p-3 border-t border-gray-400 bg-gray-50/50">
         <Paginator
-          :rows="paginacion.filas_por_pagina"
+          :rows="paginacion.per_page"
           :totalRecords="paginacion.total"
           :rowsPerPageOptions="[5, 10, 20, 30]"
-          :first="(paginacion.pagina_actual - 1) * paginacion.filas_por_pagina"
+          :first="(paginacion.current_page - 1) * paginacion.per_page"
           @page="cambiarPagina"
           template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
           class="custom-paginator text-[10px]"
@@ -186,9 +186,32 @@
               </div>
               <div class="flex items-center gap-4 mt-10">
                 <button type="button" @click="mostrarModal = false" class="px-10 py-4 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm">Cancelar</button>
-                <button type="submit" class="flex-1 py-4 bg-[#003d00] hover:bg-[#002800] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-widest">Guardar</button>
+                <button type="submit" :disabled="enviando" class="flex-1 py-4 bg-[#003d00] hover:bg-[#002800] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-widest">
+                  {{ enviando ? 'Creando...' : 'Guardar' }}
+                </button>
               </div>
             </form>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+    <!-- MODAL: ELIMINAR -->
+    <Teleport to="body">
+      <div v-if="mostrarModalEliminar" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4">
+        <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 text-center">
+          <div class="absolute top-0 left-0 w-full h-2.5 bg-[#d1333e]"></div>
+          <div class="p-10">
+            <div class="flex justify-center mb-6 text-red-500">
+              <i class="pi pi-trash text-6xl"></i>
+            </div>
+            <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Eliminar usuario?</h2>
+            <p class="text-sm text-gray-500 mb-8 font-medium leading-relaxed">
+              Se eliminará el usuario <span class="text-gray-800 font-bold">{{ usuarioEliminar?.name }}</span>.
+            </p>
+            <div class="flex items-center gap-3">
+              <button @click="mostrarModalEliminar = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
+              <button @click="ejecutarEliminacion" class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md text-sm">Confirmar</button>
+            </div>
           </div>
         </div>
       </div>
@@ -197,123 +220,210 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue';
+  import { ref, computed, onMounted } from 'vue';
+  import { useUserStore } from '@/stores/userStore';
   import Swal from 'sweetalert2';
   import InputText from 'primevue/inputtext';
   import Button from 'primevue/button';
   import Dropdown from 'primevue/dropdown';
   import Paginator from 'primevue/paginator';
 
-  // --- DATOS ESTÁTICOS (Simulando Backend) ---
-  const roles = ['ADMIN', 'VENDEDOR'];
-  const usuarios = ref([
-    { id: 1, nombre: 'Dev Jose', email: 'jose@gmail.com', rol: 'ADMIN', estado: 'ACTIVO' },
-    { id: 2, nombre: 'Usuario Prueba', email: 'usuario@gmail.com', rol: 'VENDEDOR', estado: 'ACTIVO' },
-    { id: 3, nombre: 'Ana García', email: 'ana.garcia@gmail.com', rol: 'VENDEDOR', estado: 'INACTIVO' },
-    { id: 4, nombre: 'Carlos López', email: 'carlos.l@gmail.com', rol: 'VENDEDOR', estado: 'PENDIENTE' }
-  ]);
+  const userStore = useUserStore()
 
-  const paginacion = ref({
-    pagina_actual: 1,
-    filas_por_pagina: 10,
-    total: 4
-  });
+  //Datos reactivos del store
+  const usuarios = computed(() => userStore.users)
+  const paginacion = computed(() => userStore.pagination)
 
-  const busqueda = ref('');
-  const mostrarModal = ref(false);
-  const esEdicion = ref(false);
-  const formulario = ref({ id: null, nombre: '', email: '', rol: 'VENDEDOR' });
+  const busqueda = ref('')
+  const mostrarModal = ref(false)
+  const esEdicion = ref(false)
+  const enviando = ref(false)
+  const formulario = ref({ id: null, nombre: '', email: '', rol: 'VENDEDOR' })
+  const mostrarModalEliminar = ref(false)
+  const usuarioEliminar = ref(null)
 
-  // --- FILTRADO Y MÉTRICAS ---
+  //Roles fijos
+  const roles = ['ADMIN', 'VENDEDOR']
+
+  const countActivos = computed(() => userStore.users.filter(u => u.estado === 'ACTIVO').length)
+  const countInactivos = computed(() => userStore.users.filter(u => u.estado === 'INACTIVO').length)
+
+  //Cargar usuarios
+  onMounted(() => {
+    userStore.fetchUsers(1)
+  })
+
+  //Paginacion
+  const cambiarPagina = (e) => {
+    userStore.fetchUsers(e.page + 1)
+  }
+
   const filteredUsuarios = computed(() => {
-    if (!busqueda.value) return usuarios.value;
+    if(!busqueda.value) return userStore.users;
     const term = busqueda.value.toLowerCase();
-    return usuarios.value.filter(u =>
-      u.nombre.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)
+      return userStore.users.filter(u =>
+      u.name?.toLowerCase().includes(term) || u.email?.toLowerCase().includes(term)
     );
   });
 
-  const countActivos = computed(() => usuarios.value.filter(u => u.estado === 'ACTIVO').length);
-  const countInactivos = computed(() => usuarios.value.filter(u => u.estado === 'INACTIVO').length);
-
-  // --- ACCIONES ---
-  const cambiarPagina = (e) => {
-    paginacion.value.pagina_actual = e.page + 1;
-    paginacion.value.filas_por_pagina = e.rows;
-  };
-
   const abrirNuevo = () => {
-    esEdicion.value = false;
-    formulario.value = { id: null, nombre: '', email: '', rol: 'VENDEDOR' };
-    mostrarModal.value = true;
+    esEdicion.value = false
+    formulario.value = { id: null, nombre: '', email: '', rol: 'VENDEDOR' }
+    mostrarModal.value = true
   };
 
   const abrirEditar = (user) => {
-    esEdicion.value = true;
-    formulario.value = { ...user };
-    mostrarModal.value = true;
-  };
+    esEdicion.value = true
+    formulario.value = {
+      id: user.id,
+      nombre: user.name,
+      email: user.email,
+      rol: user.rol
+     }
+    mostrarModal.value = true
+  }
 
-  const guardar = () => {
-    if (!formulario.value.nombre || !formulario.value.email) {
+  const guardar = async () => {
+    if(!formulario.value.nombre || !formulario.value.email || !formulario.value.rol){
       return Swal.fire('Incompleto', 'Por favor llena los campos obligatorios', 'warning');
     }
-    // Simulación de guardado
-    Swal.fire({
-      icon: 'success',
-      title: esEdicion.value ? '¡Actualizado!' : '¡Usuario Creado!',
-      text: esEdicion.value ? 'Los datos han sido actualizados' : 'Se ha enviado la invitación al correo',
-      showConfirmButton: false,
-      timer: 2000
-    });
-    mostrarModal.value = false;
-  };
 
-  const reenviarNotificacion = (user) => {
-    Swal.fire({
-      icon: 'info',
-      title: 'Reenviando Invitación',
-      text: `Se ha generado un nuevo token para ${user.email}`,
-      confirmButtonColor: '#0a3622'
-    });
-  };
+    enviando.value = true
+    try{
+      if(esEdicion.value){
+        await userStore.updateUser(formulario.value.id, {
+          name: formulario.value.nombre,
+          email: formulario.value.email,
+          role: formulario.value.rol
+        })
+        Swal.fire({
+          icon: 'success',
+          title: 'Actualizado!',
+          showConfirmButton: false,
+          timer: 2500 })
+      }else{
+        await userStore.createUser({
+          name: formulario.value.nombre,
+          email: formulario.value.email,
+          role: formulario.value.rol
+        })
+        Swal.fire({
+          icon: 'success',
+          title: 'Usuario Creado!',
+          text: 'Se ha enviado la invitación al correo',
+          showConfirmButton: false,
+          timer: 2500 })
+      }
+      mostrarModal.value = false
+
+    }catch(error){
+      const errors = error.response?.data?.errors
+      if(errors){
+        let msg = Object.values(errors).flat().join('<br>')
+        Swal.fire({ icon: 'error', title: 'Error de validación', html: msg })
+      }else{
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.message || 'No se pudo guardar.' })
+      }
+
+    }finally{
+      enviando.value = false
+    }
+  }
+
+  const reenviarNotificacion = async (user) => {
+    try{
+      await userStore.resendInvitation(user.id)
+      Swal.fire({
+        icon: 'success',
+        title: 'Invitación reenviada',
+        text: `Se ha enviado a ${user.email}`
+      })
+
+    }catch(error){
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'No se pudo reenviar.'
+      })
+    }
+  }
 
   const cambiarEstado = (user) => {
-    const nuevoEstado = user.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+    if(user.id === 1){
+      return Swal.fire('Protegido', 'No se puede cambiar el estado del usuario master.', 'warning')
+    }
+    if(user.estado === 'PENDIENTE'){
+      return Swal.fire('Pendiente', 'El usuario debe aceptar la invitación primero.', 'info')
+    }
+
+    const nuevoEstado = user.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO'
     Swal.fire({
       title: `¿Pasar a ${nuevoEstado}?`,
-      text: `El usuario ${user.nombre} cambiará su estado de acceso.`,
+      text: `El usuario ${user.name} cambiará su estado de acceso.`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: nuevoEstado === 'ACTIVO' ? '#008a00' : '#d1333e',
       cancelButtonColor: '#708090',
       confirmButtonText: `Sí, pasar a ${nuevoEstado}`,
       reverseButtons: true
-    }).then((result) => {
+    }).then( async (result) => {
       if(result.isConfirmed){
-        user.estado = nuevoEstado;
-        Swal.fire({
-          icon: 'success',
-          title: 'Estado Actualizado',
-          showConfirmButton: false,
-          timer: 1500
-        });
+        try{
+          await userStore.changeStatus(user.id)
+          Swal.fire({
+            icon: 'success',
+            title: 'Estado Actualizado',
+            showConfirmButton: false,
+            timer: 2500
+          })
+
+        }catch(error){
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.response?.data?.message || 'No se pudo cambiar el estado.'
+          })
+        }
       }
-    });
-  };
+    })
+  }
 
   const borrar = (user) => {
-    Swal.fire({
-      title: '¿Estás seguro?',
-      text: `Eliminarás el acceso de ${user.nombre}`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d1333e',
-      cancelButtonColor: '#708090',
-      confirmButtonText: 'Sí, eliminar',
-      reverseButtons: true
-    });
-  };
+    if(user.id === 1){
+      return Swal.fire('Protegido', 'No se puede eliminar al usuario maestro.', 'warning')
+    }
+    if(user.estado === 'ACTIVO'){
+      return Swal.fire('Activo', 'Debes desactivarlo antes de eliminarlo.', 'warning')
+    }
+    usuarioEliminar.value = user
+    mostrarModalEliminar.value = true
+  }
+
+  const ejecutarEliminacion = async () => {
+    if(!usuarioEliminar.value) return
+    try{
+      await userStore.deleteUser(usuarioEliminar.value.id)
+      Swal.fire({
+        icon: 'success',
+        title: 'Eliminado!',
+        showConfirmButton: false,
+        timer: 2500
+      })
+      mostrarModalEliminar.value = false
+      usuarioEliminar.value = null
+
+    }catch(error){
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.message || 'No se pudo eliminar.'
+      })
+    }
+  }
+
 </script>
 
 <style scoped>
