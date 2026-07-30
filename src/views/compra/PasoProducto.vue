@@ -77,7 +77,7 @@
               <div class="relative group">
                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0a3622] font-black text-xs z-10">$</span>
                 <input
-                  type="text" 
+                  type="text"
                   v-model="item.precio_unitario"
                   @input="recalcular(index)"
                   @keydown="soloDecimalPositivo"
@@ -310,7 +310,7 @@
                  <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Sección *</label>
                   <select v-model="nuevoProducto.seccion" class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] outline-none transition-all shadow-sm focus:border-[#0a3622]">
-                    <option value="DESPENSA">DESPENSA</option>
+                    <option value="TIENDA">TIENDA</option>
                     <option value="LIBRERIA">LIBRERIA</option>
                     <option value="MEDICAMENTO">MEDICAMENTO</option>
                   </select>
@@ -529,7 +529,7 @@
 
   // Función que añade el producto "en memoria" a la lista de compra
   const confirmarCreacionRapida = () => {
-    if (!nuevoProducto.value.nombre || !nuevoProducto.value.categoria_id || !nuevoProducto.value.marca_id){
+    if (!nuevoProducto.value.nombre || !nuevoProducto.value.categoria_id || !nuevoProducto.value.marca_id  || !nuevoProducto.value.seccion){
       return Swal.fire('Incompleto', 'Complete los campos obligatorios del producto', 'warning');
     }
 
