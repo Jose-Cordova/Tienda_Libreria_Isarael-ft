@@ -208,7 +208,7 @@
           numero_factura: props.datos.numero_factura,
           codigo_factura: props.datos.codigo_factura,
           fecha_emision: props.datos.fecha_emision instanceof Date
-            ? props.datos.fecha_emision.toISOString ().split('T')[0]
+            ? props.datos.fecha_emision.toISOString().split('T')[0]
             : props.datos.fecha_emision,
           total: totalFactura.value,
           detalles: props.datos.detalles.map(d => {
