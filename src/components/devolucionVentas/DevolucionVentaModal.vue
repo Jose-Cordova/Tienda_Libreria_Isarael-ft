@@ -173,16 +173,15 @@
                 </div>
               </div>
             </div>
-
-            <div class="mt-2 text-right">
-              <Button
-                label="Agregar otra condición"
-                icon="pi pi-plus-circle"
-                class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
-                @click="agregarSubDetalle(index)"
-                :disabled="!ventaValida"
-              />
-            </div>
+            <div v-if="detalleVenta.cantidad > 1" class="mt-2 text-right">
+            <Button
+              label="Agregar otra condición"
+              icon="pi pi-plus-circle"
+              class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
+              @click="agregarSubDetalle(index)"
+              :disabled="!ventaValida"
+            />
+          </div>
           </div>
         </div>
       </div>
