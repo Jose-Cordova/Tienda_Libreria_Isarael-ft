@@ -100,13 +100,13 @@
                   @click="$emit('ver-detalle', venta)"
                 />
                 <Button
-                  icon="pi pi-ban"
-                  class="p-button-rounded p-button-text p-button-sm"
-                  :class="venta.estado === 'Anulada' ? 'opacity-30 cursor-not-allowed' : 'p-button-danger'"
-                  :disabled="venta.estado === 'Anulada'"
-                  v-tooltip="venta.estado === 'Anulada' ? 'Venta anulada' : 'Anular'"
-                  @click="$emit('anular', venta)"
-                />
+                icon="pi pi-ban"
+                class="p-button-rounded p-button-text p-button-sm"
+                :class="(venta.estado === 'Anulada' || venta.estado === 'Devolucion') ? 'opacity-30 cursor-not-allowed' : 'p-button-danger'"
+                :disabled="venta.estado === 'Anulada' || venta.estado === 'Devolucion'"
+                v-tooltip="(venta.estado === 'Anulada' || venta.estado === 'Devolucion') ? 'Venta no anulable' : 'Anular'"
+                @click="$emit('anular', venta)"
+              />
               </div>
             </td>
           </tr>

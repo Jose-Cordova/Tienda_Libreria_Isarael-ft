@@ -98,6 +98,11 @@ const router = createRouter({
           component: () => import('../views/ReporteCredito.vue')
         },
         {
+          path: 'devoluciones-ventas',
+          name: 'devoluciones-ventas',
+          component: () => import('../views/DevolucionesVentasView.vue')
+        },
+        {
           path: 'compras',
           name: 'compras',
           component: () => import('../views/compra/CompraIndex.vue')

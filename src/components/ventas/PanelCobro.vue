@@ -231,7 +231,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useVentaStore } from '@/stores/venta/ventaStore';
 import { useToast } from 'primevue/usetoast';
 import api from '@/services/api';
@@ -261,6 +261,11 @@ onMounted(async () => {
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar datos de configuración', life: 4000 });
   }
+});
+
+// Sincronizar el monto recibido con el store
+watch(montoRecibido, (nuevoValor) => {
+  ventaStore.montoRecibido = nuevoValor;
 });
 
 const cambio = computed(() => {
@@ -336,16 +341,16 @@ const procesarVenta = async () => {
       }
     }
     if (opcionImprimirTicket.value) {
-    try {
-    const pdfResponse = await api.get(`/ventas/${response.venta.id}/ticket`, {
-      responseType: 'blob'
-    });
-    const url = window.URL.createObjectURL(new Blob([pdfResponse.data], { type: 'application/pdf' }));
-    window.open(url, '_blank');
-    } catch (err) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el ticket.', life: 3000 });
+      try {
+        const pdfResponse = await api.get(`/ventas/${response.venta.id}/ticket`, {
+          responseType: 'blob'
+        });
+        const url = window.URL.createObjectURL(new Blob([pdfResponse.data], { type: 'application/pdf' }));
+        window.open(url, '_blank');
+      } catch (err) {
+        toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el ticket.', life: 3000 });
+      }
     }
-}
     limpiarTodo();
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'No se pudo registrar la venta', life: 5000 });
