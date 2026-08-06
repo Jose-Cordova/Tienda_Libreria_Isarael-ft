@@ -118,6 +118,11 @@ const router = createRouter({
           component: () => import('../views/RolView.vue')
         },
         {
+          path: 'configuracion',
+          name: 'configuracion',
+          component: () => import('../views/ConfiguracionView.vue'),
+        },
+        {
           path: 'productos-danados',
           name: 'productos-danados',
           component: () => import('../views/ProductoDanado.vue')
