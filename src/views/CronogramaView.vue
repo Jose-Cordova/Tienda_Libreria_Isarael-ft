@@ -1,5 +1,5 @@
 <template>
-  <!-- Contenedor principal con altura fija para evitar desorden -->
+  <!-- Contenedor principal -->
   <div class="flex flex-col lg:flex-row h-full lg:h-[calc(100vh-140px)] bg-[#f8faf9] font-dm-sans overflow-hidden">
     <!-- BARRA LATERAL: AGENDA DEL MES -->
     <aside class="w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm z-10 flex-none h-[350px] lg:h-full">
@@ -14,7 +14,8 @@
         <div
           v-for="event in agendaEventos"
           :key="event.id"
-          class="bg-white p-4 rounded-2xl border border-gray-500 shadow-sm border-l-[6px] border-l-[#0a3622] hover:shadow-md transition-all group cursor-pointer relative overflow-hidden"
+          class="bg-white p-4 rounded-2xl border border-gray-500 shadow-sm border-l-[6px] border-l-[#0a3622] hover:shadow-md transition-all group cursor-pointer"
+          @click="abrirEditar(event)"
         >
           <p class="text-[10px] font-black text-green-600 uppercase tracking-widest mb-1">{{ event.fechaStr }}</p>
           <p class="text-sm font-black text-[#0a3622] uppercase leading-tight">{{ event.title }}</p>
@@ -26,9 +27,10 @@
         </div>
       </div>
     </aside>
+
     <!-- ÁREA PRINCIPAL: CALENDARIO -->
     <section class="flex-1 flex flex-col min-w-0 overflow-hidden h-full">
-      <!-- CABECERA DE NAVEGACIÓN -->
+      <!-- CABECERA -->
       <div class="bg-white px-4 sm:px-6 py-4 border-b border-gray-500 flex flex-wrap items-center justify-between gap-4 shadow-sm z-20">
         <div class="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
           <Button
@@ -47,15 +49,16 @@
             @click="irAHoy"
           />
           <div class="flex items-center gap-2 bg-gray-50 rounded-xl p-1 px-3 border border-gray-200 flex-1 sm:flex-none justify-between">
-             <Button icon="pi pi-chevron-left" class="p-button-text p-button-sm !text-[#0a3622] !w-7 !h-7 hover:!bg-white" @click="prev" />
-             <div class="min-w-[100px] sm:min-w-[120px] text-center">
-               <span class="text-[10px] sm:text-xs font-black text-[#0a3622] uppercase tracking-widest">{{ mesAnioActual }}</span>
-             </div>
-             <Button icon="pi pi-chevron-right" class="p-button-text p-button-sm !text-[#0a3622] !w-7 !h-7 hover:!bg-white" @click="next" />
+            <Button icon="pi pi-chevron-left" class="p-button-text p-button-sm !text-[#0a3622] !w-7 !h-7 hover:!bg-white" @click="prev" />
+            <div class="min-w-[100px] sm:min-w-[120px] text-center">
+              <span class="text-[10px] sm:text-xs font-black text-[#0a3622] uppercase tracking-widest">{{ mesAnioActual }}</span>
+            </div>
+            <Button icon="pi pi-chevron-right" class="p-button-text p-button-sm !text-[#0a3622] !w-7 !h-7 hover:!bg-white" @click="next" />
           </div>
         </div>
       </div>
-      <!-- Contenedor del Calendario -->
+
+      <!-- CALENDARIO -->
       <div class="flex-none p-4 sm:p-6 bg-[#f8faf9] overflow-hidden h-[350px] lg:h-full lg:flex-1">
         <div class="bg-white p-4 rounded-[24px] border border-gray-600 shadow-xl h-full relative overflow-hidden">
           <FullCalendar
@@ -66,12 +69,13 @@
         </div>
       </div>
     </section>
+
     <!-- MODAL: NUEVO / EDITAR -->
     <Teleport to="body">
       <div v-if="mostrarModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] backdrop-blur-sm p-4 font-dm-sans">
         <div class="bg-white rounded-[24px] w-[90vw] max-w-md shadow-2xl relative overflow-hidden border border-gray-100">
           <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
-          <button @click="mostrarModal = false" class="absolute top-6 right-7 text-gray-400 hover:text-gray-700 transition">
+          <button @click="cerrarModal" class="absolute top-6 right-7 text-gray-400 hover:text-gray-700 transition">
             <i class="pi pi-times text-xl"></i>
           </button>
           <div class="p-10 text-left">
@@ -79,13 +83,14 @@
               <h2 class="text-xl font-extrabold text-[#0a3622] mb-1 uppercase tracking-tight">{{ esEdicion ? 'Editar Registro' : 'Nuevo Registro' }}</h2>
               <p class="text-[14px] text-gray-400 font-medium">Agenda de visitas o pedidos</p>
             </div>
+
             <form @submit.prevent="guardar" class="space-y-6">
               <!-- Proveedor -->
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Proveedor *</label>
                 <Dropdown
                   v-model="formulario.proveedor_id"
-                  :options="proveedoresMock"
+                  :options="store.proveedores"
                   optionLabel="nombre"
                   optionValue="id"
                   placeholder="Buscar Proveedor..."
@@ -93,6 +98,7 @@
                   filter
                 />
               </div>
+
               <!-- Fecha -->
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Fecha Programada *</label>
@@ -104,8 +110,20 @@
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Descripción *</label>
                 <Textarea v-model="formulario.descripcion" rows="3" class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" placeholder="Detalles de la visita o pedido..." />
               </div>
+
+              <!-- Botón eliminar (solo en edición) -->
+              <div v-if="esEdicion" class="flex justify-end">
+                <Button
+                  label="Eliminar"
+                  icon="pi pi-trash"
+                  class="p-button-danger p-button-text"
+                  @click="confirmarEliminar"
+                  type="button"
+                />
+              </div>
+
               <div class="flex items-center gap-4 mt-10">
-                <button type="button" @click="mostrarModal = false" class="px-8 py-4 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm flex-1 uppercase tracking-widest">Cancelar</button>
+                <button type="button" @click="cerrarModal" class="px-8 py-4 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm flex-1 uppercase tracking-widest">Cancelar</button>
                 <button type="submit" class="flex-[2] py-4 bg-[#0a3622] hover:bg-[#115033] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-[0.2em]">Guardar</button>
               </div>
             </form>
@@ -117,164 +135,210 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue';
-  import FullCalendar from '@fullcalendar/vue3';
-  import dayGridPlugin from '@fullcalendar/daygrid';
-  import interactionPlugin from '@fullcalendar/interaction';
-  import esLocale from '@fullcalendar/core/locales/es';
-  import Swal from 'sweetalert2';
-  import Button from 'primevue/button';
-  import Dropdown from 'primevue/dropdown';
-  import Calendar from 'primevue/calendar';
-  import Textarea from 'primevue/textarea';
-  import { onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import FullCalendar from '@fullcalendar/vue3';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import esLocale from '@fullcalendar/core/locales/es';
+import Swal from 'sweetalert2';
+import Button from 'primevue/button';
+import Dropdown from 'primevue/dropdown';
+import Calendar from 'primevue/calendar';
+import Textarea from 'primevue/textarea';
+import { useCronogramaStore } from '@/stores/cronogramaStore';
 
-  // --- REFERENCIAS Y ESTADOS ---
-  const fullCalendar = ref(null);
-  const mesAnioActual = ref('');
-  const mostrarModal = ref(false);
-  const esEdicion = ref(false);
-  const formulario = ref({ id: null, proveedor_id: null, fecha: null, descripcion: '' });
+const store = useCronogramaStore()
+const fullCalendar = ref(null)
+const mesAnioActual = ref('')
+const mostrarModal = ref(false)
+const esEdicion = ref(false)
+const formulario = ref({ id: null, proveedor_id: null, fecha: null, descripcion: '' })
 
-  // Reactividad para el ancho de pantalla
-  const windowWidth = ref(window.innerWidth);
-  const updateWidth = () => { windowWidth.value = window.innerWidth; };
-  onMounted(() => window.addEventListener('resize', updateWidth));
-  onUnmounted(() => window.removeEventListener('resize', updateWidth));
+const windowWidth = ref(window.innerWidth)
+const updateWidth = () => { windowWidth.value = window.innerWidth; }
+onMounted(() => window.addEventListener('resize', updateWidth))
+onUnmounted(() => window.removeEventListener('resize', updateWidth))
 
-  // --- DATOS ESTÁTICOS ---
-  const proveedoresMock = [
-    { id: 1, nombre: 'Distribuidora García' },
-    { id: 2, nombre: 'Papelería Internacional' },
-    { id: 3, nombre: 'Librería El Centro' }
-  ];
+const calendarOptions = computed(() => ({
+  plugins: [dayGridPlugin, interactionPlugin],
+  initialView: 'dayGridMonth',
+  locale: esLocale,
+  headerToolbar: false,
+  dayHeaderFormat: { weekday: windowWidth.value < 768 ? 'short' : 'long' },
+  aspectRatio: windowWidth.value < 768 ? 2.5 : 1.8,
+  events: store.eventos,
+  editable: true,
+  selectable: true,
+  height: windowWidth.value < 768 ? 280 : '100%',
+  dayMaxEvents: true,
+  eventDisplay: 'block',
+  eventClassNames: 'font-bold uppercase text-[10px] border-none !bg-[#0a3622] text-white rounded-md p-1 shadow-sm',
+  datesSet: async (info) => {
+    mesAnioActual.value = info.view.title;
+    await store.fetchEventos(info.startStr, info.endStr);
+  },
+  eventClick: (info) => {
+    abrirEditar(info.event)
+  }
+}))
 
-  const eventos = ref([
-    { id: 1, title: 'Distribuidora García', start: '2026-05-28', extendedProps: { descripcion: 'Pedido de papelería general' } },
-    { id: 2, title: 'Librería El Centro', start: '2026-05-30', extendedProps: { descripcion: 'Visita de agente de ventas' } },
-    { id: 3, title: 'Papelería Internacional', start: '2026-06-02', extendedProps: { descripcion: 'Entrega de cuadernos espirales' } }
-  ]);
+const agendaEventos = computed(() => {
+  return store.eventos.map(e => ({
+    ...e,
+    fechaStr: new Date(e.start).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' }),
+  })).sort((a, b) => new Date(a.start) - new Date(b.start))
+})
 
-  // --- CONFIGURACIÓN DE FULLCALENDAR ---
-  const calendarOptions = computed(() => ({
-    plugins: [dayGridPlugin, interactionPlugin],
-    initialView: 'dayGridMonth',
-    locale: esLocale,
-    headerToolbar: false,
-    // Nombres cortos en móvil (ej: Lun, Mar) y largos en PC (Lunes, Martes)
-    dayHeaderFormat: { weekday: windowWidth.value < 768 ? 'short' : 'long' },
-    // Ajustamos la proporción para que en movil sea mas pequeño
-    aspectRatio: windowWidth.value < 768 ? 2.5 : 1.8,
-    events: eventos.value,
-    editable: true,
-    selectable: true,
-    // En PC forzamos a que use el 100% del contenedor, en movil una altura fija pequeña
-    height: windowWidth.value < 768 ? 280 : '100%',
-    dayMaxEvents: true,
-    eventDisplay: 'block',
-    eventClassNames: 'font-bold uppercase text-[10px] border-none !bg-[#0a3622] text-white rounded-md p-1 shadow-sm',
-    datesSet: (info) => {
-      mesAnioActual.value = info.view.title;
-    },
-    eventClick: (info) => {
-      abrirEditar(info.event);
+const prev = () => fullCalendar.value?.getApi()?.prev()
+const next = () => fullCalendar.value?.getApi()?.next()
+const irAHoy = () => fullCalendar.value?.getApi()?.today()
+
+const abrirNuevo = async () => {
+    if(store.proveedores.length === 0){
+      try{
+        await store.fetchProveedores()
+      }catch(error){
+      console.error('Error al cargar proveedores:', error)
     }
-  }));
+  }
+  esEdicion.value = false
+  formulario.value = { id: null, proveedor_id: null, fecha: new Date(), descripcion: '' }
+  mostrarModal.value = true
+}
 
-  // --- LÓGICA DE AGENDA (Sidebar) ---
-  const agendaEventos = computed(() => {
-    // Filtramos solo los eventos del mes actual para la lista lateral
-    return eventos.value.map(e => ({
-      ...e,
-      fechaStr: new Date(e.start).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })
-    })).sort((a,b) => new Date(a.start) - new Date(b.start));
-  });
+const abrirEditar = (fcEvent) => {
+  esEdicion.value = true
+  formulario.value = {
+    id: fcEvent.id,
+    proveedor_id: fcEvent.extendedProps.proveedor_id || null,
+    fecha: fcEvent.start ? new Date(fcEvent.start) : null,
+    descripcion: fcEvent.extendedProps.descripcion || ''
+  }
+  mostrarModal.value = true
+}
 
-  // --- ACCIONES DE NAVEGACIÓN ---
-  const prev = () => fullCalendar.value.getApi().prev();
-  const next = () => fullCalendar.value.getApi().next();
-  const irAHoy = () => fullCalendar.value.getApi().today();
+const cerrarModal = () => {
+  mostrarModal.value = false
+  formulario.value = { id: null, proveedor_id: null, fecha: null, descripcion: '' }
+}
 
-  // --- ACCIONES DE MODAL ---
-  const abrirNuevo = () => {
-    esEdicion.value = false;
-    formulario.value = { id: null, proveedor_id: null, fecha: new Date(), descripcion: '' };
-    mostrarModal.value = true;
-  };
+const guardar = async () => {
+  if(!formulario.value.proveedor_id || !formulario.value.fecha || !formulario.value.descripcion){
+    return Swal.fire('Incompleto', 'Por favor llena todos los campos', 'warning')
+  }
 
-  const abrirEditar = (fcEvent) => {
-    esEdicion.value = true;
-    const prov = proveedoresMock.find(p => p.nombre === fcEvent.title);
-    formulario.value = {
-      id: fcEvent.id,
-      proveedor_id: prov ? prov.id : null,
-      fecha: fcEvent.start,
-      descripcion: fcEvent.extendedProps.descripcion
-    };
-    mostrarModal.value = true;
-  };
-
-  const guardar = () => {
-    if (!formulario.value.proveedor_id || !formulario.value.fecha || !formulario.value.descripcion) {
-      return Swal.fire('Incompleto', 'Por favor llena todos los campos', 'warning');
+  try{
+    const datos = {
+      fecha: formulario.value.fecha.toISOString().split('T')[0],
+      contenido: formulario.value.descripcion,
+      proveedor_id: formulario.value.proveedor_id
     }
 
-    Swal.fire({
-      icon: 'success',
-      title: esEdicion.value ? '¡Evento Actualizado!' : '¡Evento Guardado!',
-      showConfirmButton: false,
-      timer: 2500
-    });
-    mostrarModal.value = false;
-  };
+    if(esEdicion.value){
+      await store.actualizarEvento(formulario.value.id, datos)
+      Swal.fire({ icon: 'success', title: '¡Evento actualizado!', showConfirmButton: false, timer: 2500 })
+    }else{
+      await store.crearEvento(datos)
+      Swal.fire({ icon: 'success', title: '¡Evento creado!', showConfirmButton: false, timer: 2500 })
+    }
+
+    cerrarModal()
+    const calendarApi = fullCalendar.value?.getApi()
+    if(calendarApi){
+      const view = calendarApi.view
+      await store.fetchEventos(view.activeStart.toISOString().split('T')[0], view.activeEnd.toISOString().split('T')[0])
+      calendarApi.refetchEvents()
+    }
+  }catch(error){
+    const msg = error.response?.data?.message || 'Error al guardar el evento.'
+    Swal.fire('Error', msg, 'error')
+  }
+}
+
+const confirmarEliminar = async () => {
+  const result = await Swal.fire({
+    title: '¿Eliminar evento?',
+    text: 'Esta acción no se puede deshacer.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d1333e',
+    cancelButtonColor: '#708090',
+    confirmButtonText: 'Sí, eliminar',
+    reverseButtons: true
+  })
+
+  if(result.isConfirmed){
+    try {
+      await store.eliminarEvento(formulario.value.id)
+      Swal.fire({ icon: 'success', title: '¡Evento eliminado!', showConfirmButton: false, timer: 2500 })
+      cerrarModal()
+      const calendarApi = fullCalendar.value?.getApi()
+      if(calendarApi){
+        const view = calendarApi.view
+        await store.fetchEventos(view.activeStart.toISOString().split('T')[0], view.activeEnd.toISOString().split('T')[0])
+        calendarApi.refetchEvents()
+      }
+    }catch(error){
+      const msg = error.response?.data?.message || 'Error al eliminar el evento.'
+      Swal.fire('Error', msg, 'error')
+    }
+  }
+}
+
+onMounted(async () => {
+    try {
+      await store.fetchProveedores()
+    }catch(error){
+     console.error('Error al precargar proveedores:', error)
+  }
+})
 </script>
 
 <style scoped>
-  .custom-scrollbar::-webkit-scrollbar {
+  .custom-scrollbar::-webkit-scrollbar{
     width: 4px;
   }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
+  .custom-scrollbar::-webkit-scrollbar-thumb{
     background-color: #c6e5d3;
     border-radius: 10px;
   }
 
-  /* Estilos para sobrescribir FullCalendar y que se vea Premium */
-  :deep(.fc-theme-standard td), :deep(.fc-theme-standard th) {
+  :deep(.fc-theme-standard td),
+  :deep(.fc-theme-standard th){
     border: 1px solid #2b2a2a !important;
   }
-  :deep(.fc-col-header-cell) {
+  :deep(.fc-col-header-cell){
     background: #578357 !important;
     padding: 12px 0 !important;
   }
-  :deep(.fc-col-header-cell-cushion) {
+  :deep(.fc-col-header-cell-cushion){
     font-size: 10px;
     font-weight: 900;
     color: #000000;
     text-transform: uppercase;
     letter-spacing: 0.1em;
   }
-  :deep(.fc-daygrid-day) {
-    background-color: #fcfdfc; /* Fondo muy ligeramente verde/blanco */
+  :deep(.fc-daygrid-day){
+    background-color: #fcfdfc;
   }
-  :deep(.fc-daygrid-day-number) {
+  :deep(.fc-daygrid-day-number){
     font-size: 12px;
     font-weight: 800;
     color: #21262b;
     padding: 10px !important;
   }
-  :deep(.fc-day-today) {
+  :deep(.fc-day-today){
     background-color: #aef3c3 !important;
   }
-  :deep(.fc-event) {
+  :deep(.fc-event){
     cursor: pointer;
     transition: transform 0.2s;
   }
-  :deep(.fc-event:hover) {
+  :deep(.fc-event:hover){
     transform: scale(1.02);
     filter: brightness(1.1);
   }
-  /* Estilo para el popover (ventana emergente de eventos) */
-  :deep(.fc-popover) {
+  :deep(.fc-popover){
     z-index: 100 !important;
     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
     border-radius: 12px !important;
