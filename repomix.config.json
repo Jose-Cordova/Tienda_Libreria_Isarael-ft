@@ -1,0 +1,23 @@
+{
+  "include": [
+    "src/**/*.vue",
+    "src/**/*.js",
+    "src/**/*.ts",
+    "src/**/*.css",
+    "package.json",
+    "vite.config.js",
+    "docs/**",
+    "README.md"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    ".env",
+    ".env.*",
+    "**/*.min.js",
+    "**/*.min.css",
+    "**/*.log",
+    "public/**"
+  ]
+}

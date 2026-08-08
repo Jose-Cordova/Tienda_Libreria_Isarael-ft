@@ -43,6 +43,11 @@ const router = createRouter({
           component: () => import('../views/AboutView.vue'),
         },
         {
+          path: 'notas',
+          name: 'notas',
+          component: () => import('../views/NotasView.vue')
+        },
+        {
           path: 'punto-venta',
           name: 'punto-venta',
           component: () => import('../views/venta/VentasView.vue'),

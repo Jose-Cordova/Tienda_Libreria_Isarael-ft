@@ -219,6 +219,7 @@ const quickAccess = ref([
   { label: "Reportes", icon: "pi pi-chart-bar", ruta: "/reportes" },
   { label: "Cierre", icon: "pi pi-lock", ruta: "/cierre" },
   { label: "Usuarios", icon: "pi pi-users", ruta: "/usuarios" },
+  { label: "Notas", icon: "pi pi-file-edit", ruta: "/notas", destacado: true}
 ]);
 
 // Mapeo dinámico de las estadísticas superiores

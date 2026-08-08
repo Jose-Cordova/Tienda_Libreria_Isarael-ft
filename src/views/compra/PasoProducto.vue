@@ -649,20 +649,36 @@
   const finalizarPaso = () => {
     //Validacion de campos vacios
     let incompleto = false
+    let mensaje = 'Por favor complete todos los campos obligatorios.'
     productosAgregados.value.forEach(p => {
-      if(p.precio_unitario <= 0) incompleto = true
+      if(p.precio_unitario <= 0){
+        incompleto = true
+        mensaje = 'El costo unitario de todos los productos debe ser mayor a 0.'
+      }
+      if(p.margen_detalle <= 0 || p.margen_mayor <= 0){
+        incompleto = true;
+        mensaje = 'Los márgenes de ganancia (detalle y mayor) deben ser mayores a 0%.';
+      }
+      if(Number(p.margen_mayor) >= Number(p.margen_detalle)){
+        incompleto = true;
+        mensaje = 'El margen al mayor debe ser menor que el margen al detalle.';
+      }
       if(p.perecedero === 'PERECEDERO'){
         p.lotes.forEach(l => {
           if(!l.codigo_lote || !l.fecha_vencimiento || l.cantidad <= 0){
             incompleto = true
+             mensaje = 'Complete todos los campos de los lotes para productos perecederos (código, fecha y cantidad).'
           }
         })
       }else{
-        if(p.cantidad <= 0) incompleto = true
+        if(p.cantidad <= 0){
+          incompleto = true
+           mensaje = 'La cantidad de ingreso debe ser mayor a 0.'
+        }
       }
     })
     if(incompleto){
-      return Swal.fire('Datos faltantes', 'Por favor complete todos los campos de precios, cantidades y lotes si es PERECEDERO.', 'warning')
+      return Swal.fire('Datos incorrectos', mensaje, 'warning')
     }
     emit('siguiente', { detalles: productosAgregados.value })
   }
