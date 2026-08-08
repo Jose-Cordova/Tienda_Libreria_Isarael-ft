@@ -174,7 +174,9 @@
                 class="bg-white/90 border border-blue-100 rounded-xl p-3 flex justify-between items-center transition-all shadow-sm">
                 <div class="text-left">
                   <p class="text-[12px] sm:text-[13px] font-bold text-gray-800 tracking-tight">{{ order.nombre }}</p>
-                  <span class="text-[9px] sm:text-[10px] font-black text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded w-max uppercase">En {{ order.dias }} días</span>
+                  <span class="text-[9px] sm:text-[10px] font-black text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded w-max uppercase">
+                    {{ Math.round(order.dias) === 0 ? 'Hoy' : Math.round(order.dias) === 1 ? 'Mañana' : `En ${Math.round(order.dias)} días` }}
+                  </span>
                 </div>
                 <div class="text-right flex flex-col items-end">
                     <span class="text-[8px] font-black text-blue-900 block mb-0.5 uppercase">Fecha</span>
