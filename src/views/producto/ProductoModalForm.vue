@@ -327,7 +327,9 @@ const guardarProducto = async () => {
     data.cantidad_inicial = productoForm.value.cantidad_inicial
     if (productoForm.value.perecedero) {
       data.codigo_lote = productoForm.value.codigo_lote
-      data.fecha_vencimiento = productoForm.value.fecha_vencimiento
+      data.fecha_vencimiento = productoForm.value.fecha_vencimiento instanceof Date
+      ? productoForm.value.fecha_vencimiento.toISOString().split('T')[0]
+      : productoForm.value.fecha_vencimiento
     }
   }
 
@@ -376,8 +378,8 @@ const guardarProducto = async () => {
 }
 
 // Submodales para crear categoría/marca
-const abrirSubModal = (tipo) => { 
-  subModal.value[tipo] = true 
+const abrirSubModal = (tipo) => {
+  subModal.value[tipo] = true
   if (tipo === 'categoria') nuevaCategoria.value.seccion = productoForm.value.seccion
   if (tipo === 'marca') nuevaMarca.value.seccion = productoForm.value.seccion
 }
