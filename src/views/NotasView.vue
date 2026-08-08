@@ -87,17 +87,6 @@
 
             <form @submit.prevent="guardarNota" class="space-y-5">
               <div>
-                <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Fecha</label>
-                <Calendar
-                  v-model="formulario.fecha"
-                  dateFormat="dd/mm/yy"
-                  placeholder="Selecciona fecha"
-                  class="w-full"
-                  inputClass="w-full border border-gray-200 rounded-xl p-3 text-sm font-bold focus:border-[#0a3622] outline-none shadow-sm"
-                />
-              </div>
-
-              <div>
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Contenido *</label>
                 <Textarea
                   v-model="formulario.contenido"
@@ -129,7 +118,6 @@
   import { ref, onMounted } from 'vue';
   import { useNotaStore } from '@/stores/notaStore';
   import Button from 'primevue/button';
-  import Calendar from 'primevue/calendar';
   import Textarea from 'primevue/textarea';
   import Paginator from 'primevue/paginator';
   import Swal from 'sweetalert2';
@@ -142,7 +130,6 @@
   const errorContenido = ref('')
   const formulario = ref({
     id: null,
-    fecha: null,
     contenido: '',
   })
 
@@ -164,24 +151,23 @@
   // Modal
   const abrirModalNueva = () => {
     esEdicion.value = false
-    formulario.value = { id: null, fecha: new Date(), contenido: '' }
+    formulario.value = { id: null, contenido: '' }
     errorContenido.value = ''
     mostrarModal.value = true
   }
   const abrirModalEditar = (nota) => {
-  esEdicion.value = true
-  formulario.value = {
-    id: nota.id,
-    fecha: new Date(nota.fecha),
-    contenido: nota.contenido,
-  }
-  errorContenido.value = ''
-  mostrarModal.value = true
+    esEdicion.value = true
+    formulario.value = {
+      id: nota.id,
+      contenido: nota.contenido,
+    }
+    errorContenido.value = ''
+    mostrarModal.value = true
   }
   const cerrarModal = () => {
-  mostrarModal.value = false
-  formulario.value = { id: null, fecha: null, contenido: '' }
-  errorContenido.value = ''
+    mostrarModal.value = false
+    formulario.value = { id: null, contenido: '' }
+    errorContenido.value = ''
   }
 
   // Guardar (crear/editar)
@@ -196,7 +182,12 @@
     try{
       const datos = {
         contenido: formulario.value.contenido.trim(),
-        fecha: formulario.value.fecha ? formulario.value.fecha.toISOString().split('T')[0] : null,
+      }
+
+      if(!esEdicion.value){
+        const hoy = new Date()
+        const offset = hoy.getTimezoneOffset()
+        datos.fecha = new Date(hoy.getTime() - (offset * 60 * 1000)).toISOString().split('T')[0]
       }
 
       if(esEdicion.value){

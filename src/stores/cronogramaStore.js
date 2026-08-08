@@ -23,7 +23,8 @@ export const useCronogramaStore = defineStore('cronograma', {
         this.eventos = data.map(evento => ({
           id: evento.id,
           title: evento.proveedor?.nombre || 'Proveedor',
-          start: evento.fecha,
+          start: typeof evento.fecha === 'string' ? evento.fecha.split('T')[0] : evento.fecha,
+          allDay: true,
           extendedProps: {
             descripcion: evento.contenido,
             proveedor_id: evento.proveedor_id
@@ -58,11 +59,13 @@ export const useCronogramaStore = defineStore('cronograma', {
       try{
         const {data} = await cronogramaService.createEvento(datos)
 
+        const fechaLimpia = typeof data.evento.fecha === 'string' ? data.evento.fecha.split('T')[0] : data.evento.fecha
         //Agregar el evento a la lista local con el fromato esperado por FullCalendar
         this.eventos.push({
           id: data.evento.id,
           title: data.evento.proveedor?.nombre || 'Proveedor',
-          start: data.evento.fecha,
+          start: fechaLimpia,
+          allDay: true,
           extendedProps: {
             descripcion: data.evento.contenido,
             proveedor_id: data.evento.proveedor_id
@@ -81,13 +84,15 @@ export const useCronogramaStore = defineStore('cronograma', {
       try{
         const {data} = await cronogramaService.updateEvento(id, datos)
 
+        const fechaLimpia = typeof data.evento.fecha === 'string' ? data.evento.fecha.split('T')[0] : data.evento.fecha
         //Actualizar en la lista local
         const index = this.eventos.findIndex(e => e.id === id)
         if(index !== -1){
           this.eventos[index] = {
             id: data.evento.id,
             title: data.evento.proveedor?.nombre || 'Proveedor',
-            start: data.evento.fecha,
+            start: fechaLimpia,
+            allDay: true,
             extendedProps: {
               descripcion: data.evento.contenido,
               proveedor_id: data.evento.proveedor_id

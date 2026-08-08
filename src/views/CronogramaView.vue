@@ -102,7 +102,7 @@
               <!-- Fecha -->
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Fecha Programada *</label>
-                <Calendar v-model="formulario.fecha" dateFormat="dd/mm/yy" class="w-full" inputClass="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none shadow-sm" />
+                <Calendar v-model="formulario.fecha" :minDate="fechaMinima" dateFormat="dd/mm/yy" class="w-full" inputClass="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none shadow-sm" />
               </div>
 
               <!-- Descripción -->
@@ -124,7 +124,10 @@
 
               <div class="flex items-center gap-4 mt-10">
                 <button type="button" @click="cerrarModal" class="px-8 py-4 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm flex-1 uppercase tracking-widest">Cancelar</button>
-                <button type="submit" class="flex-[2] py-4 bg-[#0a3622] hover:bg-[#115033] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-[0.2em]">Guardar</button>
+                <button type="submit" :disabled="cargando" class="flex-[2] py-4 bg-[#0a3622] hover:bg-[#115033] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-[0.2em] disabled:opacity-50 flex items-center justify-center gap-2">
+                  <i v-if="cargando" class="pi pi-spin pi-spinner text-xs"></i>
+                  {{ cargando ? 'Guardando...' : 'Guardar' }}
+                </button>
               </div>
             </form>
           </div>
@@ -152,6 +155,9 @@ const fullCalendar = ref(null)
 const mesAnioActual = ref('')
 const mostrarModal = ref(false)
 const esEdicion = ref(false)
+const cargando = ref(false)
+const fechaMinima = ref(new Date())
+fechaMinima.value.setHours(0, 0, 0, 0)
 const formulario = ref({ id: null, proveedor_id: null, fecha: null, descripcion: '' })
 
 const windowWidth = ref(window.innerWidth)
@@ -163,6 +169,7 @@ const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
   locale: esLocale,
+  timeZone: 'UTC',
   headerToolbar: false,
   dayHeaderFormat: { weekday: windowWidth.value < 768 ? 'short' : 'long' },
   aspectRatio: windowWidth.value < 768 ? 2.5 : 1.8,
@@ -172,6 +179,7 @@ const calendarOptions = computed(() => ({
   height: windowWidth.value < 768 ? 280 : '100%',
   dayMaxEvents: true,
   eventDisplay: 'block',
+  displayEventTime: false,
   eventClassNames: 'font-bold uppercase text-[10px] border-none !bg-[#0a3622] text-white rounded-md p-1 shadow-sm',
   datesSet: async (info) => {
     mesAnioActual.value = info.view.title;
@@ -183,10 +191,24 @@ const calendarOptions = computed(() => ({
 }))
 
 const agendaEventos = computed(() => {
-  return store.eventos.map(e => ({
-    ...e,
-    fechaStr: new Date(e.start).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' }),
-  })).sort((a, b) => new Date(a.start) - new Date(b.start))
+  return store.eventos.map(e => {
+    let dateObj
+    if (e.start && typeof e.start === 'string') {
+      const parts = e.start.split('T')[0].split('-')
+      if (parts.length === 3) {
+        dateObj = new Date(parts[0], parts[1] - 1, parts[2])
+      } else {
+        dateObj = new Date(e.start)
+      }
+    } else {
+      dateObj = e.start ? new Date(e.start) : new Date()
+    }
+    return {
+      ...e,
+      fechaStr: dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' }),
+      dateObj
+    }
+  }).sort((a, b) => a.dateObj - b.dateObj)
 })
 
 const prev = () => fullCalendar.value?.getApi()?.prev()
@@ -208,10 +230,23 @@ const abrirNuevo = async () => {
 
 const abrirEditar = (fcEvent) => {
   esEdicion.value = true
+  let fechaParsed = null
+  if (fcEvent.start) {
+    if (typeof fcEvent.start === 'string') {
+      const parts = fcEvent.start.split('T')[0].split('-')
+      if (parts.length === 3) {
+        fechaParsed = new Date(parts[0], parts[1] - 1, parts[2])
+      } else {
+        fechaParsed = new Date(fcEvent.start)
+      }
+    } else {
+      fechaParsed = new Date(fcEvent.start)
+    }
+  }
   formulario.value = {
     id: fcEvent.id,
     proveedor_id: fcEvent.extendedProps.proveedor_id || null,
-    fecha: fcEvent.start ? new Date(fcEvent.start) : null,
+    fecha: fechaParsed,
     descripcion: fcEvent.extendedProps.descripcion || ''
   }
   mostrarModal.value = true
@@ -227,9 +262,25 @@ const guardar = async () => {
     return Swal.fire('Incompleto', 'Por favor llena todos los campos', 'warning')
   }
 
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+  const fechaSel = new Date(formulario.value.fecha)
+  fechaSel.setHours(0, 0, 0, 0)
+
+  if(fechaSel < hoy){
+    return Swal.fire('Fecha inválida', 'No puedes seleccionar una fecha anterior a hoy.', 'warning')
+  }
+
+  cargando.value = true
+
   try{
+    const year = formulario.value.fecha.getFullYear()
+    const month = String(formulario.value.fecha.getMonth() + 1).padStart(2, '0')
+    const day = String(formulario.value.fecha.getDate()).padStart(2, '0')
+    const fechaLocal = `${year}-${month}-${day}`
+
     const datos = {
-      fecha: formulario.value.fecha.toISOString().split('T')[0],
+      fecha: fechaLocal,
       contenido: formulario.value.descripcion,
       proveedor_id: formulario.value.proveedor_id
     }
@@ -252,6 +303,8 @@ const guardar = async () => {
   }catch(error){
     const msg = error.response?.data?.message || 'Error al guardar el evento.'
     Swal.fire('Error', msg, 'error')
+  }finally{
+    cargando.value = false
   }
 }
 
