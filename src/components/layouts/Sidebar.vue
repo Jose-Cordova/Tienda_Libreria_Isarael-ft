@@ -102,10 +102,6 @@
             <i class="pi pi-users text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Usuarios</span>
           </RouterLink>
-          <RouterLink to="/roles" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
-            <i class="pi pi-key text-lg text-shop-accent"></i>
-            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Roles</span>
-          </RouterLink>
           <RouterLink to="/configuracion" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-cog text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Configuración</span>
