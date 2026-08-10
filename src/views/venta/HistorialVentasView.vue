@@ -14,6 +14,8 @@
       :totalPagadas="formatearMoneda(store.totales.pagadas.total)"
       :cantidadCredito="store.totales.credito.cantidad"
       :totalCredito="formatearMoneda(store.totales.credito.total)"
+      :cantidadDevueltas="store.totales.devueltas.cantidad"
+      :totalDevueltas="formatearMoneda(store.totales.devueltas.total)"
     />
 
     <!-- Indicador de carga -->

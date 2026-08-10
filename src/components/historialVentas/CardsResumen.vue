@@ -1,5 +1,5 @@
 <template>
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
     <!-- Cantidad de ventas pagadas -->
     <div class="bg-white border border-[#0a3622] border-l-[8px] rounded-xl px-4 py-2.5 shadow-sm flex flex-col justify-center">
       <p class="text-[12px] font-bold text-[#145a32] uppercase tracking-wider mb-0.5">Ventas Pagadas</p>
@@ -27,6 +27,20 @@
       <p class="text-3xl font-extrabold text-[#b8860b] leading-none my-1">{{ totalCredito }}</p>
       <p class="text-[10px] text-gray-400 font-medium"></p>
     </div>
+
+    <!-- Cantidad de ventas devueltas (nueva tarjeta) -->
+    <div class="bg-white border border-[#d1333e] border-l-[8px] rounded-xl px-4 py-2.5 shadow-sm flex flex-col justify-center">
+      <p class="text-[12px] font-bold text-red-700 uppercase tracking-wider mb-0.5">Devueltas</p>
+      <p class="text-3xl font-extrabold text-[#d1333e] leading-none my-1">{{ cantidadDevueltas }}</p>
+      <p class="text-[10px] text-gray-400 font-medium"></p>
+    </div>
+
+    <!-- Total de ventas devueltas (nueva tarjeta) -->
+    <div class="bg-white border border-[#d1333e] border-l-[8px] rounded-xl px-4 py-2.5 shadow-sm flex flex-col justify-center">
+      <p class="text-[12px] font-bold text-red-700 uppercase tracking-wider mb-0.5">Total Dev.</p>
+      <p class="text-3xl font-extrabold text-[#d1333e] leading-none my-1">{{ totalDevueltas }}</p>
+      <p class="text-[10px] text-gray-400 font-medium"></p>
+    </div>
   </section>
 </template>
 
@@ -35,6 +49,8 @@ defineProps({
   cantidadPagadas: { type: Number, required: true },
   totalPagadas: { type: String, required: true },
   cantidadCredito: { type: Number, required: true },
-  totalCredito: { type: String, required: true }
+  totalCredito: { type: String, required: true },
+  cantidadDevueltas: { type: Number, required: true },  // nueva prop
+  totalDevueltas: { type: String, required: true }       // nueva prop
 });
 </script>
