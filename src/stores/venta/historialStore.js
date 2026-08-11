@@ -24,6 +24,7 @@ export const useHistorialStore = defineStore('historial', {
       pagadas: { cantidad: 0, total: 0 },
       credito: { cantidad: 0, total: 0 },
       anuladas: { cantidad: 0, total: 0 },
+      devueltas: { cantidad: 0, total: 0 },
     },
   }),
 
