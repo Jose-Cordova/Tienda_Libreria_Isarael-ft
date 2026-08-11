@@ -85,22 +85,7 @@ const router = createRouter({
         {
           path: 'reportes',
           name: 'reportes',
-          component: () => import('../views/Reporte.vue')
-        },
-        {
-          path: 'reporte-historial',
-          name: 'reporte-historial',
-          component: () => import('../views/ReporteHistorialVenta.vue')
-        },
-        {
-          path: 'reporte-compras',
-          name: 'reporte-compras',
-          component: () => import('../views/ReporteCompras.vue')
-        },
-        {
-          path: 'reporte-creditos',
-          name: 'reporte-creditos',
-          component: () => import('../views/ReporteCredito.vue')
+          component: () => import('../views/ReportesView.vue'),
         },
         {
           path: 'devoluciones-ventas',
