@@ -7,7 +7,7 @@ export const paises = [
   // ========== AMÉRICA CENTRAL ==========
   { nombre: 'Belice', iso: 'bz', codigo: '+501', regex: /^\d{7}$/, mask: '999-9999', placeholder: '123-4567', ejemplo: '1234567' },
   { nombre: 'Costa Rica', iso: 'cr', codigo: '+506', regex: /^\d{8}$/, mask: '9999 9999', placeholder: '1234 5678', ejemplo: '12345678' },
-  { nombre: 'El Salvador', iso: 'sv', codigo: '+503', regex: /^\d{8}$/, mask: '9999 9999', placeholder: '1234 5678', ejemplo: '12345678' },
+  { nombre: 'El Salvador', iso: 'sv', codigo: '+503', regex: /^\d{8}$/, mask: '9999 9999', placeholder: '72802112', ejemplo: 'Teléfono inválido. Formato correcto: +503 7123 4567 (móvil) o +503 2234 5678 (fijo).' },
   { nombre: 'Guatemala', iso: 'gt', codigo: '+502', regex: /^\d{8}$/, mask: '9999 9999', placeholder: '1234 5678', ejemplo: '12345678' },
   { nombre: 'Honduras', iso: 'hn', codigo: '+504', regex: /^\d{8}$/, mask: '9999 9999', placeholder: '1234 5678', ejemplo: '12345678' },
   { nombre: 'Nicaragua', iso: 'ni', codigo: '+505', regex: /^\d{8}$/, mask: '9999 9999', placeholder: '1234 5678', ejemplo: '12345678' },
