@@ -4,13 +4,16 @@
     @click="$emit('close-sidebar')"
   >
     <div class="flex-1 overflow-y-auto py-6 custom-scrollbar">
-      <div class="mb-6">
+      <!-- Sección Principal (Dashboard solo para Admin) -->
+      <div v-if="authStore.isAdmin" class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Principal</p>
         <RouterLink to="/" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
           <i class="pi pi-home text-lg text-shop-accent"></i>
           <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Inicio</span>
         </RouterLink>
       </div>
+
+      <!-- Sección Ventas (Permitida para Vendedor y Admin) -->
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Ventas</p>
         <div class="space-y-0.5">
@@ -34,6 +37,8 @@
           </RouterLink>
         </div>
       </div>
+
+      <!-- Sección Inventario (Productos visible para todos, Categorías/Marcas solo para Admin) -->
       <div class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Inventario</p>
         <div class="space-y-0.5">
@@ -41,22 +46,23 @@
             <i class="pi pi-box text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Productos</span>
           </RouterLink>
-          <RouterLink to="/categorias" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+          <RouterLink v-if="authStore.isAdmin" to="/categorias" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-tags text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Categorías</span>
           </RouterLink>
-          <RouterLink to="/marcas" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+          <RouterLink v-if="authStore.isAdmin" to="/marcas" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-bookmark text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Marcas</span>
           </RouterLink>
-
           <RouterLink to="/productos-danados" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-trash text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Productos Dañados</span>
           </RouterLink>
         </div>
       </div>
-      <div class="mb-6">
+
+      <!-- Sección Compras (Solo para Admin) -->
+      <div v-if="authStore.isAdmin" class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Compras</p>
         <div class="space-y-0.5">
           <RouterLink to="/proveedores" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
@@ -69,8 +75,10 @@
           </RouterLink>
         </div>
       </div>
-      <div class="mb-6">
-        <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Gestiones</p>
+
+      <!-- Sección Gestiones (Solo para Admin) -->
+      <div v-if="authStore.isAdmin" class="mb-6">
+        <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Reportes</p>
         <div class="space-y-0.5">
           <RouterLink to="/reportes" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-chart-bar text-lg text-shop-accent"></i>
@@ -82,7 +90,9 @@
           </RouterLink>
         </div>
       </div>
-      <div class="mb-6">
+
+      <!-- Sección Administración (Solo para Admin) -->
+      <div v-if="authStore.isAdmin" class="mb-6">
         <p class="px-7 text-[10px] font-bold text-shop-text-3 uppercase tracking-[0.2em] mb-3">Administración</p>
         <div class="space-y-0.5">
           <RouterLink to="/usuarios" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
@@ -98,8 +108,14 @@
     </div>
   </aside>
 </template>
+
 <script setup>
 import { RouterLink } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
+
+// Instancia de la tienda de autenticación para consultar el rol
+const authStore = useAuthStore();
+
 defineEmits(['close-sidebar'])
 </script>
 
