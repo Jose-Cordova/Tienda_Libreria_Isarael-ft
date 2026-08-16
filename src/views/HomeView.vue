@@ -17,9 +17,10 @@
       </h3>
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
         <div v-for="(acceso, index) in quickAccess" :key="index" @click="irA(acceso.ruta)"
-          class="bg-white border border-shop-border p-3 sm:p-4 rounded-shop text-center shadow-shop hover:border-shop-accent cursor-pointer transition-all duration-300 hover:-translate-y-1 group">
-          <i :class="acceso.icon" class="text-xl sm:text-2xl block mb-2 text-shop-accent group-hover:scale-110 transition-transform"></i>
-          <p class="text-[9px] sm:text-[10px] font-black text-shop-green-deep uppercase tracking-tighter group-hover:text-shop-accent">{{ acceso.label }}</p>
+          class="bg-white border p-3 sm:p-4 rounded-shop text-center shadow-shop cursor-pointer transition-all duration-300 hover:-translate-y-1 group"
+          :class="acceso.rojo ? 'border-red-300 hover:border-red-500' : 'border-shop-border hover:border-shop-accent'">
+          <i :class="acceso.icon" class="text-xl sm:text-2xl block mb-2 group-hover:scale-110 transition-transform" :style="acceso.rojo ? 'color: #dc2626' : ''"></i>
+          <p class="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter" :class="acceso.rojo ? 'text-red-700 group-hover:text-red-500' : 'text-shop-green-deep group-hover:text-shop-accent'">{{ acceso.label }}</p>
         </div>
       </div>
     </section>
@@ -219,9 +220,8 @@ const quickAccess = ref([
   { label: "Productos", icon: "pi pi-box", ruta: "/productos" },
   { label: "Compras", icon: "pi pi-shopping-bag", ruta: "/compras" },
   { label: "Reportes", icon: "pi pi-chart-bar", ruta: "/reportes" },
-  { label: "Cierre", icon: "pi pi-lock", ruta: "/cierre" },
   { label: "Usuarios", icon: "pi pi-users", ruta: "/usuarios" },
-  { label: "Notas", icon: "pi pi-file-edit", ruta: "/notas", destacado: true}
+  { label: "Notas", icon: "pi pi-file-edit", ruta: "/notas", rojo: true}
 ]);
 
 // Mapeo dinámico de las estadísticas superiores

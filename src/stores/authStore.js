@@ -8,17 +8,21 @@ export const useAuthStore = defineStore('auth', {
     user: null
   }),
 
-  // Persistencia automática
-  persist: true,
+  // Persistir en sessionStorage: se borra al cerrar el navegador
+  persist: {
+    storage: sessionStorage,
+  },
 
   getters: {
     isAuthenticated: (state) => !!state.token,
 
+    // Verificar si el usuario tiene rol de administrador
     isAdmin: (state) => {
-      return state.user?.roles?.some(role => role.name === 'admin')
+      return state.user?.roles?.some(role => role.name === 'ADMIN' || role.name === 'admin')
     },
+    // Verificar si el usuario tiene rol de vendedor
     isVendedor: (state) => {
-      return state.user?.roles?.some(role => role.name === 'VENDEDOR')
+      return state.user?.roles?.some(role => role.name === 'VENDEDOR' || role.name === 'vendedor')
     },
   },
 
@@ -31,7 +35,12 @@ export const useAuthStore = defineStore('auth', {
         this.token = data.access_token
         this.user = data.user
 
-        router.push('/') // Redirigir al Dashboard tras login exitoso
+        // Redirigir según el rol del usuario
+        if (this.isVendedor && !this.isAdmin) {
+          router.push('/punto-venta') // Vendedor va directo a punto de venta
+        } else {
+          router.push('/') // Admin va al dashboard
+        }
       } catch (error) {
         console.error('Error en login:', error)
         throw error

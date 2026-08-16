@@ -69,8 +69,11 @@ const placeholder = computed(() => paisActual.value?.placeholder || '');
 const error = computed(() => {
   const soloDigitos = numeroLocal.value.replace(/\D/g, '');
   if (!soloDigitos) return '';
-  if (!paisActual.value.regex.test(soloDigitos))
+
+  if (!paisActual.value.regex.test(soloDigitos)) {
+    // Mensaje con ejemplo usando la propiedad 'ejemplo' del país
     return `Formato incorrecto. Ej: ${paisActual.value.ejemplo}`;
+  }
   return '';
 });
 
@@ -81,5 +84,10 @@ watch([codigoSeleccionado, numeroLocal], ([codigo, numero]) => {
   emit('update:modelValue', completo);
 });
 
-defineExpose({ validar: () => error.value === '' && numeroLocal.value.replace(/\D/g, '').length > 0 });
+// Exponer métodos para validación externa
+defineExpose({
+  validar: () => error.value === '' && numeroLocal.value.replace(/\D/g, '').length > 0,
+  esElSalvador: () => codigoSeleccionado.value === '+503',
+  getError: () => error.value,
+});
 </script>

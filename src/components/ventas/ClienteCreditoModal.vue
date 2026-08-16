@@ -37,7 +37,7 @@
       <!-- Teléfono -->
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium">Teléfono <span class="text-red-500">*</span></label>
-        <SelectorPaisTelefono v-model="form.telefono" />
+        <SelectorPaisTelefono ref="selectorTelefono" v-model="form.telefono" />
         <small v-if="errores.telefono" class="text-red-500">{{ errores.telefono }}</small>
       </div>
     </div>
@@ -74,14 +74,13 @@ const errores = ref({
   telefono: ''
 });
 
+const selectorTelefono = ref(null);
+
 // --- Filtro de nombre: solo letras (incluyendo acentos y ñ) y espacios ---
 const filtrarNombre = (event) => {
   const valor = event.target.value;
-  // Eliminar cualquier carácter que no sea letra (con acentos/ñ) o espacio
   const limpio = valor.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
-  // Actualizar el modelo reactivo
   form.value.nombre = limpio;
-  // Actualizar el valor nativo del input para evitar que se muestre el carácter no deseado
   event.target.value = limpio;
 };
 
@@ -105,13 +104,31 @@ watch(() => form.value.dui, (val) => {
 
 // --- Validaciones ---
 const regexNombre = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
-const validarDUI = (dui) => /^\d{8}-\d{1}$/.test(dui);
+const validarFormatoDUI = (dui) => /^\d{8}-\d{1}$/.test(dui);
+
+const validarDuiLocal = (dui) => {
+  if (!validarFormatoDUI(dui)) return false;
+
+  const digitos = dui.replace('-', '').split('').map(Number);
+  const factores = [9, 8, 7, 6, 5, 4, 3, 2];
+  let suma = 0;
+
+  for (let i = 0; i < 8; i++) {
+    suma += digitos[i] * factores[i];
+  }
+
+  const residuo = suma % 10;
+  const digitoCalculado = (10 - residuo) % 10;
+
+  return digitos[8] === digitoCalculado;
+};
 
 const formularioValido = computed(() => {
   errores.value.nombre = '';
   errores.value.dui = '';
   errores.value.telefono = '';
 
+  // Nombre
   if (!form.value.nombre.trim()) {
     errores.value.nombre = 'El nombre es obligatorio.';
   } else if (!regexNombre.test(form.value.nombre.trim())) {
@@ -120,12 +137,22 @@ const formularioValido = computed(() => {
     errores.value.nombre = 'Máximo 50 caracteres.';
   }
 
-  if (!validarDUI(form.value.dui)) {
-    errores.value.dui = 'Formato inválido. Ej: 12345678-9';
+  // DUI
+  if (!validarFormatoDUI(form.value.dui)) {
+    errores.value.dui = 'Formato inválido. Ejemplo correcto: 12345678-9.';
+  } else if (!validarDuiLocal(form.value.dui)) {
+    errores.value.dui = 'DUI inválido. El dígito verificador no coincide. Ejemplo válido: 00016297-5.';
   }
+
+  // Teléfono (delegado al selector)
+  const telefonoEsValido = selectorTelefono.value?.validar() ?? false;
 
   if (!form.value.telefono) {
     errores.value.telefono = 'El teléfono es obligatorio.';
+  } else if (!telefonoEsValido) {
+    // Obtener el mensaje del selector o usar uno genérico con ejemplo
+    const errorSelector = selectorTelefono.value?.getError();
+    errores.value.telefono = errorSelector || 'Teléfono inválido. Formato correcto: +503 7123 4567 (móvil) o +503 2234 5678 (fijo).';
   }
 
   return !errores.value.nombre && !errores.value.dui && !errores.value.telefono;
