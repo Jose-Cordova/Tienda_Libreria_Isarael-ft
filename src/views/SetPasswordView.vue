@@ -36,24 +36,37 @@
           </button>
         </div>
 
-        <!-- Medidor de fortaleza -->
+        <!-- Medidor de fortaleza y recomendaciones -->
         <div v-if="form.password.length > 0" class="mt-2">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 mb-2">
             <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
                 class="h-full transition-all duration-300 rounded-full"
-                :class="strenghLabel.color"
+                :class="strengthLabel.color"
                 :style="{ width: `${(score / 4) * 100}%` }"
               ></div>
             </div>
-            <span class="text-xs font-bold" :class="strenghLabel.textColor">
-              {{ strenghLabel.label }}
+            <span class="text-xs font-bold" :class="strengthLabel.textColor">
+              {{ strengthLabel.label }}
             </span>
           </div>
-          <!-- Lista de requisitos pendientes -->
-          <ul v-if="feedback.length > 0" class="mt-1 text-xs text-gray-500 list-disc list-inside">
-            <li v-for="item in feedback" :key="item" class="text-red-500">
-              Faltan: {{ item }}
+          <!-- Lista de recomendaciones para la contraseña -->
+          <ul class="space-y-1 text-xs">
+            <li class="flex items-center gap-1.5" :class="form.password.length >= 8 ? 'text-green-600 font-bold' : 'text-gray-500'">
+              <i :class="form.password.length >= 8 ? 'pi pi-check-circle text-green-600' : 'pi pi-circle text-gray-400'"></i>
+              <span>Al menos 8 caracteres</span>
+            </li>
+            <li class="flex items-center gap-1.5" :class="/[a-z]/.test(form.password) && /[A-Z]/.test(form.password) ? 'text-green-600 font-bold' : 'text-gray-500'">
+              <i :class="/[a-z]/.test(form.password) && /[A-Z]/.test(form.password) ? 'pi pi-check-circle text-green-600' : 'pi pi-circle text-gray-400'"></i>
+              <span>Mayúsculas y minúsculas</span>
+            </li>
+            <li class="flex items-center gap-1.5" :class="/\d/.test(form.password) ? 'text-green-600 font-bold' : 'text-gray-500'">
+              <i :class="/\d/.test(form.password) ? 'pi pi-check-circle text-green-600' : 'pi pi-circle text-gray-400'"></i>
+              <span>Al menos un número</span>
+            </li>
+            <li class="flex items-center gap-1.5" :class="/[^a-zA-Z0-9]/.test(form.password) ? 'text-green-600 font-bold' : 'text-gray-500'">
+              <i :class="/[^a-zA-Z0-9]/.test(form.password) ? 'pi pi-check-circle text-green-600' : 'pi pi-circle text-gray-400'"></i>
+              <span>Al menos un carácter especial (!@#$%^&*)</span>
             </li>
           </ul>
         </div>
@@ -112,7 +125,7 @@ import router from '@/router';
 
 const route = useRoute()
 const authStore = useAuthStore()
-const {score, feedback, evaluate: evaluateStrength, strenghLabel} = usePasswordStrength()
+const {score, feedback, evaluate: evaluateStrength, strengthLabel} = usePasswordStrength()
 
 const form = ref({
   password: '',

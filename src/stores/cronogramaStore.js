@@ -14,7 +14,6 @@ export const useCronogramaStore = defineStore('cronograma', {
     async fetchEventos(start = null, end = null){
       this.loading = true
       try{
-        //
         const params = {}
         if(start) params.fecha_inicio = start
         if(end) params.fecha_fin = end
