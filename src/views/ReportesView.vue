@@ -6,6 +6,14 @@
       <h1 class="text-lg font-extrabold text-[#0a3622]">Reportes del Sistema</h1>
     </div>
 
+    <!-- Overlay de carga -->
+    <div v-if="generandoReporte" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[999]">
+      <div class="bg-white p-6 rounded-xl shadow-2xl text-center">
+        <ProgressSpinner style="width: 50px; height: 50px;" />
+        <p class="mt-3 font-bold text-[#0a3622]">Generando reporte...</p>
+      </div>
+    </div>
+
     <!-- Acordeón de reportes -->
     <Accordion multiple :activeIndex="[]" class="space-y-3">
       <!-- ==================== REPORTE GENERAL ==================== -->
@@ -28,7 +36,7 @@
         </div>
         <div class="flex justify-between p-4 pt-0">
           <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('general')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('general', general)" :disabled="!general.fecha_inicio || !general.fecha_fin" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('general', general)" :disabled="generandoReporte || !general.fecha_inicio || !general.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -64,7 +72,7 @@
         </div>
         <div class="flex justify-between p-4 pt-0">
           <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('ventas')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('ventas', ventas)" :disabled="!ventas.fecha_inicio || !ventas.fecha_fin" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('ventas', ventas)" :disabled="generandoReporte || !ventas.fecha_inicio || !ventas.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -111,7 +119,7 @@
         </div>
         <div class="flex justify-between p-4 pt-0">
           <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('compras')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('compras', compras)" :disabled="!compras.fecha_inicio || !compras.fecha_fin" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('compras', compras)" :disabled="generandoReporte || !compras.fecha_inicio || !compras.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -155,7 +163,7 @@
         </div>
         <div class="flex justify-between p-4 pt-0">
           <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('creditos')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('creditos', creditos)" :disabled="!creditos.fecha_inicio || !creditos.fecha_fin" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('creditos', creditos)" :disabled="generandoReporte || !creditos.fecha_inicio || !creditos.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -183,7 +191,7 @@
         </div>
         <div class="flex justify-between p-4 pt-0">
           <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('productosDaniados')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('productos-daniados', productosDaniados)" :disabled="!productosDaniados.fecha_inicio || !productosDaniados.fecha_fin" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('productos-daniados', productosDaniados)" :disabled="generandoReporte || !productosDaniados.fecha_inicio || !productosDaniados.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -239,7 +247,7 @@
         </div>
         <div class="flex justify-between p-4 pt-0">
           <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('inventario')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('inventario', inventario)" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('inventario', inventario)" :disabled="generandoReporte" />
         </div>
       </AccordionTab>
 
@@ -259,7 +267,7 @@
         </div>
         <div class="flex justify-between p-4 pt-0">
           <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('cierreDiario')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('cierre-diario', cierreDiario)" :disabled="!cierreDiario.fecha" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('cierre-diario', cierreDiario)" :disabled="generandoReporte || !cierreDiario.fecha" />
         </div>
       </AccordionTab>
     </Accordion>
@@ -275,8 +283,13 @@ import AccordionTab from 'primevue/accordiontab';
 import Calendar from 'primevue/calendar';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
+import ProgressSpinner from 'primevue/progressspinner';
 
 const toast = useToast();
+
+// --- Estado global de generación ---
+const generandoReporte = ref(false);
+let controller = null;
 
 // --- Datos para dropdowns ---
 const metodosPago = ref([]);
@@ -327,43 +340,26 @@ const limpiarFiltros = (nombre) => {
   }
 };
 
-// --- Buscar proveedores por nombre (filtro remoto) ---
+// --- Búsquedas remotas ---
 const buscarProveedores = async (event) => {
-  if (!event.value || event.value.trim().length === 0) {
-    try {
-      cargandoProveedores.value = true;
-      const response = await api.get('/proveedores');
-      proveedores.value = response.data?.data || response.data;
-    } catch (error) {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los proveedores.', life: 4000 });
-    } finally {
-      cargandoProveedores.value = false;
-    }
-    return;
-  }
-
+  const termino = event.value?.trim();
   try {
     cargandoProveedores.value = true;
-    const response = await api.get('/proveedores', {
-      params: { buscar: event.value }
-    });
+    const params = termino ? { buscar: termino } : {};
+    const response = await api.get('/proveedores', { params });
     proveedores.value = response.data?.data || response.data;
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron buscar proveedores.', life: 4000 });
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los proveedores.', life: 4000 });
   } finally {
     cargandoProveedores.value = false;
   }
 };
 
-// --- Buscar marcas por nombre (filtro remoto) respetando la sección del inventario ---
 const buscarMarcas = async (event) => {
+  const termino = event.value?.trim();
   const params = {};
-  if (event.value && event.value.trim().length > 0) {
-    params.search = event.value.trim();
-  }
-  if (inventario.seccion) {
-    params.seccion = inventario.seccion;
-  }
+  if (termino) params.search = termino;
+  if (inventario.seccion) params.seccion = inventario.seccion;
 
   try {
     cargandoMarcas.value = true;
@@ -376,15 +372,11 @@ const buscarMarcas = async (event) => {
   }
 };
 
-// --- Buscar categorías por nombre (filtro remoto) respetando la sección del inventario ---
 const buscarCategorias = async (event) => {
+  const termino = event.value?.trim();
   const params = {};
-  if (event.value && event.value.trim().length > 0) {
-    params.search = event.value.trim();
-  }
-  if (inventario.seccion) {
-    params.seccion = inventario.seccion;
-  }
+  if (termino) params.search = termino;
+  if (inventario.seccion) params.seccion = inventario.seccion;
 
   try {
     cargandoCategorias.value = true;
@@ -397,7 +389,7 @@ const buscarCategorias = async (event) => {
   }
 };
 
-// --- Cargar datos para dropdowns ---
+// --- Cargar datos iniciales ---
 onMounted(async () => {
   try {
     const [mp, prov, cc, mar, cat] = await Promise.all([
@@ -417,16 +409,13 @@ onMounted(async () => {
   }
 });
 
-// Cuando cambia la sección del inventario, recargar marcas y categorías filtradas
+// --- Cambio de sección del inventario ---
 watch(() => inventario.seccion, async (nuevaSeccion) => {
-  // Reiniciamos marca_id y categoria_id al cambiar de sección
   inventario.marca_id = null;
   inventario.categoria_id = null;
 
   const params = {};
-  if (nuevaSeccion) {
-    params.seccion = nuevaSeccion;
-  }
+  if (nuevaSeccion) params.seccion = nuevaSeccion;
 
   try {
     const [mar, cat] = await Promise.all([
@@ -440,12 +429,20 @@ watch(() => inventario.seccion, async (nuevaSeccion) => {
   }
 });
 
-// --- Función genérica para generar reporte (mejorada) ---
+// --- Función genérica para generar reporte (descarga directa) ---
 const generar = async (tipo, filtros) => {
+  if (generandoReporte.value) return;
+
+  generandoReporte.value = true;
+
+  if (controller) {
+    controller.abort();
+  }
+  controller = new AbortController();
+
   const params = new URLSearchParams();
   for (const key in filtros) {
     let value = filtros[key];
-    // Ignorar valores nulos, undefined o cadenas vacías para evitar errores 422
     if (value === null || value === undefined || value === '') continue;
     if (value instanceof Date) {
       value = value.toISOString().split('T')[0];
@@ -456,28 +453,40 @@ const generar = async (tipo, filtros) => {
   try {
     const response = await api.get(`/reportes/${tipo}`, {
       params,
-      responseType: 'blob'
+      responseType: 'blob',
+      signal: controller.signal
     });
-    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-    window.open(url, '_blank');
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+
+    // Crear enlace temporal para descarga directa
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `reporte-${tipo}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
   } catch (error) {
+    if (error.name === 'AbortError') return;
+
     let mensaje = 'Error al generar el reporte.';
     if (error.response && error.response.data instanceof Blob) {
       try {
         const text = await error.response.data.text();
         const json = JSON.parse(text);
         mensaje = json.message || json.error || mensaje;
-        if (json.errors) {
-          const detalles = Object.values(json.errors).flat().join(', ');
-          mensaje += ': ' + detalles;
-        }
       } catch (e) {
-        // No se pudo parsear
+        // no se pudo parsear
       }
     } else if (error.response?.data?.message) {
       mensaje = error.response.data.message;
     }
     toast.add({ severity: 'error', summary: 'Error', detail: mensaje, life: 5000 });
+  } finally {
+    generandoReporte.value = false;
   }
 };
 </script>
