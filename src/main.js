@@ -42,7 +42,7 @@ pinia.use(piniaPluginPersistedstate);
 
 app.use(pinia);
 app.use(router);
-app.use(PrimeVue, { locale: es }); // 👈 usamos el objeto manual
+app.use(PrimeVue, { locale: es });
 app.use(ToastService);
 app.directive('tooltip', Tooltip);
 
