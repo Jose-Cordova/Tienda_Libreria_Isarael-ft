@@ -18,24 +18,37 @@
       <!-- Cuerpo -->
       <div class="p-6" v-if="cliente">
         <!-- Información del cliente (KPIs) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="bg-[#f8fbf8] border border-[#dbe9dc] rounded-xl p-4 flex items-center gap-4">
-            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-500 font-extrabold">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-stretch">
+          <!-- Card cliente -->
+          <div class="relative bg-[#f8fbf8] border border-[#dbe9dc] rounded-xl p-4 flex items-center gap-4 min-w-0">
+            <!-- Botón editar en la esquina superior derecha -->
+            <button
+              class="absolute top-2 right-2 p-2 rounded-full text-gray-500 hover:text-[#0a3622] hover:bg-green-50 transition"
+              title="Editar cliente"
+              @click="$emit('editar-cliente', cliente)"
+            >
+              <i class="pi pi-pencil"></i>
+            </button>
+
+            <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-red-500 font-extrabold text-xl">
               {{ cliente.iniciales }}
             </div>
-            <div>
+            <div class="min-w-0">
               <p class="text-gray-800 text-[10px] uppercase font-extrabold">Cliente</p>
-              <p class="text-gray-600 font-bold text-sm">{{ cliente.nombre }}</p>
-              <p class="text-xs text-gray-600 font-bold">DUI: {{ cliente.dui }}</p>
+              <p class="text-gray-600 font-bold text-base truncate">{{ cliente.nombre }}</p>
+              <p class="text-xs text-gray-600 font-bold truncate">DUI: {{ cliente.dui || '-' }}</p>
+              <p class="text-xs text-gray-600 font-bold truncate">Teléfono: {{ cliente.telefono || '-' }}</p>
             </div>
           </div>
 
-          <div class="bg-white border border-red-200 border-l-[4px] border-l-red-500 rounded-lg p-3 shadow-sm">
+          <!-- Card saldo pendiente -->
+          <div class="bg-white border border-red-200 border-l-[4px] border-l-red-500 rounded-lg p-4 shadow-sm flex flex-col justify-center">
             <p class="text-[10px] uppercase tracking-wider font-extrabold text-red-400 mb-1">Saldo pendiente</p>
             <h2 class="text-xl font-extrabold text-red-500">${{ cliente.kpi.saldoPendiente.toFixed(2) }}</h2>
           </div>
 
-          <div class="bg-white border border-green-200 border-l-[4px] border-l-green-600 rounded-lg p-3 shadow-sm">
+          <!-- Card total abonado -->
+          <div class="bg-white border border-green-200 border-l-[4px] border-l-green-600 rounded-lg p-4 shadow-sm flex flex-col justify-center">
             <p class="text-[10px] uppercase tracking-wider font-extrabold text-green-500 mb-1">Total abonado</p>
             <h2 class="text-xl font-extrabold text-[#0a3622]">${{ cliente.kpi.totalAbonado.toFixed(2) }}</h2>
           </div>
@@ -61,7 +74,6 @@
                 <td class="py-3 px-3 font-extrabold text-gray-800">${{ Number(credito.montoOriginal).toFixed(2) }}</td>
                 <td class="py-3 px-3 font-bold text-green-700">${{ Number(credito.abonado).toFixed(2) }}</td>
 
-                <!-- Saldo pendiente con color condicional -->
                 <td
                   class="py-3 px-3 font-extrabold"
                   :class="Number(credito.saldoPendiente) === 0 ? 'text-gray-800' : 'text-red-600'"
@@ -135,14 +147,13 @@ const props = defineProps({
   cliente: { type: Object, default: null }
 });
 
-defineEmits(['update:visible', 'registrar-abono', 'anular-abono']);
+defineEmits(['update:visible', 'registrar-abono', 'anular-abono', 'editar-cliente']);
 
 const mostrarHistorial = ref(false);
 const abonosSeleccionados = ref([]);
 
-// Paginación de créditos
 const paginaCreditos = ref(1);
-const porPaginaCreditos = 10; // Ajustá según necesites
+const porPaginaCreditos = 10;
 
 const creditosPaginados = computed(() => {
   if (!props.cliente?.creditos) return [];
