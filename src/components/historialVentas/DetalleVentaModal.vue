@@ -53,7 +53,12 @@
           <p class="text-gray-900 font-bold text-sm">Cliente crédito</p>
           <p class="font-bold text-gray-600 text-sm">
             {{ venta.credito.cliente_credito?.nombre || '-' }}<br>
-            <span class="text-xs text-gray-600">DUI: {{ venta.credito.cliente_credito?.dui }}</span>
+            <span class="text-xs text-gray-600">
+              DUI: {{ venta.credito.cliente_credito?.dui || '-' }}
+            </span><br>
+            <span class="text-xs text-gray-600">
+              Teléfono: {{ venta.credito.cliente_credito?.telefono || '-' }}
+            </span>
           </p>
         </div>
       </div>

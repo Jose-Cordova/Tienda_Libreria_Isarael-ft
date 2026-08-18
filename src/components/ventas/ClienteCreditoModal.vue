@@ -24,7 +24,7 @@
 
       <!-- DUI -->
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">DUI <span class="text-red-500">*</span></label>
+        <label class="text-sm font-medium">DUI <span class="text-gray-400">(opcional)</span></label>
         <InputText
           v-model="form.dui"
           placeholder="12345678-9"
@@ -36,7 +36,7 @@
 
       <!-- Teléfono -->
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium">Teléfono <span class="text-red-500">*</span></label>
+        <label class="text-sm font-medium">Teléfono <span class="text-gray-400">(opcional)</span></label>
         <SelectorPaisTelefono ref="selectorTelefono" v-model="form.telefono" />
         <small v-if="errores.telefono" class="text-red-500">{{ errores.telefono }}</small>
       </div>
@@ -45,14 +45,14 @@
     <template #footer>
       <div class="flex justify-end gap-2">
         <Button label="Cancelar" severity="secondary" @click="cerrarModal" />
-        <Button label="Guardar Cliente" @click="guardarCliente" :disabled="!formularioValido" />
+        <Button label="Guardar Cliente" @click="guardarCliente" />
       </div>
     </template>
   </Dialog>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { Dialog, Button, InputText } from '@/utils/primevue';
 import SelectorPaisTelefono from './SelectorPaisTelefono.vue';
 
@@ -123,12 +123,12 @@ const validarDuiLocal = (dui) => {
   return digitos[8] === digitoCalculado;
 };
 
-const formularioValido = computed(() => {
+const validarFormulario = () => {
   errores.value.nombre = '';
   errores.value.dui = '';
   errores.value.telefono = '';
 
-  // Nombre
+  // Nombre (obligatorio)
   if (!form.value.nombre.trim()) {
     errores.value.nombre = 'El nombre es obligatorio.';
   } else if (!regexNombre.test(form.value.nombre.trim())) {
@@ -137,36 +137,36 @@ const formularioValido = computed(() => {
     errores.value.nombre = 'Máximo 50 caracteres.';
   }
 
-  // DUI
-  if (!validarFormatoDUI(form.value.dui)) {
-    errores.value.dui = 'Formato inválido. Ejemplo correcto: 12345678-9.';
-  } else if (!validarDuiLocal(form.value.dui)) {
-    errores.value.dui = 'DUI inválido. El dígito verificador no coincide. Ejemplo válido: 00016297-5.';
+  // DUI (opcional)
+  if (form.value.dui.trim() !== '') {
+    if (!validarFormatoDUI(form.value.dui)) {
+      errores.value.dui = 'Formato inválido. Ejemplo correcto: 12345678-9.';
+    } else if (!validarDuiLocal(form.value.dui)) {
+      errores.value.dui = 'DUI inválido. El dígito verificador no coincide. Ejemplo válido: 00016297-5.';
+    }
   }
 
-  // Teléfono (delegado al selector)
-  const telefonoEsValido = selectorTelefono.value?.validar() ?? false;
-
-  if (!form.value.telefono) {
-    errores.value.telefono = 'El teléfono es obligatorio.';
-  } else if (!telefonoEsValido) {
-    // Obtener el mensaje del selector o usar uno genérico con ejemplo
-    const errorSelector = selectorTelefono.value?.getError();
-    errores.value.telefono = errorSelector || 'Teléfono inválido. Formato correcto: +503 7123 4567 (móvil) o +503 2234 5678 (fijo).';
+  // Teléfono (opcional)
+  if (form.value.telefono.trim() !== '') {
+    const telefonoEsValido = selectorTelefono.value?.validar() ?? false;
+    if (!telefonoEsValido) {
+      const errorSelector = selectorTelefono.value?.getError();
+      errores.value.telefono = errorSelector || 'Teléfono inválido. Formato correcto: +503 7123 4567 (móvil) o +503 2234 5678 (fijo).';
+    }
   }
 
   return !errores.value.nombre && !errores.value.dui && !errores.value.telefono;
-});
+};
 
 const guardarCliente = () => {
-  if (formularioValido.value) {
-    emit('clienteGuardado', {
-      nombre: form.value.nombre.trim(),
-      dui: form.value.dui.trim(),
-      telefono: form.value.telefono.trim()
-    });
-    cerrarModal();
-  }
+  if (!validarFormulario()) return;
+
+  emit('clienteGuardado', {
+    nombre: form.value.nombre.trim(),
+    dui: form.value.dui.trim() || null,
+    telefono: form.value.telefono.trim() || null
+  });
+  cerrarModal();
 };
 
 const cerrarModal = () => {
