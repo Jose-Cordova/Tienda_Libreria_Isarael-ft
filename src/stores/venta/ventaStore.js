@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import api from '@/services/api';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useVentaStore = defineStore('venta', {
   state: () => ({
@@ -36,16 +37,26 @@ export const useVentaStore = defineStore('venta', {
 
   actions: {
     // Cargar métodos de pago desde API y obtener ID de transferencia
-    async cargarMetodosPago() {
+     async cargarMetodosPago() {
       try {
         const response = await api.get('/metodos-pagos');
         this.metodosPago = response.data;
-        const transferencia = this.metodosPago.find(m => m.nombre === 'TRANSFERENCIA');
+
+        // ✅ Asignar EFECTIVO como método por defecto
+        const efectivo = this.metodosPago.find(m => m.nombre.toUpperCase() === 'EFECTIVO');
+        if (efectivo) {
+          this.metodo_pago_id = efectivo.id;
+        }
+
+        // Guardar también el ID del método transferencia
+        const transferencia = this.metodosPago.find(m => m.nombre.toUpperCase() === 'TRANSFERENCIA');
         this.transferenciaId = transferencia ? transferencia.id : null;
+
       } catch (error) {
         console.error('Error al cargar métodos de pago:', error);
       }
     },
+
 
     agregarProducto(producto) {
       const cantidad = producto.cantidad || 1;
@@ -138,15 +149,23 @@ export const useVentaStore = defineStore('venta', {
     },
 
     construirPayload() {
-  const payload = {
-    user_id: 1,
-    tipo_cliente: this.tipo_cliente,
-    estado: this.estado,
-    detalle: this.items.map(item => ({
-      producto_id: item.producto_id,
-      cantidad: item.cantidad,
-    })),
-  };
+      // ✅ Obtener ID del usuario autenticado
+      const authStore = useAuthStore();
+      const userId = authStore.user?.id ?? authStore.user?.usuario_id ?? null;
+
+      if (!userId) {
+        throw new Error('No se pudo determinar el usuario autenticado.');
+      }
+
+      const payload = {
+        user_id: userId, // ✅ Ahora es dinámico
+        tipo_cliente: this.tipo_cliente,
+        estado: this.estado,
+        detalle: this.items.map(item => ({
+          producto_id: item.producto_id,
+          cantidad: item.cantidad,
+        })),
+      };
 
   if (this.estado !== 'CREDITO') {
     payload.metodo_pago_id = this.metodo_pago_id;
