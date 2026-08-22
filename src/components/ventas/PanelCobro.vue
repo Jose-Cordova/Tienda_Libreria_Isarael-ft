@@ -75,6 +75,7 @@
         <span class="p-inputgroup-addon bg-white font-bold text-shop-green">$</span>
         <InputNumber
           v-model="montoRecibido"
+          @input="onMontoInput"
           mode="decimal"
           :minFractionDigits="2"
           :maxFractionDigits="2"
@@ -83,6 +84,7 @@
           :locale="'es-SV'"
           :decimalSeparator="','"
           :thousandSeparator="'.'"
+          :lazy="false"
         />
       </div>
 
@@ -231,17 +233,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useVentaStore } from '@/stores/venta/ventaStore';
 import { useToast } from 'primevue/usetoast';
 import api from '@/services/api';
 import { Dropdown, InputNumber, Dialog, Button } from '@/utils/primevue';
 import ClienteCreditoModal from './ClienteCreditoModal.vue';
 
+//Nueva constante de evento para vuelto
+const onMontoInput = (event) => {
+  ventaStore.montoRecibido = event.value;
+};
 const ventaStore = useVentaStore();
 const toast = useToast();
 
-const montoRecibido = ref(null);
+// Enlace directo con el store mediante computed (getter/setter)
+const montoRecibido = computed({
+  get: () => ventaStore.montoRecibido,
+  set: (valor) => { ventaStore.montoRecibido = valor; }
+});
+
 const opcionImprimirTicket = ref(false);
 const loading = ref(false);
 
@@ -263,14 +274,10 @@ onMounted(async () => {
   }
 });
 
-// Sincronizar el monto recibido con el store
-watch(montoRecibido, (nuevoValor) => {
-  ventaStore.montoRecibido = nuevoValor;
-});
-
 const cambio = computed(() => {
-  if (!montoRecibido.value) return 0;
-  return montoRecibido.value - ventaStore.total;
+  const monto = ventaStore.montoRecibido;
+  if (monto === null || monto === undefined) return 0;
+  return monto - ventaStore.total;
 });
 
 const metodoPagoNombre = computed(() => {
@@ -313,7 +320,7 @@ const abrirConfirmacionVenta = () => {
     return;
   }
   if (ventaStore.estado === 'PAGADA' && !ventaStore.isTransferencia) {
-    if (montoRecibido.value === null || cambio.value < 0) {
+    if (montoRecibido.value === null || montoRecibido.value === undefined || cambio.value < 0) {
       toast.add({ severity: 'error', summary: 'Error de cobro', detail: 'El monto recibido es menor al total.', life: 3000 });
       return;
     }
@@ -361,7 +368,7 @@ const procesarVenta = async () => {
 
 const limpiarTodo = () => {
   ventaStore.resetCarrito();
-  montoRecibido.value = null;
+  // El store ya restablece montoRecibido a null, no es necesario aquí
 };
 </script>
 
