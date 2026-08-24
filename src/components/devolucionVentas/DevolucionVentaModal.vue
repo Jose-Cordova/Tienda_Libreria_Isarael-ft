@@ -173,13 +173,13 @@
                 </div>
               </div>
             </div>
-            <div v-if="detalleVenta.cantidad > 1" class="mt-2 text-right">
+            <div v-if="detalleVenta.cantidad > 1 && cantidadAsignada(index) < detalleVenta.cantidad" class="mt-2 text-right">
             <Button
               label="Agregar otra condición"
               icon="pi pi-plus-circle"
               class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
               @click="agregarSubDetalle(index)"
-              :disabled="!ventaValida"
+              :disabled="!ventaValida || cantidadAsignada(index) >= detalleVenta.cantidad"
             />
           </div>
           </div>
@@ -260,6 +260,10 @@ const errorMotivo = ref('');
 const registrando = ref(false);
 
 const selecciones = reactive([]);
+const cantidadAsignada = (index) => {
+  if (!selecciones[index]) return 0;
+  return selecciones[index].reduce((total, sub) => total + (sub.cantidad || 0), 0);
+};
 
 // Computed para validar si la venta encontrada permite devolución
 const ventaValida = computed(() => {
