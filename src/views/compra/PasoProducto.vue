@@ -300,20 +300,21 @@
                   <InputText v-model="nuevoProducto.nombre" class="w-full border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none transition-all shadow-sm bg-white" />
                 </div>
                 <div class="space-y-2">
-                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Categoría *</label>
-                  <Dropdown v-model="nuevoProducto.categoria_id" :options="categorias" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" filter />
-                </div>
-                <div class="space-y-2">
-                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Marca *</label>
-                  <Dropdown v-model="nuevoProducto.marca_id" :options="marcas" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" filter />
-                </div>
-                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Sección *</label>
-                  <select v-model="nuevoProducto.seccion" class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] outline-none transition-all shadow-sm focus:border-[#0a3622]">
+                  <select v-model="nuevoProducto.seccion" @change="cargarCatalogosPorSeccion" class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] outline-none transition-all shadow-sm focus:border-[#0a3622]">
+                    <option :value="null" disabled>Seleccionar sección</option>
                     <option value="TIENDA">TIENDA</option>
                     <option value="LIBRERIA">LIBRERIA</option>
                     <option value="MEDICAMENTO">MEDICAMENTO</option>
                   </select>
+                </div>
+                <div class="space-y-2">
+                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Categoría *</label>
+                  <Dropdown v-model="nuevoProducto.categoria_id" :options="categorias" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" filter :disabled="!nuevoProducto.seccion" />
+                </div>
+                <div class="space-y-2">
+                  <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Marca *</label>
+                  <Dropdown v-model="nuevoProducto.marca_id" :options="marcas" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" filter :disabled="!nuevoProducto.seccion" />
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Stock Mínimo *</label>
@@ -499,31 +500,42 @@
       mostrarResultados.value = false
     }
 
-  // Función para abrir el modal y cargar los selectores
-  const prepararNuevoProducto = async () => {
+  // Función para abrir el modal de producto nuevo
+  const prepararNuevoProducto = () => {
+    // Limpiar listas y formulario al abrir
+    categorias.value = [];
+    marcas.value = [];
+    nuevoProducto.value = {
+      nombre: '',
+      categoria_id: null,
+      marca_id: null,
+      stock_minimo: 5,
+      perecedero: 'NORMAL',
+      seccion: null
+    };
+    mostrarModalNuevo.value = true;
+  };
+
+  // Cargar categorías y marcas filtradas por la sección seleccionada
+  const cargarCatalogosPorSeccion = async () => {
+    const seccion = nuevoProducto.value.seccion;
+    // Resetear selección previa al cambiar de sección
+    nuevoProducto.value.categoria_id = null;
+    nuevoProducto.value.marca_id = null;
+    categorias.value = [];
+    marcas.value = [];
+
+    if (!seccion) return;
+
     try {
       const [resCat, resMar] = await Promise.all([
-        api.get('/categorias?per_page=100'),
-        api.get('/marcas?per_page=100')
+        api.get(`/categorias?per_page=100&seccion=${seccion}`),
+        api.get(`/marcas?per_page=100&seccion=${seccion}`)
       ]);
-
-      // Extraemos .data.data porque el backend pagina
       categorias.value = resCat.data.data || resCat.data;
       marcas.value = resMar.data.data || resMar.data;
-
-      nuevoProducto.value = {
-        nombre: '',
-        categoria_id: null,
-        marca_id: null,
-        stock_minimo: 5,
-        perecedero: 'NORMAL',
-        seccion: null
-
-      };
-      mostrarModalNuevo.value = true;
     } catch (error) {
-      console.error("Error al cargar catálogos:", error);
-      Swal.fire('Error', 'No se pudieron cargar las listas del catálogo', 'error');
+      console.error("Error al cargar catálogos por sección:", error);
     }
   };
 
