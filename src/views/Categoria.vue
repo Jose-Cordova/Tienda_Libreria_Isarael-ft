@@ -1,18 +1,6 @@
 <template>
   <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
 
-    <!-- Toast flotante -->
-    <transition name="toast">
-      <div
-        v-if="toast.visible"
-        class="fixed top-5 right-5 sm:right-5 left-5 sm:left-auto z-[99999] flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl min-w-0 sm:min-w-[340px] max-w-md border"
-        :class="toast.tipo === 'success' ? 'bg-green-100 border-green-300 text-green-900' : 'bg-red-100 border-red-300 text-red-900'"
-      >
-        <i v-if="toast.tipo === 'success'" class="pi pi-check-circle text-green-600 text-xl shrink-0"></i>
-        <i v-else class="pi pi-times-circle text-red-600 text-xl shrink-0"></i>
-        <span class="text-sm font-bold leading-snug">{{ toast.mensaje }}</span>
-      </div>
-    </transition>
 
     <!-- Encabezado con búsqueda -->
     <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
@@ -155,10 +143,12 @@ import Dropdown from 'primevue/dropdown'
 import Paginator from 'primevue/paginator'
 import Skeleton from 'primevue/skeleton'
 import Swal from 'sweetalert2'
+import { useToast } from 'primevue/usetoast'
 
 defineOptions({ name: 'CategoriaView' })
 
 const categoriaStore = useCategoriaStore()
+const toast = useToast()
 
 const buscar = ref('')
 const mostrarModal = ref(false)
@@ -196,15 +186,6 @@ const formatSeccion = (seccion) => {
     case 'LIBRERIA': return 'Librería'
     default: return seccion || 'N/A'
   }
-}
-
-// Toast nativo
-const toast = ref({ visible: false, tipo: 'success', mensaje: '' })
-let toastTimer = null
-const mostrarToast = (tipo, mensaje) => {
-  if (toastTimer) clearTimeout(toastTimer)
-  toast.value = { visible: true, tipo, mensaje }
-  toastTimer = setTimeout(() => { toast.value.visible = false }, 4000)
 }
 
 const cargarCategorias = async () => {
@@ -284,7 +265,12 @@ const guardar = async () => {
       })
       cerrarModal()
       await cargarCategorias()
-      mostrarToast('success', 'Categoría actualizada correctamente.')
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Categoría actualizada con éxito',
+        life: 3000
+      })
     } else {
       await categoriaStore.createCategoria({
         nombre: form.value.nombre,
@@ -292,12 +278,11 @@ const guardar = async () => {
       })
       cerrarModal()
       await cargarCategorias()
-      Swal.fire({
-        title: '¡Categoría creada!',
-        text: 'La categoría se registró con éxito.',
-        icon: 'success',
-        confirmButtonColor: '#003d00',
-        confirmButtonText: 'Aceptar'
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Categoría guardada con éxito',
+        life: 3000
       })
     }
   } catch (error) {
@@ -306,15 +291,21 @@ const guardar = async () => {
       if (errors?.nombre) errorNombre.value = errors.nombre[0]
       if (errors?.seccion) errorSeccion.value = errors.seccion[0]
       if (esEdicion.value) {
-        mostrarToast('error', errors?.nombre?.[0] || errors?.seccion?.[0] || 'Error de validación')
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: errors?.nombre?.[0] || errors?.seccion?.[0] || 'Error de validación',
+          life: 3000
+        })
       }
     } else {
       const msg = error.response?.data?.message || 'Error al guardar.'
-      if (esEdicion.value) {
-        mostrarToast('error', msg)
-      } else {
-        Swal.fire({ title: 'Error', text: msg, icon: 'error', confirmButtonColor: '#d33' })
-      }
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: msg,
+        life: 3000
+      })
     }
   } finally {
     loading.value = false
@@ -332,15 +323,26 @@ const confirmarEliminar = async (id) => {
     confirmButtonText: 'Sí, eliminar',
     cancelButtonText: 'Cancelar',
     customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
-    reverseButtons: true
+    reverseButtons: true,
+    allowOutsideClick: false
   })
   if (result.isConfirmed) {
     try {
       await categoriaStore.deleteCategoria(id)
       await cargarCategorias()
-      Swal.fire({ title: 'Eliminada', text: 'La categoría fue eliminada.', icon: 'success', confirmButtonColor: '#003d00', confirmButtonText: 'Aceptar' })
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Categoría eliminada correctamente',
+        life: 3000
+      })
     } catch (error) {
-      Swal.fire({ title: 'Error', text: error.response?.data?.message || 'Error al eliminar.', icon: 'error', confirmButtonColor: '#d33' })
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: error.response?.data?.message || 'Error al eliminar.',
+        life: 3000
+      })
     }
   }
 }
@@ -356,8 +358,6 @@ onMounted(() => cargarCategorias())
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.toast-enter-active, .toast-leave-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(60px); }
 :deep(.p-paginator) { background: transparent; border: none; padding: 0; }
 :deep(.p-paginator-page.p-highlight) { background: #0b580b !important; color: white !important; font-weight: bold; }
 :deep(.p-inputtext) { font-size: 0.875rem !important; font-weight: 600 !important; }
