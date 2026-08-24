@@ -58,6 +58,10 @@
             <i class="pi pi-trash text-lg text-shop-accent"></i>
             <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Productos Dañados</span>
           </RouterLink>
+          <RouterLink to="/cambios-productos" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
+            <i class="pi pi-refresh text-lg text-shop-accent"></i>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Cambio de Producto</span>
+          </RouterLink>
         </div>
       </div>
 

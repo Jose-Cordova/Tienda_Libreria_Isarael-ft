@@ -121,7 +121,7 @@
                 </div>
                 <div>
                   <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Fecha Vencimiento</label>
-                  <Calendar v-model="productoForm.fecha_vencimiento" dateFormat="yy-mm-dd" class="w-full" :class="{ 'border-red-500': errors.fecha_vencimiento }" />
+                  <Calendar v-model="productoForm.fecha_vencimiento" :minDate="fechaMinima" dateFormat="yy-mm-dd" class="w-full" :class="{ 'border-red-500': errors.fecha_vencimiento }" />
                   <small class="text-red-500">{{ errors.fecha_vencimiento }}</small>
                 </div>
               </div>
@@ -291,6 +291,23 @@ watch(
   }
 )
 
+watch(
+  () => productoForm.value.seccion,
+  (nuevaSeccion, viejaSeccion) => {
+    // Solo resetea si había una sección previa (evita resetear en el initializeForm inicial)
+    if (viejaSeccion && nuevaSeccion !== viejaSeccion) {
+      productoForm.value.categoria_id = null
+      productoForm.value.marca_id = null
+    }
+  }
+)
+
+const fechaMinima = computed(() => {
+  const mañana = new Date()
+  mañana.setDate(mañana.getDate() + 1)
+  return mañana
+})
+
 const categorias = computed(() => categoriaStore.categorias || [])
 const marcas = computed(() => marcaStore.marcas || [])
 
@@ -338,18 +355,12 @@ const guardarProducto = async () => {
       await productoStore.updateProducto(productoForm.value.id, data)
       cerrarModalProducto()
       emit('guardado')
-      emit('toast', { tipo: 'success', mensaje: 'Producto actualizado correctamente.' })
+      emit('toast', { tipo: 'success', mensaje: 'Producto actualizado con éxito' })
     } else {
       await productoStore.createProducto(data)
       cerrarModalProducto()
       emit('guardado')
-      Swal.fire({
-        title: 'Producto creado',
-        text: 'El producto se registró con éxito.',
-        icon: 'success',
-        confirmButtonColor: '#003d00',
-        confirmButtonText: 'Aceptar'
-      })
+      emit('toast', { tipo: 'success', mensaje: 'Producto guardado con éxito' })
     }
   } catch (error) {
     if (error.response?.status === 422) {

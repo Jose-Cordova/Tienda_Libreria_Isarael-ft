@@ -1,19 +1,6 @@
 <template>
   <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
 
-    <!-- Toast flotante -->
-    <transition name="toast">
-      <div
-        v-if="toast.visible"
-        class="fixed top-5 right-5 sm:right-5 left-5 sm:left-auto z-[99999] flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl min-w-0 sm:min-w-[340px] max-w-md border"
-        :class="toast.tipo === 'success' ? 'bg-green-100 border-green-300 text-green-900' : 'bg-red-100 border-red-300 text-red-900'"
-      >
-        <i v-if="toast.tipo === 'success'" class="pi pi-check-circle text-green-600 text-xl shrink-0"></i>
-        <i v-else class="pi pi-times-circle text-red-600 text-xl shrink-0"></i>
-        <span class="text-sm font-bold leading-snug">{{ toast.mensaje }}</span>
-      </div>
-    </transition>
-
     <!-- Encabezado -->
     <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
       <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -113,12 +100,14 @@ import { useMarcaStore } from '@/stores/marcaStore'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Swal from 'sweetalert2'
+import { useToast } from 'primevue/usetoast'
 import ProductoTabla from './ProductoTabla.vue'
 import ProductoModalForm from './ProductoModalForm.vue'
 
 defineOptions({ name: 'ProductoView' })
 
 const productoStore = useProductoStore()
+const toast = useToast()
 const categoriaStore = useCategoriaStore()
 const marcaStore = useMarcaStore()
 
@@ -139,13 +128,14 @@ const secciones = [
   { label: 'Medicamentos', value: 'MEDICAMENTO', icono: 'pi pi-heart' }
 ]
 
-// Toast
-const toast = ref({ visible: false, tipo: 'success', mensaje: '' })
-let toastTimer = null
+// Toast de PrimeVue
 const mostrarToast = (tipo, mensaje) => {
-  if (toastTimer) clearTimeout(toastTimer)
-  toast.value = { visible: true, tipo, mensaje }
-  toastTimer = setTimeout(() => { toast.value.visible = false }, 4000)
+  toast.add({
+    severity: tipo === 'success' ? 'success' : 'error',
+    summary: tipo === 'success' ? 'Éxito' : 'Error',
+    detail: mensaje,
+    life: 3000
+  })
 }
 
 const mostrarToastFromChild = ({ tipo, mensaje }) => {
@@ -221,7 +211,8 @@ const cambiarEstado = async (id, estadoActual) => {
     confirmButtonText: 'Sí, cambiar',
     cancelButtonText: 'Cancelar',
     customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
-    reverseButtons: true
+    reverseButtons: true,
+    allowOutsideClick: false
   })
   if (confirmacion.isConfirmed) {
     try {
@@ -247,6 +238,4 @@ onMounted(async () => {
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c6e5d3; border-radius: 4px; }
-.toast-enter-active, .toast-leave-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(60px); }
 </style>

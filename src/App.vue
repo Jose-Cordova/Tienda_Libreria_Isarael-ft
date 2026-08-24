@@ -8,7 +8,7 @@ import { Toast } from '@/utils/primevue';  // ← importado desde nuestro archiv
   <RouterView />
   
   <!-- Toast global de PrimeVue (siempre presente) -->
-  <Toast position="bottom-right" />
+  <Toast position="top-right" />
 </template>
 
 <style>

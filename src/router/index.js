@@ -124,7 +124,13 @@ const router = createRouter({
         {
           path: 'productos-danados',
           name: 'productos-danados',
-          component: () => import('../views/ProductoDanado.vue'),
+          component: () => import('../views/productoDanado/ProductoDanado.vue'),
+          meta: { roles: ['ADMIN', 'VENDEDOR'] } // Permitido para ambos
+        },
+        {
+          path: 'cambios-productos',
+          name: 'cambios-productos',
+          component: () => import('../views/cambioProducto/CambioProducto.vue'),
           meta: { roles: ['ADMIN', 'VENDEDOR'] } // Permitido para ambos
         },
         {
