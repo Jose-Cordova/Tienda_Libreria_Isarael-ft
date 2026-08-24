@@ -91,14 +91,8 @@
               </div>
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Teléfono</label>
-                <InputText
-                  v-model="formulario.telefono"
-                  @input="formatearTelefono"
-                  @keypress="soloNumeros"
-                  class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none"
-                  placeholder="Ej: 1234-5678"
-                  maxlength="9"
-                />
+                <SelectorPaisTelefono ref="selectorTelefono" v-model="formulario.telefono" />
+                <small v-if="errorTelefono" class="text-red-500 text-xs">{{ errorTelefono }}</small>
               </div>              <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Email</label>
                 <InputText v-model="formulario.email" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: correo@gmail.com" />
@@ -144,6 +138,8 @@
   import Button from 'primevue/button';
   import InputText from 'primevue/inputtext';
   import Paginator from 'primevue/paginator';
+  // Componente reutilizable de teléfono con selector de país
+  import SelectorPaisTelefono from '@/components/ventas/SelectorPaisTelefono.vue';
 
   const store = useProveedorStore()
   const mostrarModal = ref(false)
@@ -152,6 +148,8 @@
   const enviando = ref(false)
   const formulario = ref({id: null, nombre: '', telefono: '', email: '', direccion: ''})
   const ProveedorEliminar = ref(null)
+  const selectorTelefono = ref(null)
+  const errorTelefono = ref('')
 
   // Función para bloquear letras y solo permitir números
   const soloNumeros = (e) => {
@@ -198,6 +196,16 @@
   }
 
   const procesarGuradado = async () => {
+    // Validar teléfono si se ingresó un número
+    errorTelefono.value = ''
+    if (formulario.value.telefono && formulario.value.telefono.trim() !== '') {
+      const telefonoValido = selectorTelefono.value?.validar() ?? false
+      if (!telefonoValido) {
+        errorTelefono.value = selectorTelefono.value?.getError() || 'Teléfono inválido.'
+        return
+      }
+    }
+
     enviando.value = true
     try{
       if(esEdicion.value) {
