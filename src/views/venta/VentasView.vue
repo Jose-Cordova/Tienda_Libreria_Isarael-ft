@@ -19,9 +19,6 @@
 
     </div>
 
-    <!-- Toast global para notificaciones
-    <Toast position="bottom-right" />
-  -->
   </div>
 </template>
 
@@ -29,5 +26,4 @@
 import BuscadorProductos from '@/components/ventas/BuscadorProductos.vue';
 import CarritoVenta from '@/components/ventas/CarritoVenta.vue';
 import PanelCobro from '@/components/ventas/PanelCobro.vue';
-import { Toast } from '@/utils/primevue';
 </script>
