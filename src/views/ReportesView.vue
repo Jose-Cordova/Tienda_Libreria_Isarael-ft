@@ -96,6 +96,34 @@
         </div>
       </AccordionTab>
 
+      <!-- ==================== REPORTE DE DEVOLUCIONES DE VENTAS ==================== -->
+      <AccordionTab>
+        <template #header>
+          <div class="flex items-center gap-4 text-[#0a3622] font-extrabold">
+            <i class="pi pi-replay text-xl"></i>
+            <span>DEVOLUCIONES DE VENTAS</span>
+          </div>
+        </template>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Fecha Inicio</label>
+            <Calendar v-model="devoluciones.fecha_inicio" dateFormat="yy-mm-dd" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Fecha Fin</label>
+            <Calendar v-model="devoluciones.fecha_fin" dateFormat="yy-mm-dd" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Estado</label>
+            <Dropdown v-model="devoluciones.estado" :options="estadosDevolucion" optionLabel="label" optionValue="value" placeholder="Todos" class="w-full" />
+          </div>
+        </div>
+        <div class="flex justify-between p-4 pt-0">
+          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('devoluciones')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('devoluciones-ventas', devoluciones)" :disabled="generandoReporte || !devoluciones.fecha_inicio || !devoluciones.fecha_fin" />
+        </div>
+      </AccordionTab>
+
       <!-- ==================== REPORTE DE CRÉDITOS ==================== -->
       <AccordionTab>
         <template #header>
@@ -337,6 +365,13 @@ const cargandoCategorias = ref(false);
 const tiposCliente = ['DETALLES', 'MAYORISTA'];
 const estadosVenta = ['PAGADA', 'CREDITO', 'ANULADA', 'DEVOLUCION'];
 
+// ✅ Nueva opción para devoluciones
+const estadosDevolucion = [
+  { label: 'DEVUELTA', value: 'DEVUELTA' },
+  { label: 'ANULADA', value: 'ANULADA' },
+  { label: 'PERFECTO', value: 'PERFECTO' },
+  { label: 'DAÑADO', value: 'DANIADO' }
+];
 const origenesDanio = [
   { label: 'Devolución', value: 'VENTA' },
   { label: 'Manual', value: 'DIRECTO' },
@@ -353,6 +388,7 @@ const estadosProducto = ['ACTIVO', 'INACTIVO'];
 const cierreDiario = reactive({ fecha: null });
 const general = reactive({ fecha_inicio: null, fecha_fin: null });
 const ventas = reactive({ fecha_inicio: null, fecha_fin: null, tipo_cliente: null, metodo_pago_id: null, estado: null });
+const devoluciones = reactive({ fecha_inicio: null, fecha_fin: null, estado: null }); // ✅ nueva
 const creditos = reactive({ fecha_inicio: null, fecha_fin: null, cliente_credito_id: null });
 const compras = reactive({ fecha_inicio: null, fecha_fin: null, proveedor_id: null });
 const inventario = reactive({ seccion: null, marca_id: null, categoria_id: null, estado: null });
@@ -364,6 +400,7 @@ const valoresIniciales = {
   cierreDiario: { fecha: null },
   general: { fecha_inicio: null, fecha_fin: null },
   ventas: { fecha_inicio: null, fecha_fin: null, tipo_cliente: null, metodo_pago_id: null, estado: null },
+  devoluciones: { fecha_inicio: null, fecha_fin: null, estado: null }, // ✅
   creditos: { fecha_inicio: null, fecha_fin: null, cliente_credito_id: null },
   compras: { fecha_inicio: null, fecha_fin: null, proveedor_id: null },
   inventario: { seccion: null, marca_id: null, categoria_id: null, estado: null },
@@ -371,7 +408,7 @@ const valoresIniciales = {
   productosDaniados: { fecha_inicio: null, fecha_fin: null, origen: null, estado: null }
 };
 
-const reportesMap = { cierreDiario, general, ventas, creditos, compras, inventario, cambioProducto, productosDaniados };
+const reportesMap = { cierreDiario, general, ventas, devoluciones, creditos, compras, inventario, cambioProducto, productosDaniados }; // ✅
 
 const limpiarFiltros = (nombre) => {
   const estado = reportesMap[nombre];
