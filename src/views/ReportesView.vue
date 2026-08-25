@@ -469,7 +469,7 @@ watch(() => inventario.seccion, async (nuevaSeccion) => {
   }
 });
 
-// --- Función genérica para generar reporte (descarga directa) ---
+// --- función genérica para generar reporte (descarga directa) ---
 const generar = async (tipo, filtros) => {
   if (generandoReporte.value) return;
 
