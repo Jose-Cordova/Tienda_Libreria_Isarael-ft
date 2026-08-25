@@ -166,7 +166,7 @@ const mostrarToast = (mensaje, tipo = 'success') => {
 const cargarRegistros = async () => {
   const params = {
     buscar: busqueda.value || undefined,
-    estado_reclamacion: filtroEstado.value || undefined,
+    estado: filtroEstado.value || undefined,
     origen: filtroOrigen.value || undefined,
     fecha_inicio: fechaInicio.value ? formatearFechaParaEnvio(fechaInicio.value) : undefined,
     fecha_fin: fechaFin.value ? formatearFechaParaEnvio(fechaFin.value) : undefined,

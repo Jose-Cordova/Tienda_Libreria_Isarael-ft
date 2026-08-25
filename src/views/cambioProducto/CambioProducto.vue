@@ -104,14 +104,14 @@
                 <div v-html="efectoStockHtml(item)" class="text-xs"></div>
               </td>
               <td class="py-4 px-5 text-center">
-                <span :class="obtenerBadgeClase(item.estado_reclamacion)" class="text-[10px] font-bold px-2 py-1 rounded-full uppercase inline-flex items-center gap-1 shadow-sm border border-gray-100">
-                  <span class="w-1.5 h-1.5 rounded-full" :class="obtenerPuntoClase(item.estado_reclamacion)"></span>
-                  {{ item.estado_reclamacion }}
+                <span :class="obtenerBadgeClase(item.estado)" class="text-[10px] font-bold px-2 py-1 rounded-full uppercase inline-flex items-center gap-1 shadow-sm border border-gray-100">
+                  <span class="w-1.5 h-1.5 rounded-full" :class="obtenerPuntoClase(item.estado)"></span>
+                  {{ item.estado }}
                 </span>
               </td>
               <td class="py-4 px-5">
                 <div class="flex items-center justify-center gap-1">
-                  <template v-if="item.estado_reclamacion === 'PENDIENTE'">
+                  <template v-if="item.estado === 'PENDIENTE'">
                     <Button icon="pi pi-check" v-tooltip.top="'Aceptar reemplazo'" class="p-button-rounded p-button-text p-button-sm p-button-success !text-green-600 hover:!bg-green-50" @click="procesarAceptar(item)" />
                     <Button icon="pi pi-times" v-tooltip.top="'Rechazar reclamación'" class="p-button-rounded p-button-text p-button-sm p-button-danger !text-red-600 hover:!bg-red-50" @click="procesarRechazar(item)" />
                     <Button icon="pi pi-ban" v-tooltip.top="'Anular registro (Revertir)'" class="p-button-rounded p-button-text p-button-sm p-button-warning !text-amber-600 hover:!bg-amber-50" @click="procesarAnular(item)" />
@@ -202,7 +202,7 @@ const formatearFecha = (fechaStr) => {
 const cargarRegistros = async () => {
   const params = {
     buscar: busqueda.value || undefined,
-    estado_reclamacion: filtroEstado.value || undefined,
+    estado: filtroEstado.value || undefined,
     fecha_inicio: fechaInicio.value ? formatearFechaParaEnvio(fechaInicio.value) : undefined,
     fecha_fin: fechaFin.value ? formatearFechaParaEnvio(fechaFin.value) : undefined,
     pagina: paginacion.value.pagina_actual,
@@ -289,13 +289,11 @@ const procesarAnular = (item) => {
   });
 };
 
-// Helpers de tabla (badges y efectos de stock)
+// Helpers de tabla (badges y efectos de stock) — números sin burbuja, verde (+)/rojo (-)
 const efectoStockHtml = (item) => {
-  const estaResuelto = item.estado_reclamacion === 'ACEPTADO' || item.estado_reclamacion === 'ANULADO';
-  const texto = estaResuelto ? `+${item.cantidad}` : `-${item.cantidad}`;
-  const clase = estaResuelto ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200';
-  const stock = item.producto?.stock ?? '—';
-  return `<span class="inline-flex items-center px-2 py-1 rounded-full text-[11px] font-black border ${clase}">${texto}</span> <span class="text-[10px] text-gray-400 ml-1">Stock: ${stock}</span>`;
+  if (item.estado === 'ANULADO') return `<span class="text-green-600 font-black">+${item.cantidad}</span>`;
+  if (item.estado === 'ACEPTADO') return `<span class="text-red-600 font-black">-${item.cantidad}</span> <span class="text-gray-400">→</span> <span class="text-green-600 font-black">+${item.cantidad}</span>`;
+  return `<span class="text-red-600 font-black">-${item.cantidad}</span>`;
 };
 
 const obtenerBadgeClase = (estado) => {

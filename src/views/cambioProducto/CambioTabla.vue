@@ -35,14 +35,14 @@
               <div v-html="efectoStockHtml(item)" class="text-xs"></div>
             </td>
             <td class="py-4 px-5 text-center">
-              <span :class="obtenerBadgeClase(item.estado_reclamacion)" class="text-[10px] font-bold px-2 py-1 rounded-full uppercase inline-flex items-center gap-1 shadow-sm border border-gray-100">
-                <span class="w-1.5 h-1.5 rounded-full" :class="obtenerPuntoClase(item.estado_reclamacion)"></span>
-                {{ item.estado_reclamacion }}
+              <span :class="obtenerBadgeClase(item.estado)" class="text-[10px] font-bold px-2 py-1 rounded-full uppercase inline-flex items-center gap-1 shadow-sm border border-gray-100">
+                <span class="w-1.5 h-1.5 rounded-full" :class="obtenerPuntoClase(item.estado)"></span>
+                {{ item.estado }}
               </span>
             </td>
             <td class="py-4 px-5">
               <div class="flex items-center justify-center gap-1">
-                <template v-if="item.estado_reclamacion === 'PENDIENTE'">
+                <template v-if="item.estado === 'PENDIENTE'">
                   <Button
                     icon="pi pi-check"
                     v-tooltip.top="'Aceptar reemplazo'"
@@ -116,25 +116,8 @@ const obtenerPuntoClase = (estado) => {
 };
 
 const efectoStockHtml = (item) => {
-  if (item.estado_reclamacion === 'ANULADO') {
-    return `<span class="text-gray-400 italic">Devolución anulada</span>`;
-  }
-  const parts = [];
-  // 1. Salida física inicial
-  parts.push(`<div class="font-bold text-red-600">- ${item.cantidad} Uds (Stock)</div>`);
-
-  // 2. Destino final de la reclamación
-  if (item.estado_reclamacion === 'ACEPTADO') {
-    if (item.producto_reemplazo_id) {
-      parts.push(`<div class="text-green-600 font-bold">+ ${item.cantidad} Uds (Reemplazo: ${item.producto_reemplazo?.nombre})</div>`);
-    } else {
-      parts.push(`<div class="text-green-600 font-bold">+ ${item.cantidad} Uds (Mismo Producto)</div>`);
-    }
-  } else if (item.estado_reclamacion === 'RECHAZADO') {
-    parts.push(`<div class="text-red-700 font-bold">Pérdida definitiva (0 Reingreso)</div>`);
-  } else {
-    parts.push(`<div class="text-gray-400 italic">Pendiente de resolución</div>`);
-  }
-  return parts.join('');
+  if (item.estado === 'ANULADO') return `<span class="text-green-600 font-black">+${item.cantidad}</span>`;
+  if (item.estado === 'ACEPTADO') return `<span class="text-red-600 font-black">-${item.cantidad}</span> <span class="text-gray-400">→</span> <span class="text-green-600 font-black">+${item.cantidad}</span>`;
+  return `<span class="text-red-600 font-black">-${item.cantidad}</span>`;
 };
 </script>
