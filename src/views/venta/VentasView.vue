@@ -20,7 +20,6 @@
     </div>
 
     <!-- Toast global para notificaciones -->
-    <Toast position="bottom-right" />
   </div>
 </template>
 
