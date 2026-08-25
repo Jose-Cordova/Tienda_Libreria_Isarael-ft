@@ -12,7 +12,7 @@
             <th class="py-3 px-5 text-center">Efecto Stock</th>
             <th class="py-3 px-5">Fecha</th>
             <th class="py-3 px-5">Descripción</th>
-            <th class="py-3 px-5 text-center">Estado Reclamación</th>
+            <th class="py-3 px-5 text-center">Estado</th>
             <th class="py-3 px-5 text-center">Acciones</th>
           </tr>
         </thead>
@@ -35,23 +35,20 @@
             <td class="py-4 px-5 text-center font-bold">${{ parseFloat(item.costo_unitario).toFixed(2) }}</td>
             <td class="py-4 px-5 text-center font-bold">${{ parseFloat(item.total_perdida).toFixed(2) }}</td>
             <td class="py-4 px-5 text-center">
-              <div class="flex flex-col items-center gap-1">
-                <span :class="efectoStockClase(item)" class="text-[11px] font-black px-2 py-1 rounded-full uppercase">
-                  {{ efectoStockTexto(item) }}
-                </span>
-                <span class="text-[10px] text-gray-400 font-bold">Stock: {{ item.producto?.stock }}</span>
-              </div>
+              <span :class="efectoStockClase(item)" class="text-[13px] font-black">
+                {{ efectoStockTexto(item) }}
+              </span>
             </td>
             <td class="py-4 px-5 font-bold text-gray-700">{{ formatearFecha(item.fecha) }}</td>
             <td class="py-4 px-5 font-bold text-gray-800 max-w-xs truncate" :title="item.descripcion">{{ item.descripcion }}</td>
             <td class="py-4 px-5 text-center">
-              <span :class="obtenerBadgeClase(item.estado_reclamacion)" class="text-[10px] font-bold px-2 py-1 rounded-full uppercase">
-                {{ item.estado_reclamacion }}
+              <span :class="obtenerBadgeClase(item.estado)" class="text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                {{ item.estado }}
               </span>
             </td>
             <td class="py-4 px-5">
               <div class="flex items-center justify-center gap-1">
-                <template v-if="item.estado_reclamacion === 'REGISTRADO' && item.origen === 'DIRECTO'">
+                <template v-if="item.estado === 'REGISTRADO' && item.origen === 'DIRECTO'">
                   <Button
                     icon="pi pi-ban"
                     v-tooltip.top="'Anular registro (Revertir)'"
@@ -86,9 +83,11 @@ const emit = defineEmits(['anular']);
 
 const obtenerBadgeClase = (estado) => {
   switch (estado) {
-    case 'REGISTRADO': return 'bg-green-100 text-green-800';
-    case 'ANULADO': return 'bg-red-100 text-red-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'REGISTRADO':  return 'bg-green-100 text-green-800';
+    case 'RECHAZADO':   return 'bg-red-100 text-red-800';
+    case 'DEVOLUCION':  return 'bg-blue-100 text-blue-800';
+    case 'ANULADO':     return 'bg-gray-100 text-gray-800';
+    default:            return 'bg-gray-100 text-gray-800';
   }
 };
 
@@ -111,13 +110,13 @@ const formatOrigen = (origen) => {
 };
 
 const efectoStockTexto = (item) => {
-  if (item.estado_reclamacion === 'ANULADO') return 'Aumentado (+)';
-  return 'Disminuido (-)';
+  if (item.estado === 'ANULADO') return `+${item.cantidad}`;
+  return `-${item.cantidad}`;
 };
 
 const efectoStockClase = (item) => {
-  if (item.estado_reclamacion === 'ANULADO') return 'bg-green-100 text-green-700';
-  return 'bg-red-100 text-red-700';
+  if (item.estado === 'ANULADO') return 'text-green-600';
+  return 'text-red-600';
 };
 
 const formatearFecha = (fechaStr) => {
