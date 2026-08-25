@@ -16,6 +16,26 @@
 
     <!-- Acordeón de reportes -->
     <Accordion multiple :activeIndex="[]" class="space-y-3">
+      <!-- ==================== CIERRE DIARIO ==================== -->
+      <AccordionTab>
+        <template #header>
+          <div class="flex items-center gap-4 text-[#0a3622] font-extrabold">
+            <i class="pi pi-calendar text-xl"></i>
+            <span>CIERRE DIARIO</span>
+          </div>
+        </template>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Fecha</label>
+            <Calendar v-model="cierreDiario.fecha" dateFormat="yy-mm-dd" />
+          </div>
+        </div>
+        <div class="flex justify-between p-4 pt-0">
+          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('cierreDiario')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('cierre-diario', cierreDiario)" :disabled="generandoReporte || !cierreDiario.fecha" />
+        </div>
+      </AccordionTab>
+
       <!-- ==================== REPORTE GENERAL ==================== -->
       <AccordionTab>
         <template #header>
@@ -76,53 +96,6 @@
         </div>
       </AccordionTab>
 
-      <!-- ==================== REPORTE DE COMPRAS ==================== -->
-      <AccordionTab>
-        <template #header>
-          <div class="flex items-center gap-4 text-[#0a3622] font-extrabold">
-            <i class="pi pi-truck text-xl"></i>
-            <span>REPORTE DE COMPRAS</span>
-          </div>
-        </template>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-gray-600">Fecha Inicio</label>
-            <Calendar v-model="compras.fecha_inicio" dateFormat="yy-mm-dd" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-gray-600">Fecha Fin</label>
-            <Calendar v-model="compras.fecha_fin" dateFormat="yy-mm-dd" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-gray-600">Proveedor</label>
-            <Dropdown
-              v-model="compras.proveedor_id"
-              :options="proveedores"
-              optionLabel="nombre"
-              optionValue="id"
-              placeholder="Seleccione un proveedor"
-              class="w-full"
-              filter
-              @filter="buscarProveedores"
-              :loading="cargandoProveedores"
-              resetFilterOnHide
-              emptyFilterMessage="No se encontraron proveedores"
-            >
-              <template #option="slotProps">
-                <div class="flex flex-col py-1">
-                  <span class="font-bold text-shop-text">{{ slotProps.option.nombre }}</span>
-                  <span class="text-xs text-shop-text-3">{{ slotProps.option.telefono }}</span>
-                </div>
-              </template>
-            </Dropdown>
-          </div>
-        </div>
-        <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('compras')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('compras', compras)" :disabled="generandoReporte || !compras.fecha_inicio || !compras.fecha_fin" />
-        </div>
-      </AccordionTab>
-
       <!-- ==================== REPORTE DE CRÉDITOS ==================== -->
       <AccordionTab>
         <template #header>
@@ -167,31 +140,50 @@
         </div>
       </AccordionTab>
 
-      <!-- ==================== REPORTE DE PRODUCTOS DAÑADOS ==================== -->
+      <!-- ==================== REPORTE DE COMPRAS ==================== -->
       <AccordionTab>
         <template #header>
           <div class="flex items-center gap-4 text-[#0a3622] font-extrabold">
-            <i class="pi pi-exclamation-triangle text-xl"></i>
-            <span>PRODUCTOS DAÑADOS</span>
+            <i class="pi pi-truck text-xl"></i>
+            <span>REPORTE DE COMPRAS</span>
           </div>
         </template>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Fecha Inicio</label>
-            <Calendar v-model="productosDaniados.fecha_inicio" dateFormat="yy-mm-dd" />
+            <Calendar v-model="compras.fecha_inicio" dateFormat="yy-mm-dd" />
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Fecha Fin</label>
-            <Calendar v-model="productosDaniados.fecha_fin" dateFormat="yy-mm-dd" />
+            <Calendar v-model="compras.fecha_fin" dateFormat="yy-mm-dd" />
           </div>
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-gray-600">Origen</label>
-            <Dropdown v-model="productosDaniados.estado" :options="estadosDanio" optionLabel="label" optionValue="value" placeholder="Todos" class="w-full" />
+            <label class="text-xs font-bold text-gray-600">Proveedor</label>
+            <Dropdown
+              v-model="compras.proveedor_id"
+              :options="proveedores"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione un proveedor"
+              class="w-full"
+              filter
+              @filter="buscarProveedores"
+              :loading="cargandoProveedores"
+              resetFilterOnHide
+              emptyFilterMessage="No se encontraron proveedores"
+            >
+              <template #option="slotProps">
+                <div class="flex flex-col py-1">
+                  <span class="font-bold text-shop-text">{{ slotProps.option.nombre }}</span>
+                  <span class="text-xs text-shop-text-3">{{ slotProps.option.telefono }}</span>
+                </div>
+              </template>
+            </Dropdown>
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('productosDaniados')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('productos-daniados', productosDaniados)" :disabled="generandoReporte || !productosDaniados.fecha_inicio || !productosDaniados.fecha_fin" />
+          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('compras')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('compras', compras)" :disabled="generandoReporte || !compras.fecha_inicio || !compras.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -251,23 +243,63 @@
         </div>
       </AccordionTab>
 
-      <!-- ==================== CIERRE DIARIO ==================== -->
+      <!-- ==================== CAMBIO DE PRODUCTO ==================== -->
       <AccordionTab>
         <template #header>
           <div class="flex items-center gap-4 text-[#0a3622] font-extrabold">
-            <i class="pi pi-calendar text-xl"></i>
-            <span>CIERRE DIARIO</span>
+            <i class="pi pi-sync text-xl"></i>
+            <span>CAMBIO DE PRODUCTO</span>
           </div>
         </template>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
           <div class="flex flex-col gap-1">
-            <label class="text-xs font-bold text-gray-600">Fecha</label>
-            <Calendar v-model="cierreDiario.fecha" dateFormat="yy-mm-dd" />
+            <label class="text-xs font-bold text-gray-600">Fecha Inicio</label>
+            <Calendar v-model="cambioProducto.fecha_inicio" dateFormat="yy-mm-dd" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Fecha Fin</label>
+            <Calendar v-model="cambioProducto.fecha_fin" dateFormat="yy-mm-dd" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Estado</label>
+            <Dropdown v-model="cambioProducto.estado" :options="estadosCambioProducto" placeholder="Todos" class="w-full" />
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('cierreDiario')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('cierre-diario', cierreDiario)" :disabled="generandoReporte || !cierreDiario.fecha" />
+          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('cambioProducto')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('cambio-producto', cambioProducto)" :disabled="generandoReporte || !cambioProducto.fecha_inicio || !cambioProducto.fecha_fin" />
+        </div>
+      </AccordionTab>
+
+      <!-- ==================== REPORTE DE PRODUCTOS DAÑADOS ==================== -->
+      <AccordionTab>
+        <template #header>
+          <div class="flex items-center gap-4 text-[#0a3622] font-extrabold">
+            <i class="pi pi-exclamation-triangle text-xl"></i>
+            <span>PRODUCTOS DAÑADOS</span>
+          </div>
+        </template>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Fecha Inicio</label>
+            <Calendar v-model="productosDaniados.fecha_inicio" dateFormat="yy-mm-dd" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Fecha Fin</label>
+            <Calendar v-model="productosDaniados.fecha_fin" dateFormat="yy-mm-dd" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Origen</label>
+            <Dropdown v-model="productosDaniados.origen" :options="origenesDanio" optionLabel="label" optionValue="value" placeholder="Todos" class="w-full" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Estado</label>
+            <Dropdown v-model="productosDaniados.estado" :options="estadosProductoDaniado" placeholder="Todos" class="w-full" />
+          </div>
+        </div>
+        <div class="flex justify-between p-4 pt-0">
+          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('productosDaniados')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('productos-daniados', productosDaniados)" :disabled="generandoReporte || !productosDaniados.fecha_inicio || !productosDaniados.fecha_fin" />
         </div>
       </AccordionTab>
     </Accordion>
@@ -304,34 +336,42 @@ const cargandoCategorias = ref(false);
 // --- Opciones fijas ---
 const tiposCliente = ['DETALLES', 'MAYORISTA'];
 const estadosVenta = ['PAGADA', 'CREDITO', 'ANULADA', 'DEVOLUCION'];
-const estadosDanio = [
-  { label: 'Devolución', value: 'DEVOLUCION' },
-  { label: 'Manual', value: 'DANIADO' }
+
+const origenesDanio = [
+  { label: 'Devolución', value: 'VENTA' },
+  { label: 'Manual', value: 'DIRECTO' },
+  { label: 'Vencimiento', value: 'VENCIMIENTO' },
+  { label: 'Proveedor', value: 'PROVEEDOR' }
 ];
+const estadosProductoDaniado = ['REGISTRADO', 'RECHAZADO', 'DEVOLUCION', 'ANULADO'];
+const estadosCambioProducto = ['PENDIENTE', 'ACEPTADO', 'RECHAZADO', 'ANULADO'];
+
 const secciones = ['TIENDA', 'LIBRERIA', 'MEDICAMENTO'];
 const estadosProducto = ['ACTIVO', 'INACTIVO'];
 
 // --- Modelos reactivos para cada reporte ---
+const cierreDiario = reactive({ fecha: null });
 const general = reactive({ fecha_inicio: null, fecha_fin: null });
 const ventas = reactive({ fecha_inicio: null, fecha_fin: null, tipo_cliente: null, metodo_pago_id: null, estado: null });
-const compras = reactive({ fecha_inicio: null, fecha_fin: null, proveedor_id: null });
 const creditos = reactive({ fecha_inicio: null, fecha_fin: null, cliente_credito_id: null });
-const productosDaniados = reactive({ fecha_inicio: null, fecha_fin: null, estado: null });
+const compras = reactive({ fecha_inicio: null, fecha_fin: null, proveedor_id: null });
 const inventario = reactive({ seccion: null, marca_id: null, categoria_id: null, estado: null });
-const cierreDiario = reactive({ fecha: null });
+const cambioProducto = reactive({ fecha_inicio: null, fecha_fin: null, estado: null });
+const productosDaniados = reactive({ fecha_inicio: null, fecha_fin: null, origen: null, estado: null });
 
 // Valores por defecto para limpiar
 const valoresIniciales = {
+  cierreDiario: { fecha: null },
   general: { fecha_inicio: null, fecha_fin: null },
   ventas: { fecha_inicio: null, fecha_fin: null, tipo_cliente: null, metodo_pago_id: null, estado: null },
-  compras: { fecha_inicio: null, fecha_fin: null, proveedor_id: null },
   creditos: { fecha_inicio: null, fecha_fin: null, cliente_credito_id: null },
-  productosDaniados: { fecha_inicio: null, fecha_fin: null, estado: null },
+  compras: { fecha_inicio: null, fecha_fin: null, proveedor_id: null },
   inventario: { seccion: null, marca_id: null, categoria_id: null, estado: null },
-  cierreDiario: { fecha: null }
+  cambioProducto: { fecha_inicio: null, fecha_fin: null, estado: null },
+  productosDaniados: { fecha_inicio: null, fecha_fin: null, origen: null, estado: null }
 };
 
-const reportesMap = { general, ventas, compras, creditos, productosDaniados, inventario, cierreDiario };
+const reportesMap = { cierreDiario, general, ventas, creditos, compras, inventario, cambioProducto, productosDaniados };
 
 const limpiarFiltros = (nombre) => {
   const estado = reportesMap[nombre];
@@ -460,7 +500,6 @@ const generar = async (tipo, filtros) => {
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
 
-    // Crear enlace temporal para descarga directa
     const link = document.createElement('a');
     link.href = url;
     link.download = `reporte-${tipo}.pdf`;
