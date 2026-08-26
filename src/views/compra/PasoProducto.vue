@@ -539,10 +539,61 @@
     }
   };
 
+  //Funcion auxiliar para normalizar nombres
+  const normalizarNombre = (texto) => {
+    if(!texto) return '';
+    return texto
+        .toLowerCase()
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') 
+        .replace(/[^a-z0-9]/g, '')
+  }
+
+
   // Función que añade el producto "en memoria" a la lista de compra
-  const confirmarCreacionRapida = () => {
+  const confirmarCreacionRapida = async () => {
     if (!nuevoProducto.value.nombre || !nuevoProducto.value.categoria_id || !nuevoProducto.value.marca_id  || !nuevoProducto.value.seccion){
       return Swal.fire('Incompleto', 'Complete los campos obligatorios del producto', 'warning');
+    }
+
+    const nombreNorm = normalizarNombre(nuevoProducto.value.nombre);
+
+    //Verigicar si ya fue agregado a la lista de compra
+    const yaEnLista = productosAgregados.value.some(
+      (item) => normalizarNombre(item.nombre) === nombreNorm
+    );
+    if(yaEnLista){
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Producto ya en lista',
+        text: `El producto '${nuevoProducto.value.nombre}' ya está agregado en los detalles de esta compra.`,
+        confirmButtonColor: '#0a3622'
+      });
+    }
+
+    //Verificar si ya existe en la base de datos
+    try{
+      const res = await api.get("/productos", {
+        params: { search: nuevoProducto.value.nombre.trim(), per_page: 50 }
+      });
+      const listarCatalogo = res.data?.data || res.data || [];
+      const productoExistente = listarCatalogo.find(
+        (p) => normalizarNombre(p.nombre) === nombreNorm
+      );
+
+      if(productoExistente){
+        return Swal.fire({
+          icon: 'warning',
+          title: 'Producto ya registrado',
+          html: `Ya existe un producto en el catálogo con un nombre similar: <b>"${productoExistente.nombre}"</b>.<br><br>Búscalo directamente en la
+  barra superior para agregarlo a la compra.`,
+          confirmButtonColor: '#0a3622'
+        });
+      }
+
+    }catch(err){
+      console.warn("No se pudo verificar duplicados en servidor: ", err)
     }
 
     const itemParaCompra = {
