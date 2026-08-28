@@ -363,25 +363,17 @@ const guardarProducto = async () => {
       emit('toast', { tipo: 'success', mensaje: 'Producto guardado con éxito' })
     }
   } catch (error) {
+    // Si es error de validación 422, mostrar únicamente los errores inline bajo cada campo
     if (error.response?.status === 422) {
-      const validationErrors = error.response.data.errors || error.response.data.error
+      const validationErrors = error.response.data.errors || error.response.data.error || {}
       errors.value = {}
       for (const key in validationErrors) {
-        errors.value[key] = validationErrors[key][0]
-      }
-      if (props.esEdicion) {
-        const primerError = Object.values(errors.value)[0] || 'Por favor, corrige los errores del formulario.'
-        emit('toast', { tipo: 'error', mensaje: primerError })
-      } else {
-        Swal.fire({ title: 'Error de validación', text: 'Revisa los campos marcados en rojo.', icon: 'error', confirmButtonColor: '#d33' })
+        errors.value[key] = Array.isArray(validationErrors[key]) ? validationErrors[key][0] : validationErrors[key]
       }
     } else {
+      // Para errores no relacionados con validación (servidor o red), informar mediante Toast
       const msg = error.response?.data?.message || 'Ocurrió un error inesperado al guardar el producto.'
-      if (props.esEdicion) {
-        emit('toast', { tipo: 'error', mensaje: msg })
-      } else {
-        Swal.fire({ title: 'Error', text: msg, icon: 'error', confirmButtonColor: '#d33' })
-      }
+      emit('toast', { tipo: 'error', mensaje: msg })
     }
   } finally {
     loading.value = false

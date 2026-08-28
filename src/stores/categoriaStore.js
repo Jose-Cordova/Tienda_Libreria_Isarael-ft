@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import categoriaService from '@/services/categoriaService'
-import Swal from 'sweetalert2'
 
 export const useCategoriaStore = defineStore('categoria', {
   state: () => ({
@@ -35,7 +34,7 @@ export const useCategoriaStore = defineStore('categoria', {
         };
       } catch (error) {
         this.error = error;
-        Swal.fire('Error', 'Error al cargar categorías.', 'error');
+        throw error;
       } finally {
         this.loading = false;
       }
@@ -57,9 +56,6 @@ export const useCategoriaStore = defineStore('categoria', {
       try {
         await categoriaService.updateCategoria(id, updatedCategoria);
         await this.fetchCategorias({ page: this.pagination.current_page, per_page: this.pagination.per_page });
-      } catch (error) {
-        Swal.fire('Error', 'Error al actualizar categoría.', 'error');
-        throw error;
       } finally {
         this.loading = false;
       }
@@ -70,13 +66,6 @@ export const useCategoriaStore = defineStore('categoria', {
       try {
         await categoriaService.deleteCategoria(id);
         await this.fetchCategorias({ page: 1, per_page: this.pagination.per_page });
-      } catch (error) {
-        if (error.response && error.response.status === 409) {
-          Swal.fire('No se puede eliminar', 'La categoría tiene productos asociados.', 'warning');
-        } else {
-          Swal.fire('Error', 'Error al eliminar categoría.', 'error');
-        }
-        throw error;
       } finally {
         this.loading = false;
       }

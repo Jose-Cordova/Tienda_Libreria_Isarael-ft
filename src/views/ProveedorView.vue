@@ -87,19 +87,36 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-left">
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Nombre</label>
-                <InputText v-model="formulario.nombre" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: Distribuidora García" />
+                <InputText
+                  v-model="formulario.nombre"
+                  class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none"
+                  :class="{ 'border-red-500': errores.nombre }"
+                  placeholder="Ej: Distribuidora García"
+                />
+                <small v-if="errores.nombre" class="text-red-500 text-xs block">{{ errores.nombre }}</small>
               </div>
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Teléfono</label>
                 <SelectorPaisTelefono ref="selectorTelefono" v-model="formulario.telefono" />
-                <small v-if="errorTelefono" class="text-red-500 text-xs">{{ errorTelefono }}</small>
-              </div>              <div class="space-y-2">
+                <small v-if="errores.telefono" class="text-red-500 text-xs block">{{ errores.telefono }}</small>
+              </div>
+              <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Email</label>
-                <InputText v-model="formulario.email" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: correo@gmail.com" />
+                <InputText
+                  v-model="formulario.email"
+                  class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none"
+                  :class="{ 'border-red-500': errores.email }"
+                  placeholder="Ej: correo@gmail.com"
+                />
+                <small v-if="errores.email" class="text-red-500 text-xs block">{{ errores.email }}</small>
               </div>
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Dirección (Opcional)</label>
-                <InputText v-model="formulario.direccion" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: Calle, ciudad..." />
+                <InputText
+                  v-model="formulario.direccion"
+                  class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none"
+                  placeholder="Ej: Calle, ciudad..."
+                />
               </div>
             </div>
             <div class="flex items-center gap-4 mt-10">
@@ -112,21 +129,6 @@
         </div>
       </div>
     </div>
-    <!-- MODAL: Eliminar -->
-    <div v-if="mostrarModalEliminar" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 text-center">
-        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#044e04]"></div>
-        <div class="p-10">
-          <div class="flex justify-center mb-6 text-red-500"><i class="pi pi-trash text-9xl"></i></div>
-          <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Eliminar proveedor?</h2>
-          <p class="text-1xl text-gray-500 mb-8 font-medium">Se eliminará "{{ ProveedorEliminar?.nombre }}".</p>
-          <div class="flex items-center gap-3">
-            <button @click="mostrarModalEliminar = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
-            <button @click="ejecutarEliminacion" class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md text-sm">Confirmar</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
   </main>
 </template>
@@ -135,6 +137,7 @@
   import { ref, onMounted } from 'vue';
   import { useProveedorStore } from '@/stores/proveedorStore';
   import Swal from 'sweetalert2';
+  import { useToast } from 'primevue/usetoast';
   import Button from 'primevue/button';
   import InputText from 'primevue/inputtext';
   import Paginator from 'primevue/paginator';
@@ -142,34 +145,25 @@
   import SelectorPaisTelefono from '@/components/ventas/SelectorPaisTelefono.vue';
 
   const store = useProveedorStore()
+  const toast = useToast()
   const mostrarModal = ref(false)
-  const mostrarModalEliminar = ref(false)
   const esEdicion = ref(false)
   const enviando = ref(false)
   const formulario = ref({id: null, nombre: '', telefono: '', email: '', direccion: ''})
-  const ProveedorEliminar = ref(null)
   const selectorTelefono = ref(null)
-  const errorTelefono = ref('')
 
-  // Función para bloquear letras y solo permitir números
-  const soloNumeros = (e) => {
-    const key = e.key;
-    // Permitir solo números (0-9)
-    if (!/^[0-9]$/.test(key) && key !== 'Backspace' && key !== 'Delete' && key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'Tab') {
-      e.preventDefault();
-    }
-  }
-  // Función para formatear el teléfono automáticamente (XXXX-XXXX)
-  const formatearTelefono = () => {
-    // 1. Eliminar cualquier cosa que no sea número
-    let valor = formulario.value.telefono.replace(/\D/g, '');
-    // 2. Limitar a 8 dígitos reales
-    if (valor.length > 8) valor = valor.substring(0, 8);
-    // 3. Aplicar el formato XXXX-XXXX
-    if (valor.length > 4) {
-      formulario.value.telefono = valor.substring(0, 4) + '-' + valor.substring(4, 8);
-    } else {
-      formulario.value.telefono = valor;
+  // Errores inline
+  const errores = ref({
+    nombre: '',
+    telefono: '',
+    email: ''
+  })
+
+  const limpiarErrores = () => {
+    errores.value = {
+      nombre: '',
+      telefono: '',
+      email: ''
     }
   }
 
@@ -186,80 +180,110 @@
   const abirNuevo = () => {
     esEdicion.value = false
     formulario.value = { id: null, nombre: '', telefono: '', email: '', direccion: '' }
+    limpiarErrores()
     mostrarModal.value = true
   }
 
   const abrirEditar = (p) => {
     esEdicion.value = true
     formulario.value = { ...p }
+    limpiarErrores()
     mostrarModal.value = true
   }
 
   const procesarGuradado = async () => {
+    limpiarErrores()
+
     // Validar teléfono si se ingresó un número
-    errorTelefono.value = ''
     if (formulario.value.telefono && formulario.value.telefono.trim() !== '') {
       const telefonoValido = selectorTelefono.value?.validar() ?? false
       if (!telefonoValido) {
-        errorTelefono.value = selectorTelefono.value?.getError() || 'Teléfono inválido.'
+        errores.value.telefono = selectorTelefono.value?.getError() || 'Teléfono inválido.'
         return
       }
+    }
+
+    // Validación inline requerida
+    if(!formulario.value.nombre || !formulario.value.nombre.trim()){
+      errores.value.nombre = 'El nombre del proveedor es obligatorio.'
+      return
     }
 
     enviando.value = true
     try{
       if(esEdicion.value) {
         await store.editarProveedor(formulario.value.id, formulario.value)
-        Swal.fire({ icon: 'success', title: '¡Actualizado!', showConfirmButton: false, timer: 1500 })
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Proveedor actualizado con éxito',
+          life: 3500
+        })
       } else {
         await store.crearProveedor(formulario.value)
-        Swal.fire({ icon: 'success', title: '¡Guardado!', showConfirmButton: false, timer: 1500 })
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Proveedor guardado con éxito',
+          life: 3500
+        })
       }
       mostrarModal.value = false
     }catch(error){
-        console.error("Error al registrar:", error);
-
-        let errorMsg = "No se pudo registrar la compra.";
-
-        if (error.response?.data?.errors) {
-          // Si hay errores de validación, los aplanamos
-          const validationErrors = error.response.data.errors;
-          errorMsg = Object.values(validationErrors).flat().join('<br>');
-        } else if (error.response?.data?.message) {
-          // Si hay un mensaje directo del servidor
-          errorMsg = error.response.data.message;
-        }
-
-        Swal.fire({
-          icon: 'error',
-          title: 'Error de Registro',
-          html: errorMsg,
-          confirmButtonColor: '#0a3622'
-        });
+      // Si es error de validación 422, mostrar inline bajo el campo
+      if (error.response?.status === 422) {
+        const valErrors = error.response.data.errors || error.response.data.error || {}
+        if(valErrors.nombre) errores.value.nombre = Array.isArray(valErrors.nombre) ? valErrors.nombre[0] : valErrors.nombre
+        if(valErrors.telefono) errores.value.telefono = Array.isArray(valErrors.telefono) ? valErrors.telefono[0] : valErrors.telefono
+        if(valErrors.email) errores.value.email = Array.isArray(valErrors.email) ? valErrors.email[0] : valErrors.email
+      } else {
+        // Errores de servidor o red mostrados mediante Toast
+        const msg = error.response?.data?.message || 'Error al guardar el proveedor.'
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: msg,
+          life: 5000
+        })
+      }
     }finally{
       enviando.value = false
     }
   }
 
-  const borrar = (p) => {
-    ProveedorEliminar.value = p
-    mostrarModalEliminar.value = true
-  }
+  // Confirmación destructiva de eliminación únicamente con SweetAlert2
+  const borrar = async (p) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar proveedor?',
+      text: `Se eliminará a "${p.nombre}". Esta acción no se puede revertir.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d1333e',
+      cancelButtonColor: '#d6dfd6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
+      reverseButtons: true,
+      allowOutsideClick: false
+    })
 
-  const ejecutarEliminacion = async () => {
-    if(!ProveedorEliminar.value) return
-    try{
-      await store.eliminarProveedor(ProveedorEliminar.value.id)
-      Swal.fire({ icon: 'success', title: '¡Eliminado!', showConfirmButton: false, timer: 1500 })
-      mostrarModalEliminar.value = false
-    }catch(err){
-      Swal.fire({
-        title:'Error',
-        text: err.response?.data?.message || 'No se pudo eliminar',
-        icon: 'error',
-        confirmButtonColor: '#0a3622'
-      })
-      mostrarModalEliminar.value = false
+    if(result.isConfirmed){
+      try{
+        await store.eliminarProveedor(p.id)
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Proveedor eliminado correctamente',
+          life: 3500
+        })
+      }catch(err){
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err.response?.data?.message || 'No se pudo eliminar el proveedor.',
+          life: 5000
+        })
+      }
     }
   }
 </script>

@@ -269,7 +269,7 @@ const guardar = async () => {
         severity: 'success',
         summary: 'Éxito',
         detail: 'Marca actualizada con éxito',
-        life: 3000
+        life: 3500
       })
     } else {
       await marcaStore.createMarca({
@@ -282,7 +282,7 @@ const guardar = async () => {
         severity: 'success',
         summary: 'Éxito',
         detail: 'Marca guardada con éxito',
-        life: 3000
+        life: 3500
       })
     }
   } catch (error) {
@@ -290,21 +290,13 @@ const guardar = async () => {
       const errors = error.response.data.errors || error.response.data.error
       if (errors?.nombre) errorNombre.value = errors.nombre[0]
       if (errors?.seccion) errorSeccion.value = errors.seccion[0]
-      if (esEdicion.value) {
-        toast.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: errors?.nombre?.[0] || errors?.seccion?.[0] || 'Error de validación',
-          life: 3000
-        })
-      }
     } else {
       const msg = error.response?.data?.message || 'Error al guardar.'
       toast.add({
         severity: 'error',
         summary: 'Error',
         detail: msg,
-        life: 3000
+        life: 5000
       })
     }
   } finally {
@@ -334,14 +326,14 @@ const confirmarEliminar = async (id) => {
         severity: 'success',
         summary: 'Éxito',
         detail: 'Marca eliminada correctamente',
-        life: 3000
+        life: 3500
       })
     } catch (error) {
       toast.add({
         severity: 'error',
         summary: 'Error',
         detail: error.response?.data?.message || 'Error al eliminar.',
-        life: 3000
+        life: 5000
       })
     }
   }

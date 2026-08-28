@@ -297,24 +297,57 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                 <div class="md:col-span-2 space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Nombre Comercial *</label>
-                  <InputText v-model="nuevoProducto.nombre" class="w-full border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none transition-all shadow-sm bg-white" />
+                  <InputText
+                    v-model="nuevoProducto.nombre"
+                    class="w-full border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none transition-all shadow-sm bg-white"
+                    :class="{ 'border-red-500': erroresNuevo.nombre }"
+                  />
+                  <small v-if="erroresNuevo.nombre" class="text-red-500 text-xs block">{{ erroresNuevo.nombre }}</small>
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Sección *</label>
-                  <select v-model="nuevoProducto.seccion" @change="cargarCatalogosPorSeccion" class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] outline-none transition-all shadow-sm focus:border-[#0a3622]">
+                  <select
+                    v-model="nuevoProducto.seccion"
+                    @change="cargarCatalogosPorSeccion"
+                    class="w-full bg-white border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] outline-none transition-all shadow-sm focus:border-[#0a3622]"
+                    :class="{ 'border-red-500': erroresNuevo.seccion }"
+                  >
                     <option :value="null" disabled>Seleccionar sección</option>
                     <option value="TIENDA">TIENDA</option>
                     <option value="LIBRERIA">LIBRERIA</option>
                     <option value="MEDICAMENTO">MEDICAMENTO</option>
                   </select>
+                  <small v-if="erroresNuevo.seccion" class="text-red-500 text-xs block">{{ erroresNuevo.seccion }}</small>
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Categoría *</label>
-                  <Dropdown v-model="nuevoProducto.categoria_id" :options="categorias" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" filter :disabled="!nuevoProducto.seccion" />
+                  <Dropdown
+                    v-model="nuevoProducto.categoria_id"
+                    :options="categorias"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccionar"
+                    class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white"
+                    :class="{ 'border-red-500': erroresNuevo.categoria_id }"
+                    filter
+                    :disabled="!nuevoProducto.seccion"
+                  />
+                  <small v-if="erroresNuevo.categoria_id" class="text-red-500 text-xs block">{{ erroresNuevo.categoria_id }}</small>
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Marca *</label>
-                  <Dropdown v-model="nuevoProducto.marca_id" :options="marcas" optionLabel="nombre" optionValue="id" placeholder="Seleccionar" class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white" filter :disabled="!nuevoProducto.seccion" />
+                  <Dropdown
+                    v-model="nuevoProducto.marca_id"
+                    :options="marcas"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    placeholder="Seleccionar"
+                    class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white"
+                    :class="{ 'border-red-500': erroresNuevo.marca_id }"
+                    filter
+                    :disabled="!nuevoProducto.seccion"
+                  />
+                  <small v-if="erroresNuevo.marca_id" class="text-red-500 text-xs block">{{ erroresNuevo.marca_id }}</small>
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Stock Mínimo *</label>
@@ -351,6 +384,7 @@
   import { ref, computed } from 'vue';
   import api from '@/services/api';
   import Swal from 'sweetalert2';
+  import { useToast } from 'primevue/usetoast';
   import InputText from 'primevue/inputtext';
   import InputNumber from 'primevue/inputnumber';
   import Checkbox from 'primevue/checkbox';
@@ -361,8 +395,9 @@
     datos: Object
   })
   const emit = defineEmits(['siguiente', 'atras'])
+  const toast = useToast()
 
-  //Estados
+  // Estados
   const busqueda = ref('')
   const mostrarResultados = ref(false)
   const resultados = ref([])
@@ -381,6 +416,23 @@
     perecedero: 'NORMAL',
     seccion: null
   });
+
+  // Errores inline del modal nuevo producto
+  const erroresNuevo = ref({
+    nombre: '',
+    seccion: '',
+    categoria_id: '',
+    marca_id: ''
+  });
+
+  const limpiarErroresNuevo = () => {
+    erroresNuevo.value = {
+      nombre: '',
+      seccion: '',
+      categoria_id: '',
+      marca_id: ''
+    };
+  };
 
   //Solo enteros positivos
   const soloEnteroPositivo = (e) => {
@@ -513,6 +565,7 @@
       perecedero: 'NORMAL',
       seccion: null
     };
+    limpiarErroresNuevo();
     mostrarModalNuevo.value = true;
   };
 
@@ -539,7 +592,7 @@
     }
   };
 
-  //Funcion auxiliar para normalizar nombres
+  // Función auxiliar para normalizar nombres
   const normalizarNombre = (texto) => {
     if(!texto) return '';
     return texto
@@ -550,55 +603,58 @@
         .replace(/[^a-z0-9]/g, '')
   }
 
-
   // Función que añade el producto "en memoria" a la lista de compra
   const confirmarCreacionRapida = async () => {
-    if (!nuevoProducto.value.nombre || !nuevoProducto.value.categoria_id || !nuevoProducto.value.marca_id  || !nuevoProducto.value.seccion){
-      return Swal.fire('Incompleto', 'Complete los campos obligatorios del producto', 'warning');
+    limpiarErroresNuevo();
+    let valido = true;
+
+    if (!nuevoProducto.value.nombre || !nuevoProducto.value.nombre.trim()){
+      erroresNuevo.value.nombre = 'El nombre comercial es obligatorio.';
+      valido = false;
     }
+    if (!nuevoProducto.value.seccion){
+      erroresNuevo.value.seccion = 'Debe seleccionar una sección.';
+      valido = false;
+    }
+    if (!nuevoProducto.value.categoria_id){
+      erroresNuevo.value.categoria_id = 'Debe seleccionar una categoría.';
+      valido = false;
+    }
+    if (!nuevoProducto.value.marca_id){
+      erroresNuevo.value.marca_id = 'Debe seleccionar una marca.';
+      valido = false;
+    }
+
+    if(!valido) return;
 
     const nombreNorm = normalizarNombre(nuevoProducto.value.nombre);
 
-    //Verigicar si ya fue agregado a la lista de compra
+    // Verificar si ya fue agregado a la lista de compra
     const yaEnLista = productosAgregados.value.some(
       (item) => normalizarNombre(item.nombre) === nombreNorm
     );
     if(yaEnLista){
-      return Swal.fire({
-        icon: 'warning',
-        title: 'Producto ya en lista',
-        text: `El producto '${nuevoProducto.value.nombre}' ya está agregado en los detalles de esta compra.`,
-        confirmButtonColor: '#0a3622'
-      });
+      erroresNuevo.value.nombre = 'Este producto ya está agregado en la lista de compra actual.';
+      return;
     }
 
-    //Verificar si ya existe en la base de datos
+    // Verificar si ya existe en la base de datos
     try{
-      const res = await api.get("/productos", {
-        params: { search: nuevoProducto.value.nombre.trim(), per_page: 50 }
+      const res = await api.get("/productos/verificar-nombre", {
+        params: { nombre: nuevoProducto.value.nombre.trim() }
       });
-      const listarCatalogo = res.data?.data || res.data || [];
-      const productoExistente = listarCatalogo.find(
-        (p) => normalizarNombre(p.nombre) === nombreNorm
-      );
 
-      if(productoExistente){
-        return Swal.fire({
-          icon: 'warning',
-          title: 'Producto ya registrado',
-          html: `Ya existe un producto en el catálogo con un nombre similar: <b>"${productoExistente.nombre}"</b>.<br><br>Búscalo directamente en la
-  barra superior para agregarlo a la compra.`,
-          confirmButtonColor: '#0a3622'
-        });
+      if(res.data?.existe && res.data?.producto){
+        erroresNuevo.value.nombre = `Ya existe en el catálogo un producto similar: "${res.data.producto.nombre}". Búscalo en la barra superior.`;
+        return;
       }
-
     }catch(err){
-      console.warn("No se pudo verificar duplicados en servidor: ", err)
+      console.warn("No se pudo verificar duplicados en servidor: ", err);
     }
 
     const itemParaCompra = {
       producto_id: null,
-      nombre: nuevoProducto.value.nombre,
+      nombre: nuevoProducto.value.nombre.trim(),
       categoria_id: nuevoProducto.value.categoria_id,
       marca_id: nuevoProducto.value.marca_id,
       stock_minimo: nuevoProducto.value.stock_minimo,
@@ -619,10 +675,15 @@
     productosAgregados.value.unshift(itemParaCompra);
     recalcular(0);
     mostrarModalNuevo.value = false;
-    Swal.fire({ icon: 'success', title: 'Añadido', text: 'Producto listo para ingresar', timer: 1500, showConfirmButton: false });
+    toast.add({
+      severity: 'success',
+      summary: 'Añadido',
+      detail: 'Producto añadido a la lista de compra',
+      life: 3500
+    });
   };
 
-  //Calculos
+  // Calculos
   const recalcular = (index) => {
     const item = productosAgregados.value[index]
     const costoFactura = parseFloat(item.precio_unitario) || 0
@@ -634,12 +695,12 @@
     // El costo base por unidad real
     const costoUnitarioBase = costoFactura / factor
 
-    //Datos del stock anterior
+    // Datos del stock anterior
     const stockPrevio = item.stock_inventario_previo || 0
     const cppAnterior = item.costo_promedio_previo || 0
-    //Unidades nuevas que ingresaran en la compra actual
+    // Unidades nuevas que ingresaran en la compra actual
     const cantidadComprada = calcularCantidad(index) * factor
-    //Aplicamos la formula del cpp
+    // Aplicamos la formula del cpp
     const totalUnidades = stockPrevio + cantidadComprada
     let cppCalculado = costoUnitarioBase
     if(totalUnidades > 0){
@@ -680,11 +741,11 @@
      }, 0).toFixed(2)
   })
 
-  //Lotes
+  // Lotes
   const agregarLote = (idx) => {
     productosAgregados.value[idx].lotes.push({ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 })
   }
-  //Funcion para buscar y selecionar lotes existentes
+  // Funcion para buscar y selecionar lotes existentes
   const seleccionarLoteExistente  = (event, pIdx, lIdx) => {
     const value = event.target.value
     if(!value) return
@@ -704,13 +765,47 @@
       productosAgregados.value[pIdx].lotes.splice(lIdx, 1)
     }
   }
-  const quitarProducto = (idx) => {
-    productosAgregados.value.splice(idx, 1)
+
+  // Confirmación destructiva antes de quitar un producto de la compra actual
+  const quitarProducto = async (idx) => {
+    const item = productosAgregados.value[idx]
+    const result = await Swal.fire({
+      title: '¿Remover producto?',
+      text: `Se quitará "${item?.nombre || 'el producto'}" de la compra actual.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d1333e',
+      cancelButtonColor: '#d6dfd6',
+      confirmButtonText: 'Sí, remover',
+      cancelButtonText: 'Cancelar',
+      customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
+      reverseButtons: true,
+      allowOutsideClick: false
+    })
+
+    if(result.isConfirmed){
+      productosAgregados.value.splice(idx, 1)
+      toast.add({
+        severity: 'info',
+        summary: 'Removido',
+        detail: 'Producto removido de la lista de compra',
+        life: 3000
+      })
+    }
   }
 
-  //Navegacion
+  // Navegacion
   const finalizarPaso = () => {
-    //Validacion de campos vacios
+    if(productosAgregados.value.length === 0){
+      return toast.add({
+        severity: 'warn',
+        summary: 'Lista vacía',
+        detail: 'Debe agregar al menos un producto a la compra.',
+        life: 4000
+      })
+    }
+
+    // Validación de campos obligatorios
     let incompleto = false
     let mensaje = 'Por favor complete todos los campos obligatorios.'
     productosAgregados.value.forEach(p => {
@@ -741,7 +836,12 @@
       }
     })
     if(incompleto){
-      return Swal.fire('Datos incorrectos', mensaje, 'warning')
+      return toast.add({
+        severity: 'warn',
+        summary: 'Datos incompletos',
+        detail: mensaje,
+        life: 5000
+      })
     }
     emit('siguiente', { detalles: productosAgregados.value })
   }

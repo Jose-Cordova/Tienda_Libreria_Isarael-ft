@@ -138,6 +138,7 @@
   import { computed, ref, onMounted } from 'vue';
   import { useProveedorStore } from '@/stores/proveedorStore';
   import { useCompraStore } from '@/stores/compraStore';
+  import { useToast } from 'primevue/usetoast';
   import Swal from 'sweetalert2';
 
   const props = defineProps({
@@ -148,6 +149,7 @@
 
   const proveedorStore = useProveedorStore();
   const compraStore = useCompraStore();
+  const toast = useToast();
   const cargando = ref(false);
 
   // Obtenemos el nombre del proveedor para mostrarlo en el resumen
@@ -193,10 +195,12 @@
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#0a3622',
-      cancelButtonColor: '#d33',
+      cancelButtonColor: '#d6dfd6',
       confirmButtonText: 'Sí, registrar ahora',
       cancelButtonText: 'Revisar de nuevo',
-      reverseButtons: true
+      customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
+      reverseButtons: true,
+      allowOutsideClick: false
     });
 
     if (result.isConfirmed) {
@@ -219,7 +223,7 @@
               margen_detalle: d.margen_detalle,
               margen_mayor: d.margen_mayor
             }
-            //Solo para producto nuevo
+            // Solo para producto nuevo
             if(!d.producto_id){
               detalle.nombre = d.nombre
               detalle.categoria_id = d.categoria_id
@@ -228,7 +232,7 @@
               detalle.perecedero = d.perecedero
               detalle.seccion = d.seccion
             }
-            //PERECEDERO → lotes, NORMAL → cantidad
+            // PERECEDERO → lotes, NORMAL → cantidad
             if(d.perecedero === 'PERECEDERO'){
               detalle.lotes = d.lotes
             }else{
@@ -240,12 +244,11 @@
 
         await compraStore.registrarCompra(datosParaBackend);
 
-        Swal.fire({
-          icon: 'success',
-          title: '¡Compra Registrada!',
-          text: 'El abastecimiento se ha procesado con éxito.',
-          showConfirmButton: false,
-          timer: 2500
+        toast.add({
+          severity: 'success',
+          summary: '¡Compra Registrada!',
+          detail: 'El abastecimiento se ha procesado con éxito.',
+          life: 3500
         });
 
         // Notificamos al Wizard que hemos terminado
@@ -257,19 +260,17 @@
         let errorMsg = "No se pudo registrar la compra.";
 
         if (error.response?.data?.errors) {
-          // Si hay errores de validación, los aplanamos
           const validationErrors = error.response.data.errors;
-          errorMsg = Object.values(validationErrors).flat().join('<br>');
+          errorMsg = Object.values(validationErrors).flat().join(' ');
         } else if (error.response?.data?.message) {
-          // Si hay un mensaje directo del servidor
           errorMsg = error.response.data.message;
         }
 
-        Swal.fire({
-          icon: 'error',
-          title: 'Error de Registro',
-          html: errorMsg,
-          confirmButtonColor: '#0a3622'
+        toast.add({
+          severity: 'error',
+          summary: 'Error de Registro',
+          detail: errorMsg,
+          life: 5000
         });
       } finally {
         cargando.value = false;

@@ -134,7 +134,7 @@ const mostrarToast = (tipo, mensaje) => {
     severity: tipo === 'success' ? 'success' : 'error',
     summary: tipo === 'success' ? 'Éxito' : 'Error',
     detail: mensaje,
-    life: 3000
+    life: tipo === 'success' ? 3500 : 5000
   })
 }
 

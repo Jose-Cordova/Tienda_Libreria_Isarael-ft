@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import marcaService from '@/services/marcaService'
-import Swal from 'sweetalert2'
 
 export const useMarcaStore = defineStore('marca', {
   state: () => ({
@@ -34,7 +33,7 @@ export const useMarcaStore = defineStore('marca', {
         };
       } catch (error) {
         this.error = error;
-        Swal.fire('Error', 'Error al cargar marcas.', 'error');
+        throw error;
       } finally {
         this.loading = false;
       }
@@ -55,9 +54,6 @@ export const useMarcaStore = defineStore('marca', {
       try {
         await marcaService.updateMarca(id, updatedMarca);
         await this.fetchMarcas({ page: this.pagination.current_page, per_page: this.pagination.per_page });
-      } catch (error) {
-        Swal.fire('Error', 'Error al actualizar marca.', 'error');
-        throw error;
       } finally {
         this.loading = false;
       }
@@ -68,14 +64,6 @@ export const useMarcaStore = defineStore('marca', {
       try {
         await marcaService.deleteMarca(id);
         await this.fetchMarcas({ page: 1, per_page: this.pagination.per_page });
-        Swal.fire('Éxito', 'Marca eliminada correctamente.', 'success');
-      } catch (error) {
-        if (error.response && error.response.status === 409) {
-          Swal.fire('No se puede eliminar', 'La marca tiene productos asociados.', 'warning');
-        } else {
-          Swal.fire('Error', 'Error al eliminar marca.', 'error');
-        }
-        throw error;
       } finally {
         this.loading = false;
       }

@@ -129,22 +129,6 @@
       </div>
     </section>
 
-    <!-- MODAL: Anulación -->
-    <div v-if="mostrarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4 text-center">
-      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
-        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#044e04]"></div>
-        <div class="p-10">
-          <div class="flex justify-center mb-6 text-red-500"><i class="pi pi-ban text-9xl"></i></div>
-          <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Anular esta compra?</h2>
-          <p class="text-1xl text-gray-500 mb-8 font-medium">Se anulará la factura "{{ compraAnular?.numero_factura }}".</p>
-          <div class="flex items-center gap-3">
-            <button @click="mostrarAnular = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
-            <button @click="confirmarAnular" class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md text-sm">Confirmar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- MODAL: Detalle de Compra -->
     <CompraDetalle
       :visible="mostrarDetalle"
@@ -158,6 +142,7 @@
   import { ref, onMounted } from 'vue';
   import { useCompraStore } from '@/stores/compraStore';
   import Swal from 'sweetalert2';
+  import { useToast } from 'primevue/usetoast';
   import InputText from 'primevue/inputtext';
   import Button from 'primevue/button';
   import Paginator from 'primevue/paginator';
@@ -165,21 +150,21 @@
   import CompraDetalle from './CompraDetalle.vue';
 
   const store = useCompraStore()
-  const mostrarAnular = ref(false)
-  const compraAnular = ref(null)
+  const toast = useToast()
   const mostrarDetalle = ref(false)
 
   onMounted(() => {
     store.obtenerCompras(1)
   })
 
-  //Funcion para resetear las fechas
+  // Funcion para resetear las fechas
   const limpiarFechas = () => {
     store.filtros.fecha_inicio = null
     store.filtros.fecha_fin = null
     store.obtenerCompras(1)
   }
-  //Listado de las compras
+
+  // Listado de las compras
   const alCambiarPagina = (e) => store.obtenerCompras(e.page + 1, e.rows)
 
   let timer = null
@@ -198,35 +183,49 @@
       await store.obtenerDetalleCompra(compra.id)
       mostrarDetalle.value = true
     } catch (error) {
-      Swal.fire('Error', 'No se pudo cargar el detalle de la compra', error)
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo cargar el detalle de la compra.',
+        life: 5000
+      })
     }
   }
 
-  const abrirModalAnular = (compra) => {
-    compraAnular.value = compra
-    mostrarAnular.value = true
-  }
+  // Confirmación destructiva de anulación únicamente con SweetAlert2
+  const abrirModalAnular = async (compra) => {
+    const result = await Swal.fire({
+      title: '¿Anular esta compra?',
+      text: `Se anulará la factura "${compra.numero_factura}". Los productos y stock se revertirán.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d1333e',
+      cancelButtonColor: '#d6dfd6',
+      confirmButtonText: 'Sí, anular',
+      cancelButtonText: 'Cancelar',
+      customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
+      reverseButtons: true,
+      allowOutsideClick: false
+    })
 
-  const confirmarAnular = async() => {
-    try{
-      await store.anularCompra(compraAnular.value.id)
-      Swal.fire({
-        icon: 'success',
-        title: '¡Hecho!',
-        text: 'La compra ha sido anulada.',
-        showConfirmButton: false,
-        timer: 2500
+    if(result.isConfirmed){
+      try{
+        await store.anularCompra(compra.id)
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'La compra ha sido anulada correctamente.',
+          life: 3500
         })
-      mostrarAnular.value = false
-    }catch(err){
-      mostrarAnular.value = false
-      const mgs = err.response?.data?.message || 'Error al anular la compra.'
-      Swal.fire({
-        title: 'Error',
-        text: mgs,
-        icon: 'error',
-        confirmButtonColor: '#0a3622'
-      })
+      }catch(err){
+        const msg = err.response?.data?.message || 'Error al anular la compra.'
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: msg,
+          life: 5000
+        })
+      }
     }
   }
 </script>
