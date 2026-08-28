@@ -95,20 +95,37 @@
                   optionValue="id"
                   placeholder="Buscar Proveedor..."
                   class="w-full border border-gray-200 rounded-xl text-sm h-[54px] flex items-center font-bold"
+                  :class="{ 'border-red-500': errores.proveedor_id }"
                   filter
                 />
+                <small v-if="errores.proveedor_id" class="text-red-500 text-xs block">{{ errores.proveedor_id }}</small>
               </div>
 
               <!-- Fecha -->
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Fecha Programada *</label>
-                <Calendar v-model="formulario.fecha" :minDate="fechaMinima" dateFormat="dd/mm/yy" class="w-full" inputClass="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none shadow-sm" />
+                <Calendar
+                  v-model="formulario.fecha"
+                  :minDate="fechaMinima"
+                  dateFormat="dd/mm/yy"
+                  class="w-full"
+                  inputClass="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none shadow-sm"
+                  :class="{ 'border-red-500': errores.fecha }"
+                />
+                <small v-if="errores.fecha" class="text-red-500 text-xs block">{{ errores.fecha }}</small>
               </div>
 
               <!-- Descripción -->
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Descripción *</label>
-                <Textarea v-model="formulario.descripcion" rows="3" class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" placeholder="Detalles de la visita o pedido..." />
+                <Textarea
+                  v-model="formulario.descripcion"
+                  rows="3"
+                  class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none"
+                  :class="{ 'border-red-500': errores.descripcion }"
+                  placeholder="Detalles de la visita o pedido..."
+                />
+                <small v-if="errores.descripcion" class="text-red-500 text-xs block">{{ errores.descripcion }}</small>
               </div>
 
               <!-- Botón eliminar (solo en edición) -->
@@ -144,6 +161,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
 import Swal from 'sweetalert2';
+import { useToast } from 'primevue/usetoast';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
@@ -151,6 +169,7 @@ import Textarea from 'primevue/textarea';
 import { useCronogramaStore } from '@/stores/cronogramaStore';
 
 const store = useCronogramaStore()
+const toast = useToast()
 const fullCalendar = ref(null)
 const mesAnioActual = ref('')
 const mostrarModal = ref(false)
@@ -158,7 +177,23 @@ const esEdicion = ref(false)
 const cargando = ref(false)
 const fechaMinima = ref(new Date())
 fechaMinima.value.setHours(0, 0, 0, 0)
+
 const formulario = ref({ id: null, proveedor_id: null, fecha: null, descripcion: '' })
+
+// Errores inline para cada campo
+const errores = ref({
+  proveedor_id: '',
+  fecha: '',
+  descripcion: ''
+})
+
+const limpiarErrores = () => {
+  errores.value = {
+    proveedor_id: '',
+    fecha: '',
+    descripcion: ''
+  }
+}
 
 const windowWidth = ref(window.innerWidth)
 const updateWidth = () => { windowWidth.value = window.innerWidth; }
@@ -216,15 +251,16 @@ const next = () => fullCalendar.value?.getApi()?.next()
 const irAHoy = () => fullCalendar.value?.getApi()?.today()
 
 const abrirNuevo = async () => {
-    if(store.proveedores.length === 0){
-      try{
-        await store.fetchProveedores()
-      }catch(error){
+  if(store.proveedores.length === 0){
+    try{
+      await store.fetchProveedores()
+    }catch(error){
       console.error('Error al cargar proveedores:', error)
     }
   }
   esEdicion.value = false
   formulario.value = { id: null, proveedor_id: null, fecha: new Date(), descripcion: '' }
+  limpiarErrores()
   mostrarModal.value = true
 }
 
@@ -249,27 +285,47 @@ const abrirEditar = (fcEvent) => {
     fecha: fechaParsed,
     descripcion: fcEvent.extendedProps.descripcion || ''
   }
+  limpiarErrores()
   mostrarModal.value = true
 }
 
 const cerrarModal = () => {
   mostrarModal.value = false
   formulario.value = { id: null, proveedor_id: null, fecha: null, descripcion: '' }
+  limpiarErrores()
 }
 
 const guardar = async () => {
-  if(!formulario.value.proveedor_id || !formulario.value.fecha || !formulario.value.descripcion){
-    return Swal.fire('Incompleto', 'Por favor llena todos los campos', 'warning')
+  limpiarErrores()
+  let valido = true
+
+  // Validaciones inline
+  if(!formulario.value.proveedor_id){
+    errores.value.proveedor_id = 'Debe seleccionar un proveedor.'
+    valido = false
   }
 
-  const hoy = new Date()
-  hoy.setHours(0, 0, 0, 0)
-  const fechaSel = new Date(formulario.value.fecha)
-  fechaSel.setHours(0, 0, 0, 0)
+  if(!formulario.value.fecha){
+    errores.value.fecha = 'Debe seleccionar una fecha programada.'
+    valido = false
+  } else {
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+    const fechaSel = new Date(formulario.value.fecha)
+    fechaSel.setHours(0, 0, 0, 0)
 
-  if(fechaSel < hoy){
-    return Swal.fire('Fecha inválida', 'No puedes seleccionar una fecha anterior a hoy.', 'warning')
+    if(fechaSel < hoy){
+      errores.value.fecha = 'No puedes seleccionar una fecha anterior a hoy.'
+      valido = false
+    }
   }
+
+  if(!formulario.value.descripcion || !formulario.value.descripcion.trim()){
+    errores.value.descripcion = 'La descripción es obligatoria.'
+    valido = false
+  }
+
+  if(!valido) return
 
   cargando.value = true
 
@@ -281,16 +337,26 @@ const guardar = async () => {
 
     const datos = {
       fecha: fechaLocal,
-      contenido: formulario.value.descripcion,
+      contenido: formulario.value.descripcion.trim(),
       proveedor_id: formulario.value.proveedor_id
     }
 
     if(esEdicion.value){
       await store.actualizarEvento(formulario.value.id, datos)
-      Swal.fire({ icon: 'success', title: '¡Evento actualizado!', showConfirmButton: false, timer: 2500 })
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Evento actualizado con éxito',
+        life: 3500
+      })
     }else{
       await store.crearEvento(datos)
-      Swal.fire({ icon: 'success', title: '¡Evento creado!', showConfirmButton: false, timer: 2500 })
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Evento programado con éxito',
+        life: 3500
+      })
     }
 
     cerrarModal()
@@ -301,13 +367,28 @@ const guardar = async () => {
       calendarApi.refetchEvents()
     }
   }catch(error){
-    const msg = error.response?.data?.message || 'Error al guardar el evento.'
-    Swal.fire('Error', msg, 'error')
+    // Errores de validación 422 mostrados inline
+    if(error.response?.status === 422){
+      const valErrors = error.response.data.errors || error.response.data.error || {}
+      if(valErrors.proveedor_id) errores.value.proveedor_id = Array.isArray(valErrors.proveedor_id) ? valErrors.proveedor_id[0] : valErrors.proveedor_id
+      if(valErrors.fecha) errores.value.fecha = Array.isArray(valErrors.fecha) ? valErrors.fecha[0] : valErrors.fecha
+      if(valErrors.contenido || valErrors.descripcion) errores.value.descripcion = Array.isArray(valErrors.contenido || valErrors.descripcion) ? (valErrors.contenido || valErrors.descripcion)[0] : (valErrors.contenido || valErrors.descripcion)
+    } else {
+      // Errores generales de servidor o red mostrados mediante Toast
+      const msg = error.response?.data?.message || 'Error al guardar el evento.'
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: msg,
+        life: 5000
+      })
+    }
   }finally{
     cargando.value = false
   }
 }
 
+// Confirmación destructiva de eliminación únicamente con SweetAlert2
 const confirmarEliminar = async () => {
   const result = await Swal.fire({
     title: '¿Eliminar evento?',
@@ -315,15 +396,23 @@ const confirmarEliminar = async () => {
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d1333e',
-    cancelButtonColor: '#708090',
+    cancelButtonColor: '#d6dfd6',
     confirmButtonText: 'Sí, eliminar',
-    reverseButtons: true
+    cancelButtonText: 'Cancelar',
+    customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
+    reverseButtons: true,
+    allowOutsideClick: false
   })
 
   if(result.isConfirmed){
     try {
       await store.eliminarEvento(formulario.value.id)
-      Swal.fire({ icon: 'success', title: '¡Evento eliminado!', showConfirmButton: false, timer: 2500 })
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Evento eliminado correctamente',
+        life: 3500
+      })
       cerrarModal()
       const calendarApi = fullCalendar.value?.getApi()
       if(calendarApi){
@@ -333,7 +422,12 @@ const confirmarEliminar = async () => {
       }
     }catch(error){
       const msg = error.response?.data?.message || 'Error al eliminar el evento.'
-      Swal.fire('Error', msg, 'error')
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: msg,
+        life: 5000
+      })
     }
   }
 }

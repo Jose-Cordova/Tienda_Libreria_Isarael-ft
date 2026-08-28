@@ -17,40 +17,46 @@
         <!-- Grid de Entradas de Datos -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 sm:gap-y-10 text-left">
           <!-- Nº de Factura -->
-          <div class="space-y-3">
+          <div class="space-y-2">
             <label class="block text-[10px] sm:text-[11px] font-black text-gray-800 uppercase tracking-[0.25em] ml-1">Nº de Control *</label>
             <InputText
               v-model="formulario.numero_factura"
               @input="formulario.numero_factura = formulario.numero_factura.toUpperCase()"
               class="w-full border border-gray-200 rounded-xl p-3 sm:p-4 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none shadow-sm transition-all uppercase"
+              :class="{ 'border-red-500': errores.numero_factura }"
               placeholder="Ej: DTE-03-12345678-000000000000001"
             />
+            <small v-if="errores.numero_factura" class="text-red-500 text-xs block">{{ errores.numero_factura }}</small>
           </div>
           <!-- Código de Factura -->
-          <div class="space-y-3">
+          <div class="space-y-2">
             <label class="block text-[10px] sm:text-[11px] font-black text-gray-800 uppercase tracking-[0.25em] ml-1">Código de Generación *</label>
             <InputText
               v-model="formulario.codigo_factura"
               @input="formulario.codigo_factura = formulario.codigo_factura.toUpperCase()"
               class="w-full border border-gray-200 rounded-xl p-3 sm:p-4 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none shadow-sm transition-all uppercase"
+              :class="{ 'border-red-500': errores.codigo_factura }"
               placeholder="Ej: C6A9868C-028D-421B-A9A0-36274CECC2C7"
             />
+            <small v-if="errores.codigo_factura" class="text-red-500 text-xs block">{{ errores.codigo_factura }}</small>
           </div>
           <!-- Fecha de Emisión -->
-          <div class="space-y-3">
+          <div class="space-y-2">
             <label class="block text-[10px] sm:text-[11px] font-black text-gray-800 uppercase tracking-[0.25em] ml-1">Fecha de Emisión *</label>
             <Calendar
               v-model="formulario.fecha_emision"
               class="w-full h-[50px] sm:h-[54px]"
               inputClass="border border-gray-200 rounded-xl p-3 sm:p-4 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none w-full shadow-sm"
+              :class="{ 'border-red-500': errores.fecha_emision }"
               dateFormat="yy-mm-dd"
               showIcon
               placeholder="Seleccione la fecha"
               :maxDate="hoy"
             />
+            <small v-if="errores.fecha_emision" class="text-red-500 text-xs block">{{ errores.fecha_emision }}</small>
           </div>
           <!-- Selección de Proveedor -->
-          <div class="space-y-3">
+          <div class="space-y-2">
             <label class="block text-[10px] sm:text-[11px] font-black text-gray-800 uppercase tracking-[0.25em] ml-1">Proveedor *</label>
             <Dropdown
               v-model="formulario.proveedor_id"
@@ -59,8 +65,10 @@
               optionValue="id"
               placeholder="— Seleccione un Proveedor —"
               class="w-full border border-gray-200 rounded-xl text-sm h-[50px] sm:h-[54px] flex items-center font-bold shadow-sm"
+              :class="{ 'border-red-500': errores.proveedor_id }"
               filter
             />
+            <small v-if="errores.proveedor_id" class="text-red-500 text-xs block">{{ errores.proveedor_id }}</small>
           </div>
         </div>
         <!-- Botones de Navegación -->
@@ -81,7 +89,6 @@
 <script setup>
   import { ref, onMounted } from 'vue';
   import { useProveedorStore } from '@/stores/proveedorStore';
-  import Swal from 'sweetalert2';
   import InputText from 'primevue/inputtext';
   import Dropdown from 'primevue/dropdown';
   import Calendar from 'primevue/calendar';
@@ -93,31 +100,63 @@
   const emit = defineEmits(['siguiente', 'atras'])
   const proveedorStore = useProveedorStore()
 
-  //Sincronizamos el formulario con los datos que el Wizard tenga guardados
+  // Sincronizamos el formulario con los datos que el Wizard tenga guardados
   const formulario = ref({
     numero_factura: props.datos.numero_factura || '',
     codigo_factura: props.datos.codigo_factura || '',
     fecha_emision: props.datos.fecha_emision ? new Date(props.datos.fecha_emision) : null,
     proveedor_id: props.datos.proveedor_id || null
   })
-  //Cargamos los proveedores
+
+  // Errores inline
+  const errores = ref({
+    numero_factura: '',
+    codigo_factura: '',
+    fecha_emision: '',
+    proveedor_id: ''
+  })
+
+  const limpiarErrores = () => {
+    errores.value = {
+      numero_factura: '',
+      codigo_factura: '',
+      fecha_emision: '',
+      proveedor_id: ''
+    }
+  }
+
+  // Cargamos los proveedores
   onMounted(async () => {
     if(proveedorStore.proveedores.length === 0){
       await proveedorStore.fetchProveedores(1, 100)
     }
   })
 
-  //Validacion de campos obligatorios
+  // Validación inline de campos obligatorios
   const validarContinuar = () => {
-    if(!formulario.value.numero_factura || !formulario.value.codigo_factura || !formulario.value.proveedor_id || !formulario.value.fecha_emision){
-      return Swal.fire({
-        icon: 'warning',
-        title: 'Datos Incompletos',
-        text: 'Debe completar el Nº de factura, codigo de factura, la fecha y el proveedor para continuar.',
-        confirmButtonColor: '#0a3622'
-      })
+    limpiarErrores()
+    let valido = true
+
+    if(!formulario.value.numero_factura || !formulario.value.numero_factura.trim()){
+      errores.value.numero_factura = 'El Nº de Control es obligatorio.'
+      valido = false
     }
-    //Enviamos los datos al cerebro
+    if(!formulario.value.codigo_factura || !formulario.value.codigo_factura.trim()){
+      errores.value.codigo_factura = 'El Código de Generación es obligatorio.'
+      valido = false
+    }
+    if(!formulario.value.fecha_emision){
+      errores.value.fecha_emision = 'La fecha de emisión es obligatoria.'
+      valido = false
+    }
+    if(!formulario.value.proveedor_id){
+      errores.value.proveedor_id = 'Debe seleccionar un proveedor.'
+      valido = false
+    }
+
+    if(!valido) return
+
+    // Enviamos los datos
     emit('siguiente', formulario.value)
   }
 </script>

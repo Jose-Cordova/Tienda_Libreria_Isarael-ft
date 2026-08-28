@@ -49,23 +49,7 @@
       />
     </div>
 
-    <!-- MODAL: Anulación (ya existente) -->
-    <div v-if="mostrarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4 text-center">
-      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
-        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#044e04]"></div>
-        <div class="p-10">
-          <div class="flex justify-center mb-6 text-red-500"><i class="pi pi-ban text-6xl"></i></div>
-          <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Anular esta venta?</h2>
-          <p class="text-1xl text-gray-500 mb-8 font-medium">Se anulará la venta con correlativo "{{ ventaAnular?.correlativo }}".</p>
-          <div class="flex items-center gap-3">
-            <button @click="mostrarAnular = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
-            <button @click="ejecutarAnulacion" class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md text-sm">Confirmar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODAL DE DETALLE DE VENTA (colocado al final, fuera del flujo) -->
+    <!-- MODAL DE DETALLE DE VENTA -->
     <DetalleVentaModal
       :visible="mostrarDetalle"
       :venta="ventaDetalle"
@@ -82,6 +66,7 @@ import CardsResumen from '@/components/historialVentas/CardsResumen.vue';
 import TablaHistorial from '@/components/historialVentas/TablaHistorial.vue';
 import DetalleVentaModal from '@/components/historialVentas/DetalleVentaModal.vue';
 import { Paginator } from '@/utils/primevue';
+import { useToast } from 'primevue/usetoast';
 import api from '@/services/api';
 import Swal from 'sweetalert2';
 
@@ -89,11 +74,10 @@ import Swal from 'sweetalert2';
 // Store y estado local
 // -----------------------------------------------
 const store = useHistorialStore();
+const toast = useToast();
 
 const mostrarDetalle = ref(false);
 const ventaDetalle = ref(null);
-const mostrarAnular = ref(false);
-const ventaAnular = ref(null);
 
 // Métodos de pago (carga única desde API)
 const metodosPago = ref([]);
@@ -153,10 +137,11 @@ const abrirDetalle = async (ventaResumen) => {
     ventaDetalle.value = response.data.venta;
     mostrarDetalle.value = true;
   } catch (error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo cargar el detalle de la venta.'
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudo cargar el detalle de la venta.',
+      life: 5000
     });
   }
 };
@@ -166,35 +151,41 @@ const cerrarDetalle = () => {
   ventaDetalle.value = null;
 };
 
-const confirmarAnulacion = (venta) => {
-  ventaAnular.value = venta;
-  mostrarAnular.value = true;
-};
+// Confirmación destructiva de anulación con SweetAlert2 y resultado en Toast
+const confirmarAnulacion = async (venta) => {
+  const result = await Swal.fire({
+    title: '¿Anular esta venta?',
+    text: `Se anulará la venta #${venta.correlativo}. Los productos regresarán al inventario.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d1333e',
+    cancelButtonColor: '#d6dfd6',
+    confirmButtonText: 'Sí, anular',
+    cancelButtonText: 'Cancelar',
+    customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
+    reverseButtons: true,
+    allowOutsideClick: false
+  });
 
-const ejecutarAnulacion = async () => {
-  try {
-    // Llamada real al backend para anular
-    await api.delete(`/ventas/${ventaAnular.value.id}`);
-
-    Swal.fire({
-      icon: 'success',
-      title: '¡Hecho!',
-      text: `La venta #${ventaAnular.value.correlativo} ha sido anulada.`,
-      showConfirmButton: false,
-      timer: 2500
-    });
-
-    mostrarAnular.value = false;
-    // Recargar la lista del historial
-    store.fetchVentas(store.currentPage);
-  } catch (error) {
-    mostrarAnular.value = false;
-    const mensaje = error.response?.data?.message || 'No se pudo anular la venta.';
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: mensaje
-    });
+  if (result.isConfirmed) {
+    try {
+      await api.delete(`/ventas/${venta.id}`);
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: `La venta #${venta.correlativo} ha sido anulada con éxito.`,
+        life: 3500
+      });
+      store.fetchVentas(store.currentPage);
+    } catch (error) {
+      const mensaje = error.response?.data?.message || 'No se pudo anular la venta.';
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: mensaje,
+        life: 5000
+      });
+    }
   }
 };
 

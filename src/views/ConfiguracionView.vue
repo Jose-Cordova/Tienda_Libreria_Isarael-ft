@@ -152,7 +152,7 @@ const cargarConfiguracion = async () => {
     form.email = data.email || '';
     Object.assign(original, { ...form });
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar la configuración.', life: 3000 });
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar la configuración.', life: 5000 });
   } finally {
     cargando.value = false;
   }
@@ -181,7 +181,7 @@ const guardar = async () => {
   guardando.value = true;
   try {
     await api.put('/configuracion/1', form);
-    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Configuración actualizada correctamente.', life: 3000 });
+    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Configuración actualizada correctamente.', life: 3500 });
     editando.value = false;
     Object.assign(original, { ...form });
   } catch (error) {
@@ -190,13 +190,12 @@ const guardar = async () => {
       if (errors) {
         for (const key in errors) {
           if (errores.hasOwnProperty(key)) {
-            errores[key] = errors[key][0];
+            errores[key] = Array.isArray(errors[key]) ? errors[key][0] : errors[key];
           }
         }
       }
-      toast.add({ severity: 'warn', summary: 'Validación', detail: 'Por favor corrige los errores.', life: 3000 });
     } else {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar la configuración.', life: 3000 });
+      toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo guardar la configuración.', life: 5000 });
     }
   } finally {
     guardando.value = false;

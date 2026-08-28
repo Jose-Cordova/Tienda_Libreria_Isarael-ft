@@ -117,12 +117,14 @@
 <script setup>
   import { ref, onMounted } from 'vue';
   import { useNotaStore } from '@/stores/notaStore';
+  import { useToast } from 'primevue/usetoast';
   import Button from 'primevue/button';
   import Textarea from 'primevue/textarea';
   import Paginator from 'primevue/paginator';
   import Swal from 'sweetalert2';
 
   const store = useNotaStore()
+  const toast = useToast()
 
   const mostrarModal = ref(false)
   const esEdicion = ref(false)
@@ -172,6 +174,7 @@
 
   // Guardar (crear/editar)
   const guardarNota = async () => {
+    // Validación inline antes de enviar
     if(!formulario.value.contenido.trim()){
       errorContenido.value = 'El contenido es obligatorio.'
       return
@@ -192,46 +195,76 @@
 
       if(esEdicion.value){
         await store.actualizarNota(formulario.value.id, datos)
-        Swal.fire({ icon: 'success', title: 'Actualizada', timer: 1500, showConfirmButton: false })
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Nota actualizada con éxito',
+          life: 3500
+        })
       }else{
         await store.crearNota(datos)
-        Swal.fire({ icon: 'success', title: 'Creada', timer: 1500, showConfirmButton: false })
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Nota creada con éxito',
+          life: 3500
+        })
       }
       cerrarModal()
     } catch(error){
-      const msg = error.response?.data?.message || 'Error al guardar la nota.'
-      Swal.fire('Error', msg, 'error')
+      // Si es error de validación 422, mostrar inline bajo el campo
+      if(error.response?.status === 422){
+        const errors = error.response.data.errors || error.response.data.error || {}
+        errorContenido.value = errors.contenido ? (Array.isArray(errors.contenido) ? errors.contenido[0] : errors.contenido) : 'Error de validación.'
+      } else {
+        // Errores de servidor o red mostrados mediante Toast
+        const msg = error.response?.data?.message || 'Error al guardar la nota.'
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: msg,
+          life: 5000
+        })
+      }
     }finally{
       cargando.value = false
     }
   }
 
-  // Eliminar
-  const confirmarEliminar = (id) => {
-    Swal.fire({
+  // Confirmación destructiva de eliminación únicamente con SweetAlert2
+  const confirmarEliminar = async (id) => {
+    const result = await Swal.fire({
       title: '¿Eliminar nota?',
       text: 'Esta acción no se puede deshacer.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d1333e',
-      cancelButtonColor: '#708090',
+      cancelButtonColor: '#d6dfd6',
       confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
       reverseButtons: true,
-    }).then(async (result) => {
-      if(result.isConfirmed){
-        try{
-          await store.eliminarNota(id)
-          Swal.fire({
-            icon: 'success',
-            title: 'Eliminada',
-            timer: 1500,
-            showConfirmButton: false
-          })
-        }catch(error){
-          Swal.fire('Error', error.response?.data?.message || 'No se pudo eliminar.', 'error')
-        }
-      }
+      allowOutsideClick: false
     })
+
+    if(result.isConfirmed){
+      try{
+        await store.eliminarNota(id)
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Nota eliminada correctamente',
+          life: 3500
+        })
+      }catch(error){
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.response?.data?.message || 'No se pudo eliminar la nota.',
+          life: 5000
+        })
+      }
+    }
   }
 
   // Carga inicial

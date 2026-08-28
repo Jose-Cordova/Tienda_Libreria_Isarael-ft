@@ -162,11 +162,23 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-left">
                 <div class="space-y-2">
                   <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Nombre Completo</label>
-                  <InputText v-model="formulario.nombre" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: Juan Pérez" />
+                  <InputText
+                    v-model="formulario.nombre"
+                    class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none"
+                    :class="{ 'border-red-500': errores.nombre }"
+                    placeholder="Ej: Juan Pérez"
+                  />
+                  <small v-if="errores.nombre" class="text-red-500 text-xs block">{{ errores.nombre }}</small>
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Correo Electrónico</label>
-                  <InputText v-model="formulario.email" class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none" placeholder="Ej: usuario@gmail.com" />
+                  <InputText
+                    v-model="formulario.email"
+                    class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none"
+                    :class="{ 'border-red-500': errores.email }"
+                    placeholder="Ej: usuario@gmail.com"
+                  />
+                  <small v-if="errores.email" class="text-red-500 text-xs block">{{ errores.email }}</small>
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Rol de Acceso</label>
@@ -176,7 +188,9 @@
                     placeholder="Seleccionar"
                     :disabled="formulario.id === 1"
                     class="w-full border border-gray-200 rounded-xl text-sm h-[54px] flex items-center font-bold disabled:bg-gray-100 disabled:opacity-70"
+                    :class="{ 'border-red-500': errores.rol }"
                   />
+                  <small v-if="errores.rol" class="text-red-500 text-xs block">{{ errores.rol }}</small>
                 </div>
               </div>
               <div v-if="!esEdicion" class="bg-green-100 p-4 rounded-xl border border-green-100 mt-4 text-left">
@@ -186,32 +200,11 @@
               </div>
               <div class="flex items-center gap-4 mt-10">
                 <button type="button" @click="mostrarModal = false" class="px-10 py-4 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm">Cancelar</button>
-                <button type="submit" :disabled="enviando" class="flex-1 py-4 bg-[#003d00] hover:bg-[#002800] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-widest">
+                <button type="submit" :disabled="enviando" class="flex-1 py-4 bg-[#003d00] hover:bg-[#002800] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-widest disabled:opacity-50">
                   {{ enviando ? 'Creando...' : 'Guardar' }}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      </div>
-    </Teleport>
-    <!-- MODAL: ELIMINAR -->
-    <Teleport to="body">
-      <div v-if="mostrarModalEliminar" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4">
-        <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 text-center">
-          <div class="absolute top-0 left-0 w-full h-2.5 bg-[#d1333e]"></div>
-          <div class="p-10">
-            <div class="flex justify-center mb-6 text-red-500">
-              <i class="pi pi-trash text-6xl"></i>
-            </div>
-            <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Eliminar usuario?</h2>
-            <p class="text-sm text-gray-500 mb-8 font-medium leading-relaxed">
-              Se eliminará el usuario <span class="text-gray-800 font-bold">{{ usuarioEliminar?.name }}</span>.
-            </p>
-            <div class="flex items-center gap-3">
-              <button @click="mostrarModalEliminar = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm">Cancelar</button>
-              <button @click="ejecutarEliminacion" class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md text-sm">Confirmar</button>
-            </div>
           </div>
         </div>
       </div>
@@ -223,14 +216,16 @@
   import { ref, computed, onMounted } from 'vue';
   import { useUserStore } from '@/stores/userStore';
   import Swal from 'sweetalert2';
+  import { useToast } from 'primevue/usetoast';
   import InputText from 'primevue/inputtext';
   import Button from 'primevue/button';
   import Dropdown from 'primevue/dropdown';
   import Paginator from 'primevue/paginator';
 
   const userStore = useUserStore()
+  const toast = useToast()
 
-  //Datos reactivos del store
+  // Datos reactivos del store
   const usuarios = computed(() => userStore.users)
   const paginacion = computed(() => userStore.pagination)
 
@@ -239,21 +234,34 @@
   const esEdicion = ref(false)
   const enviando = ref(false)
   const formulario = ref({ id: null, nombre: '', email: '', rol: 'VENDEDOR' })
-  const mostrarModalEliminar = ref(false)
-  const usuarioEliminar = ref(null)
 
-  //Roles fijos
+  // Errores inline
+  const errores = ref({
+    nombre: '',
+    email: '',
+    rol: ''
+  })
+
+  const limpiarErrores = () => {
+    errores.value = {
+      nombre: '',
+      email: '',
+      rol: ''
+    }
+  }
+
+  // Roles fijos
   const roles = ['ADMIN', 'VENDEDOR']
 
   const countActivos = computed(() => userStore.users.filter(u => u.estado === 'ACTIVO').length)
   const countInactivos = computed(() => userStore.users.filter(u => u.estado === 'INACTIVO').length)
 
-  //Cargar usuarios
+  // Cargar usuarios
   onMounted(() => {
     userStore.fetchUsers(1)
   })
 
-  //Paginacion
+  // Paginacion
   const cambiarPagina = (e) => {
     userStore.fetchUsers(e.page + 1)
   }
@@ -269,6 +277,7 @@
   const abrirNuevo = () => {
     esEdicion.value = false
     formulario.value = { id: null, nombre: '', email: '', rol: 'VENDEDOR' }
+    limpiarErrores()
     mostrarModal.value = true
   };
 
@@ -279,55 +288,73 @@
       nombre: user.name,
       email: user.email,
       rol: user.rol
-     }
+    }
+    limpiarErrores()
     mostrarModal.value = true
   }
 
   const guardar = async () => {
-    if(!formulario.value.nombre || !formulario.value.email || !formulario.value.rol){
-      return Swal.fire('Incompleto', 'Por favor llena los campos obligatorios', 'warning');
+    limpiarErrores()
+    let valido = true
+
+    if(!formulario.value.nombre || !formulario.value.nombre.trim()){
+      errores.value.nombre = 'El nombre completo es obligatorio.'
+      valido = false
     }
+    if(!formulario.value.email || !formulario.value.email.trim()){
+      errores.value.email = 'El correo electrónico es obligatorio.'
+      valido = false
+    }
+    if(!formulario.value.rol){
+      errores.value.rol = 'Debe seleccionar un rol.'
+      valido = false
+    }
+
+    if(!valido) return
 
     enviando.value = true
     try{
       if(esEdicion.value){
         await userStore.updateUser(formulario.value.id, {
-          name: formulario.value.nombre,
-          email: formulario.value.email,
+          name: formulario.value.nombre.trim(),
+          email: formulario.value.email.trim(),
           role: formulario.value.rol
         })
-        Swal.fire({
-          icon: 'success',
-          title: 'Actualizado!',
-          showConfirmButton: false,
-          timer: 2500 })
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Usuario actualizado con éxito',
+          life: 3500
+        })
       }else{
         await userStore.createUser({
-          name: formulario.value.nombre,
-          email: formulario.value.email,
+          name: formulario.value.nombre.trim(),
+          email: formulario.value.email.trim(),
           role: formulario.value.rol
         })
-        Swal.fire({
-          icon: 'success',
-          title: 'Usuario Creado!',
-          text: 'Se ha enviado la invitación al correo',
-          showConfirmButton: false,
-          timer: 2500 })
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Usuario creado. Invitación enviada al correo.',
+          life: 3500
+        })
       }
       mostrarModal.value = false
-
     }catch(error){
-      const errors = error.response?.data?.errors
-      if(errors){
-        let msg = Object.values(errors).flat().join('<br>')
-        Swal.fire({ icon: 'error', title: 'Error de validación', html: msg })
+      if(error.response?.status === 422){
+        const valErrors = error.response.data.errors || error.response.data.error || {}
+        if(valErrors.name || valErrors.nombre) errores.value.nombre = Array.isArray(valErrors.name || valErrors.nombre) ? (valErrors.name || valErrors.nombre)[0] : (valErrors.name || valErrors.nombre)
+        if(valErrors.email) errores.value.email = Array.isArray(valErrors.email) ? valErrors.email[0] : valErrors.email
+        if(valErrors.role || valErrors.rol) errores.value.rol = Array.isArray(valErrors.role || valErrors.rol) ? (valErrors.role || valErrors.rol)[0] : (valErrors.role || valErrors.rol)
       }else{
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: error.response?.data?.message || 'No se pudo guardar.' })
+        const msg = error.response?.data?.message || 'Error al guardar el usuario.'
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: msg,
+          life: 5000
+        })
       }
-
     }finally{
       enviando.value = false
     }
@@ -336,91 +363,124 @@
   const reenviarNotificacion = async (user) => {
     try{
       await userStore.resendInvitation(user.id)
-      Swal.fire({
-        icon: 'success',
-        title: 'Invitación reenviada',
-        text: `Se ha enviado a ${user.email}`
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: `Invitación reenviada a ${user.email}`,
+        life: 3500
       })
-
     }catch(error){
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.response?.data?.message || 'No se pudo reenviar.'
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: error.response?.data?.message || 'No se pudo reenviar la invitación.',
+        life: 5000
       })
     }
   }
 
-  const cambiarEstado = (user) => {
+  const cambiarEstado = async (user) => {
     if(user.id === 1){
-      return Swal.fire('Protegido', 'No se puede cambiar el estado del usuario master.', 'warning')
+      return toast.add({
+        severity: 'warn',
+        summary: 'Protegido',
+        detail: 'No se puede cambiar el estado del usuario master.',
+        life: 3500
+      })
     }
     if(user.estado === 'PENDIENTE'){
-      return Swal.fire('Pendiente', 'El usuario debe aceptar la invitación primero.', 'info')
+      return toast.add({
+        severity: 'info',
+        summary: 'Pendiente',
+        detail: 'El usuario debe aceptar la invitación primero.',
+        life: 3500
+      })
     }
 
     const nuevoEstado = user.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO'
-    Swal.fire({
+    const result = await Swal.fire({
       title: `¿Pasar a ${nuevoEstado}?`,
       text: `El usuario ${user.name} cambiará su estado de acceso.`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: nuevoEstado === 'ACTIVO' ? '#008a00' : '#d1333e',
-      cancelButtonColor: '#708090',
+      cancelButtonColor: '#d6dfd6',
       confirmButtonText: `Sí, pasar a ${nuevoEstado}`,
-      reverseButtons: true
-    }).then( async (result) => {
-      if(result.isConfirmed){
-        try{
-          await userStore.changeStatus(user.id)
-          Swal.fire({
-            icon: 'success',
-            title: 'Estado Actualizado',
-            showConfirmButton: false,
-            timer: 2500
-          })
-
-        }catch(error){
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.response?.data?.message || 'No se pudo cambiar el estado.'
-          })
-        }
-      }
+      cancelButtonText: 'Cancelar',
+      customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
+      reverseButtons: true,
+      allowOutsideClick: false
     })
+
+    if(result.isConfirmed){
+      try{
+        await userStore.changeStatus(user.id)
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: `Estado actualizado a ${nuevoEstado}`,
+          life: 3500
+        })
+      } catch(error){
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.response?.data?.message || 'No se pudo cambiar el estado.',
+          life: 5000
+        })
+      }
+    }
   }
 
-  const borrar = (user) => {
+  const borrar = async (user) => {
     if(user.id === 1){
-      return Swal.fire('Protegido', 'No se puede eliminar al usuario maestro.', 'warning')
+      return toast.add({
+        severity: 'warn',
+        summary: 'Protegido',
+        detail: 'No se puede eliminar al usuario maestro.',
+        life: 3500
+      })
     }
     if(user.estado === 'ACTIVO'){
-      return Swal.fire('Activo', 'Debes desactivarlo antes de eliminarlo.', 'warning')
+      return toast.add({
+        severity: 'warn',
+        summary: 'Acción no permitida',
+        detail: 'Debes desactivar el usuario antes de poder eliminarlo.',
+        life: 3500
+      })
     }
-    usuarioEliminar.value = user
-    mostrarModalEliminar.value = true
-  }
 
-  const ejecutarEliminacion = async () => {
-    if(!usuarioEliminar.value) return
-    try{
-      await userStore.deleteUser(usuarioEliminar.value.id)
-      Swal.fire({
-        icon: 'success',
-        title: 'Eliminado!',
-        showConfirmButton: false,
-        timer: 2500
-      })
-      mostrarModalEliminar.value = false
-      usuarioEliminar.value = null
+    const result = await Swal.fire({
+      title: '¿Eliminar usuario?',
+      text: `Se eliminará el usuario "${user.name}". Esta acción no se puede revertir.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d1333e',
+      cancelButtonColor: '#d6dfd6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      customClass: { cancelButton: '!text-[#3a5a3a] !font-bold' },
+      reverseButtons: true,
+      allowOutsideClick: false
+    })
 
-    }catch(error){
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.response?.data?.message || 'No se pudo eliminar.'
-      })
+    if(result.isConfirmed){
+      try{
+        await userStore.deleteUser(user.id)
+        toast.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Usuario eliminado correctamente',
+          life: 3500
+        })
+      } catch(error){
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.response?.data?.message || 'No se pudo eliminar el usuario.',
+          life: 5000
+        })
+      }
     }
   }
 
