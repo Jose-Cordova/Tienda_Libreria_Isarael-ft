@@ -97,7 +97,11 @@
               </div>
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Teléfono</label>
-                <SelectorPaisTelefono ref="selectorTelefono" v-model="formulario.telefono" />
+                <SelectorPaisTelefono
+                  ref="selectorTelefono"
+                  v-model="formulario.telefono"
+                  :error="!!errores.telefono"
+                />
                 <small v-if="errores.telefono" class="text-red-500 text-xs block">{{ errores.telefono }}</small>
               </div>
               <div class="space-y-2">
@@ -194,18 +198,21 @@
   const procesarGuradado = async () => {
     limpiarErrores()
 
-    // Validar teléfono si se ingresó un número
-    if (formulario.value.telefono && formulario.value.telefono.trim() !== '') {
-      const telefonoValido = selectorTelefono.value?.validar() ?? false
-      if (!telefonoValido) {
-        errores.value.telefono = selectorTelefono.value?.getError() || 'Teléfono inválido.'
-        return
-      }
-    }
-
     // Validación inline requerida
     if(!formulario.value.nombre || !formulario.value.nombre.trim()){
       errores.value.nombre = 'El nombre del proveedor es obligatorio.'
+      return
+    }
+
+    // Validar teléfono (obligatorio y con formato válido)
+    if (!formulario.value.telefono || !formulario.value.telefono.trim()) {
+      errores.value.telefono = 'El teléfono es obligatorio.'
+      return
+    }
+
+    const telefonoValido = selectorTelefono.value?.validar() ?? false
+    if (!telefonoValido) {
+      errores.value.telefono = selectorTelefono.value?.getError() || 'Teléfono inválido.'
       return
     }
 
