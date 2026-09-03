@@ -33,10 +33,8 @@
 
             <!-- Productos (primeros 2 + resto) -->
             <td class="py-4 px-5">
-              <!-- Separamos los nombres de productos en un array -->
               <template v-if="venta.productos">
                 <div class="font-bold text-gray-800 text-xs leading-tight">
-                  <!-- Mostramos máximo 2 nombres -->
                   {{ venta.productos.split(', ').slice(0, 2).join(', ') }}
                 </div>
                 <div v-if="venta.itemsCount > 2" class="text-[10px] text-gray-400 font-bold mt-0.5">
@@ -100,13 +98,13 @@
                   @click="$emit('ver-detalle', venta)"
                 />
                 <Button
-                icon="pi pi-ban"
-                class="p-button-rounded p-button-text p-button-sm"
-                :class="(venta.estado === 'Anulada' || venta.estado === 'Devolucion') ? 'opacity-30 cursor-not-allowed' : 'p-button-danger'"
-                :disabled="venta.estado === 'Anulada' || venta.estado === 'Devolucion'"
-                v-tooltip="(venta.estado === 'Anulada' || venta.estado === 'Devolucion') ? 'Venta no anulable' : 'Anular'"
-                @click="$emit('anular', venta)"
-              />
+                  icon="pi pi-ban"
+                  class="p-button-rounded p-button-text p-button-sm"
+                  :class="(venta.estado === 'Anulada' || venta.estado === 'Devolucion') ? 'opacity-30 cursor-not-allowed' : 'p-button-danger'"
+                  :disabled="venta.estado === 'Anulada' || venta.estado === 'Devolucion'"
+                  v-tooltip="(venta.estado === 'Anulada' || venta.estado === 'Devolucion') ? 'Venta no anulable' : 'Anular'"
+                  @click="abrirConfirmacionAnular(venta)"
+                />
               </div>
             </td>
           </tr>
@@ -116,10 +114,48 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Modal de confirmación de anulación -->
+    <div
+      v-if="mostrarConfirmarAnular"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-[70] backdrop-blur-sm p-4 text-center"
+    >
+      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
+        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
+        <div class="p-10">
+          <div class="flex justify-center mb-6 text-red-500">
+            <i class="pi pi-ban text-6xl"></i>
+          </div>
+          <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Anular esta venta?</h2>
+          <p class="text-sm text-gray-500 mb-8 font-medium leading-relaxed">
+            Se anulará la venta con correlativo
+            <span class="text-gray-800 font-bold">"{{ ventaAAnular?.correlativo }}"</span>
+            del día <span class="text-gray-800 font-bold">"{{ ventaAAnular?.fecha }}"</span>
+            por un total de
+            <span class="text-green-700 font-bold">${{ Number(ventaAAnular?.total).toFixed(2) }}</span>.
+          </p>
+          <div class="flex items-center gap-3">
+            <button
+              @click="mostrarConfirmarAnular = false"
+              class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white transition-colors text-sm"
+            >
+              Cancelar
+            </button>
+            <button
+              @click="confirmarAnulacion"
+              class="flex-1 py-3 bg-[#d1333e] hover:bg-[#a82430] text-white font-bold rounded-xl shadow-md transition-colors text-sm"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import Button from 'primevue/button';
 
 defineProps({
@@ -129,7 +165,22 @@ defineProps({
   }
 });
 
-defineEmits(['ver-detalle', 'anular']);
+const emit = defineEmits(['ver-detalle', 'anular']);
+
+// Lógica de confirmación
+const mostrarConfirmarAnular = ref(false);
+const ventaAAnular = ref(null);
+
+const abrirConfirmacionAnular = (venta) => {
+  ventaAAnular.value = venta;
+  mostrarConfirmarAnular.value = true;
+};
+
+const confirmarAnulacion = () => {
+  emit('anular', ventaAAnular.value);
+  mostrarConfirmarAnular.value = false;
+  ventaAAnular.value = null;
+};
 </script>
 
 <style scoped>
@@ -139,5 +190,13 @@ defineEmits(['ver-detalle', 'anular']);
 .overflow-x-auto::-webkit-scrollbar-thumb {
   background-color: #c6e5d3;
   border-radius: 4px;
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.3s ease-out forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
