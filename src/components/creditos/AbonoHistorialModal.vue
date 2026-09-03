@@ -119,7 +119,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'anular-abono']);
 
-// --- paginación ---
+// --- paginacion ---
 const filasPorPagina = 10;
 const paginaActual = ref(1);
 
