@@ -35,7 +35,11 @@
               </thead>
               <tbody class="divide-y divide-gray-100">
                 <tr v-for="abono in abonosPaginados" :key="abono.id">
-                  <td class="py-3 px-3 font-bold text-gray-600">{{ abono.fecha }}</td>
+                  <!-- Solo fecha formateada -->
+                  <td class="py-3 px-3 font-bold text-gray-600">
+                    {{ formatearFecha(abono.fecha) }}
+                  </td>
+
                   <td class="py-3 px-3 font-extrabold text-green-700">${{ Number(abono.monto).toFixed(2) }}</td>
                   <td class="py-3 px-3 font-bold text-gray-700">{{ abono.metodo }}</td>
                   <td class="py-3 px-3">
@@ -80,7 +84,7 @@
           </div>
           <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Anular este abono?</h2>
           <p class="text-sm text-gray-500 mb-8 font-medium leading-relaxed">
-            Se anulará el abono del día <span class="text-gray-800 font-bold">"{{ abonoAAnular?.fecha }}"</span> por un monto de <span class="text-green-700 font-bold">${{ Number(abonoAAnular?.monto).toFixed(2) }}</span>.
+            Se anulará el abono del día <span class="text-gray-800 font-bold">"{{ formatearFecha(abonoAAnular?.fecha) }}"</span> por un monto de <span class="text-green-700 font-bold">${{ Number(abonoAAnular?.monto).toFixed(2) }}</span>.
           </p>
           <div class="flex items-center gap-3">
             <button
@@ -115,7 +119,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'anular-abono']);
 
-// --- paginación ---
+// --- paginacion ---
 const filasPorPagina = 10;
 const paginaActual = ref(1);
 
@@ -128,6 +132,17 @@ const abonosPaginados = computed(() => {
 
 const cambiarPagina = (event) => {
   paginaActual.value = event.page + 1;
+};
+
+// --- Formateo de fecha (solo fecha) ---
+const formatearFecha = (fecha) => {
+  if (!fecha) return '-';
+  const d = new Date(fecha);
+  return d.toLocaleDateString('es-SV', {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric'
+  });
 };
 
 // --- Lógica de anulación ---
