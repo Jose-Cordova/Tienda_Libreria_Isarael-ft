@@ -70,7 +70,7 @@
 
     <!-- Monto recibido y vuelto (solo PAGADA y NO transferencia) -->
     <div v-if="ventaStore.estado !== 'CREDITO' && !ventaStore.isTransferencia" class="bg-shop-surface-2 p-3 rounded-shop border border-shop-border mt-1">
-      <label class="text-[11px] font-bold text-shop-text-2 uppercase mb-1 block">El cliente pagó con:</label>
+      <label class="text-[11px] font-bold text-shop-text-2 uppercase mb-1 block">Dinero Recibido:</label>
       <div class="p-inputgroup">
         <span class="p-inputgroup-addon bg-white font-bold text-shop-green">$</span>
         <InputNumber
