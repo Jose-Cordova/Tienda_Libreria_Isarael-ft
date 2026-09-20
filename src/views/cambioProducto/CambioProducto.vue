@@ -16,6 +16,39 @@
         />
       </div>
 
+      <!-- Tarjetas Resumen KPI -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-[20px] shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center font-bold text-xl shrink-0">
+            <i class="pi pi-check-circle"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Aceptados</p>
+            <h4 class="text-lg font-extrabold text-gray-800">{{ kpis.cantidadAceptados }} reg.</h4>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-[20px] shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center font-bold text-xl shrink-0">
+            <i class="pi pi-times-circle"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Rechazados</p>
+            <h4 class="text-lg font-extrabold text-gray-800">{{ kpis.cantidadRechazados }} reg.</h4>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-[20px] shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xl shrink-0">
+            <i class="pi pi-calendar-times"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Vencimientos</p>
+            <h4 class="text-lg font-extrabold text-gray-800">{{ kpis.cantidadVencidos }} reg.</h4>
+          </div>
+        </div>
+      </div>
+
       <!-- Fila Inferior: Filtros -->
       <div class="flex flex-wrap items-center gap-3 w-full">
         <span class="relative flex-1 sm:flex-none">
@@ -90,6 +123,9 @@
                 <div class="flex flex-col">
                   <span class="text-gray-800">{{ item.producto?.nombre }}</span>
                   <span class="text-[11px] text-gray-400">{{ item.producto?.marca?.nombre || 'Sin marca' }}</span>
+                  <span v-if="item.origen === 'VENCIMIENTO'" class="text-[9px] font-extrabold bg-red-100 text-red-700 px-1.5 py-0.5 rounded uppercase mt-1 w-fit">
+                    Vencimiento
+                  </span>
                 </div>
               </td>
               <td class="py-4 px-5">
@@ -111,17 +147,20 @@
               </td>
               <td class="py-4 px-5">
                 <div class="flex items-center justify-center gap-1">
+                  <!-- Botón Resumen (siempre visible) -->
+                  <Button icon="pi pi-eye" v-tooltip.top="'Ver resumen'" class="p-button-rounded p-button-text p-button-sm !text-blue-600 hover:!bg-blue-50" @click="verResumen(item)" />
                   <template v-if="item.estado === 'PENDIENTE'">
+                    <Button icon="pi pi-pencil" v-tooltip.top="'Editar cantidad'" class="p-button-rounded p-button-text p-button-sm !text-blue-600 hover:!bg-blue-50" @click="procesarEditarCantidad(item)" />
                     <Button icon="pi pi-check" v-tooltip.top="'Aceptar reemplazo'" class="p-button-rounded p-button-text p-button-sm p-button-success !text-green-600 hover:!bg-green-50" @click="procesarAceptar(item)" />
                     <Button icon="pi pi-times" v-tooltip.top="'Rechazar reclamación'" class="p-button-rounded p-button-text p-button-sm p-button-danger !text-red-600 hover:!bg-red-50" @click="procesarRechazar(item)" />
-                    <Button icon="pi pi-ban" v-tooltip.top="'Anular registro (Revertir)'" class="p-button-rounded p-button-text p-button-sm p-button-warning !text-amber-600 hover:!bg-amber-50" @click="procesarAnular(item)" />
+                    <Button v-if="item.origen !== 'VENCIMIENTO'" icon="pi pi-ban" v-tooltip.top="'Anular registro (Revertir)'" class="p-button-rounded p-button-text p-button-sm p-button-warning !text-amber-600 hover:!bg-amber-50" @click="procesarAnular(item)" />
                   </template>
-                  <span v-else class="text-xs text-gray-400 italic font-medium">Completado</span>
+                  <span v-if="item.estado !== 'PENDIENTE'" class="text-xs text-gray-400 italic font-medium">Completado</span>
                 </div>
               </td>
             </tr>
             <tr v-if="cambios.length === 0">
-              <td colspan="8" class="py-12 text-center text-gray-400">
+              <td colspan="9" class="py-12 text-center text-gray-400">
                 <span class="italic text-sm">No hay registros de devoluciones al proveedor.</span>
               </td>
             </tr>
@@ -146,6 +185,95 @@
 
     <!-- Wizard: Aceptar Reemplazo -->
     <CambioWizardAceptar v-model:visible="mostrarModalAceptar" :itemAceptar="itemAceptar" @procesado="cargarRegistros" />
+
+    <!-- Modal Resumen del Cambio -->
+    <Teleport to="body">
+      <div v-if="mostrarResumen && itemResumen" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] backdrop-blur-sm p-4 font-dm-sans">
+        <div class="bg-white rounded-[24px] w-[95vw] max-w-xl shadow-2xl relative overflow-hidden border border-gray-100 animate-fade-up">
+          <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
+          <button @click="cerrarResumen" class="absolute top-5 right-6 text-gray-400 hover:text-gray-700 transition z-10">
+            <i class="pi pi-times text-lg"></i>
+          </button>
+
+          <div class="p-8 pt-10 text-left">
+            <!-- Encabezado del resumen -->
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <i class="pi pi-eye text-lg"></i>
+              </div>
+              <div>
+                <h2 class="text-lg font-extrabold text-[#0a3622]">Resumen del Registro</h2>
+                <p class="text-[12px] text-gray-400 font-medium">Detalle del cambio de producto</p>
+              </div>
+            </div>
+
+            <!-- Datos del producto -->
+            <div class="space-y-4">
+              <!-- Nombre del producto -->
+              <div class="flex justify-between items-start border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Producto</span>
+                <div class="text-right">
+                  <p class="text-sm font-extrabold text-gray-800">{{ itemResumen.producto?.nombre }}</p>
+                  <p class="text-[11px] text-gray-400">{{ itemResumen.producto?.marca?.nombre || 'Sin marca' }}</p>
+                </div>
+              </div>
+
+              <!-- Fecha de vencimiento (solo si perecedero) -->
+              <div v-if="itemResumen.producto?.perecedero === 'PERECEDERO'" class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Fecha Vencimiento</span>
+                <span v-if="itemResumen.lote?.fecha_vencimiento"
+                  :class="esVencido(itemResumen.lote.fecha_vencimiento) ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200'"
+                  class="text-[11px] font-extrabold px-2.5 py-1 rounded-full border">
+                  {{ formatearFecha(itemResumen.lote.fecha_vencimiento) }}
+                  <span v-if="esVencido(itemResumen.lote.fecha_vencimiento)" class="ml-1">· VENCIDO</span>
+                </span>
+                <span v-else class="text-[11px] text-gray-400 italic">Sin fecha</span>
+              </div>
+
+              <!-- Lote (si perecedero) -->
+              <div v-if="itemResumen.producto?.perecedero === 'PERECEDERO'" class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Lote</span>
+                <span class="text-sm font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                  {{ itemResumen.lote?.codigo_lote || 'Sin lote' }}
+                </span>
+              </div>
+
+              <!-- Cantidad -->
+              <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Cantidad</span>
+                <span class="text-sm font-extrabold text-gray-800">{{ itemResumen.cantidad }} uds.</span>
+              </div>
+
+              <!-- Fecha del registro -->
+              <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Fecha registro</span>
+                <span class="text-sm font-bold text-gray-600">{{ formatearFecha(itemResumen.fecha) }}</span>
+              </div>
+
+              <!-- Motivo / Descripción -->
+              <div class="flex justify-between items-start border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Motivo / Descripción</span>
+                <p class="text-xs font-bold text-gray-700 max-w-xs text-right">{{ itemResumen.descripcion || 'Sin descripción' }}</p>
+              </div>
+
+              <!-- Estado -->
+              <div class="flex justify-between items-center">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Estado</span>
+                <span :class="obtenerBadgeClase(itemResumen.estado)" class="text-[11px] font-extrabold px-3 py-1 rounded-full uppercase inline-flex items-center gap-1.5 border">
+                  <span class="w-2 h-2 rounded-full" :class="obtenerPuntoClase(itemResumen.estado)"></span>
+                  {{ itemResumen.estado }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Botón cerrar -->
+            <button @click="cerrarResumen" class="w-full mt-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition text-sm">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </main>
 </template>
 
@@ -166,6 +294,33 @@ const store = useCambioProductoStore();
 const toast = useToast();
 
 const cambios = computed(() => store.cambios);
+
+const kpis = computed(() => {
+  const lista = cambios.value || [];
+  let totalPendiente = 0;
+  let cantidadPendientes = 0;
+  let cantidadAceptados = 0;
+  let cantidadRechazados = 0;
+  let cantidadVencidos = 0;
+
+  lista.forEach(item => {
+    if (item.estado === 'PENDIENTE') {
+      totalPendiente += parseFloat(item.total_perdida || 0);
+      cantidadPendientes++;
+    }
+    if (item.estado === 'ACEPTADO') cantidadAceptados++;
+    if (item.estado === 'RECHAZADO') cantidadRechazados++;
+    if (item.origen === 'VENCIMIENTO') cantidadVencidos++;
+  });
+
+  return {
+    totalPendiente,
+    cantidadPendientes,
+    cantidadAceptados,
+    cantidadRechazados,
+    cantidadVencidos
+  };
+});
 
 const paginacion = ref({ pagina_actual: 1, filas_por_pagina: 10, total: 0 });
 const busqueda = ref('');
@@ -233,6 +388,41 @@ const limpiarFiltros = () => {
 };
 
 const abrirNuevo = () => { mostrarModal.value = true; };
+
+const procesarEditarCantidad = (item) => {
+  Swal.fire({
+    title: 'Editar Cantidad',
+    text: `Ingrese la cantidad corregida para "${item.producto?.nombre}":`,
+    input: 'number',
+    inputValue: item.cantidad,
+    inputAttributes: {
+      min: '1',
+      step: '1'
+    },
+    showCancelButton: true,
+    confirmButtonText: 'Guardar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#062c1b',
+    cancelButtonColor: '#708090',
+    inputValidator: (value) => {
+      if (!value || parseInt(value) < 1) {
+        return 'Por favor ingrese una cantidad válida (mínimo 1).';
+      }
+    }
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const nuevaCantidad = parseInt(result.value);
+        const response = await store.actualizarCantidadCambio(item.id, nuevaCantidad);
+        mostrarToast(response.data.message);
+        cargarRegistros();
+      } catch (error) {
+        console.error(error);
+        mostrarToast(error.response?.data?.message || 'Error al actualizar la cantidad.', 'error');
+      }
+    }
+  });
+};
 
 const procesarAceptar = (item) => {
   itemAceptar.value = item;
@@ -316,6 +506,25 @@ const obtenerPuntoClase = (estado) => {
   }
 };
 
+// Modal Resumen
+const mostrarResumen = ref(false);
+const itemResumen = ref(null);
+
+const verResumen = (item) => {
+  itemResumen.value = item;
+  mostrarResumen.value = true;
+};
+
+const cerrarResumen = () => {
+  mostrarResumen.value = false;
+  itemResumen.value = null;
+};
+
+const esVencido = (fechaVencimiento) => {
+  if (!fechaVencimiento) return false;
+  return new Date(fechaVencimiento) < new Date();
+};
+
 onMounted(() => cargarRegistros());
 </script>
 
@@ -328,4 +537,9 @@ onMounted(() => cargarRegistros());
 :deep(.custom-prime-calendar .p-inputtext) { border-radius: 12px; padding: 0.75rem; border: 1px solid #e2e8f0; font-weight: bold; font-size: 0.875rem; }
 :deep(.custom-calendar-input .p-datepicker-trigger) { background: transparent; border: none; color: #64748b; position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); width: auto; height: auto; box-shadow: none; padding: 0; }
 :deep(.custom-calendar-input .p-inputtext) { padding-right: 2.5rem; }
+.animate-fade-up { animation: fadeUp 0.25s ease-out forwards; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>

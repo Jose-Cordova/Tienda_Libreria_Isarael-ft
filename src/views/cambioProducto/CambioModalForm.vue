@@ -8,11 +8,12 @@
         </button>
         <div class="p-10">
           <div class="mb-6">
-            <h2 class="text-xl font-extrabold text-[#0a3622] mb-1">Nuevo Cambio</h2>
+            <h2 class="text-xl font-extrabold text-[#0a3622] mb-1">Nuevo Cambio de Producto</h2>
             <p class="text-[14px] text-gray-400 font-medium">Devolución de mercancía al proveedor para reemplazo</p>
           </div>
           <form @submit.prevent="guardar" class="space-y-6">
             <div class="grid grid-cols-2 gap-x-8 gap-y-6">
+              <!-- Producto -->
               <div class="col-span-2 space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Producto *</label>
                 <Dropdown
@@ -27,6 +28,8 @@
                   :loading="cargandoProductos"
                 />
               </div>
+
+              <!-- Lote (si perecedero) -->
               <div v-if="esPerecederoSeleccionado" class="col-span-1 space-y-2 text-left">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Lote *</label>
                 <Dropdown
@@ -34,24 +37,26 @@
                   :options="lotesDisponibles"
                   optionLabel="codigo_lote"
                   optionValue="id"
-                  placeholder="Elegir..."
-                  class="w-full border border-gray-200 rounded-xl text-sm h-[43px] flex items-center font-bold"
+                  placeholder="Elegir lote..."
+                  class="w-full border border-gray-200 rounded-xl text-sm h-[54px] flex items-center font-bold"
                   filter
                 />
               </div>
-              <div class="col-span-1 space-y-2 text-left">
+
+              <!-- Cantidad -->
+              <div :class="esPerecederoSeleccionado ? 'col-span-1' : 'col-span-2'" class="space-y-2 text-left">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Cantidad *</label>
-                <InputNumber v-model="formulario.cantidad" :min="1" inputClass="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" placeholder="0" />
+                <InputNumber v-model="formulario.cantidad" :min="1" inputClass="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" placeholder="1" />
               </div>
-              <div class="space-y-2 text-left">
-                <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Costo Unitario ($)</label>
-                <InputNumber v-model="formulario.costo_unitario" mode="decimal" :minFractionDigits="2" inputClass="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold bg-gray-50/50" disabled />
-              </div>
+
+              <!-- Motivo -->
               <div class="col-span-2 space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Motivo *</label>
-                <Textarea v-model="formulario.descripcion" rows="3" class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" placeholder="Explique brevemente qué ocurrió..." />
+                <Textarea v-model="formulario.descripcion" rows="3" class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" placeholder="Explique el motivo de la devolución..." />
               </div>
             </div>
+
+            <!-- Acciones -->
             <div class="flex items-center gap-4 mt-10">
               <button type="button" @click="cerrar" class="px-8 py-4 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#c7c7c7] hover:bg-white transition-all text-sm flex-1">Cancelar</button>
               <button type="submit" class="flex-[2] py-4 bg-[#0a3622] hover:bg-[#115033] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-widest" :disabled="guardando">
@@ -95,7 +100,6 @@ const formulario = ref({
   producto_id: null,
   lote_id: null,
   cantidad: 1,
-  costo_unitario: 0,
   descripcion: ''
 });
 
@@ -105,7 +109,6 @@ watch(() => props.visible, (newVal) => {
       producto_id: null,
       lote_id: null,
       cantidad: 1,
-      costo_unitario: 0,
       descripcion: ''
     };
     lotesDisponibles.value = [];
@@ -130,7 +133,7 @@ const cargarProductos = async () => {
   try {
     cargandoProductos.value = true;
     const response = await productoService.getProductos({ estado: 'ACTIVO', sin_paginar: true });
-    productosDisponibles.value = response.data;
+    productosDisponibles.value = response.data || [];
   } catch (error) {
     console.error(error);
     mostrarToast('No se pudieron cargar los productos.', 'error');
@@ -147,7 +150,6 @@ const esPerecederoSeleccionado = computed(() => {
 const onProductoChange = () => {
   const prod = productosDisponibles.value.find(p => p.id === formulario.value.producto_id);
   if (prod) {
-    formulario.value.costo_unitario = parseFloat(prod.costo_promedio || 0.00);
     if (prod.perecedero === 'PERECEDERO') {
       lotesDisponibles.value = prod.lotes || [];
       formulario.value.lote_id = null;
@@ -160,7 +162,11 @@ const onProductoChange = () => {
 
 const guardar = async () => {
   if (!formulario.value.producto_id || !formulario.value.descripcion) {
-    mostrarToast('Por favor complete los campos obligatorios', 'warn');
+    mostrarToast('Por favor complete los campos obligatorios.', 'warn');
+    return;
+  }
+  if (esPerecederoSeleccionado.value && !formulario.value.lote_id) {
+    mostrarToast('Seleccione el lote del producto perecedero.', 'warn');
     return;
   }
 

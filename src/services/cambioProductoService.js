@@ -18,5 +18,8 @@ export default {
   },
   rechazar(id) {
     return api.post(`/cambios-productos/${id}/rechazar`)
+  },
+  actualizarCantidad(id, cantidad) {
+    return api.patch(`/cambios-productos/${id}/cantidad`, { cantidad })
   }
 }
