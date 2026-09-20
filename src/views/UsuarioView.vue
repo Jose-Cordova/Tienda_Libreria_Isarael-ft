@@ -92,22 +92,30 @@
               </td>
               <td class="py-4 px-5">
                 <div class="flex items-center justify-center gap-1">
-                  <!-- Solo si NO es el Master Admin -->
-                  <template v-if="user.id !== 1">
+                  <!-- Si es el Master Admin (ID 1) o el usuario actualmente autenticado -->
+                  <template v-if="user.id === 1 || user.id === currentUserId">
+                    <Button icon="pi pi-lock" class="p-button-rounded p-button-text p-button-sm p-button-secondary" disabled />
+                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirEditar(user)" />
+                  </template>
+
+                  <!-- Para el resto de usuarios -->
+                  <template v-else>
                     <!-- Botón Reenviar (Solo Pendientes) -->
                     <Button
                       v-if="user.estado === 'PENDIENTE'"
                       icon="pi pi-send"
                       class="p-button-rounded p-button-text p-button-sm p-button-info"
+                      title="Reenviar invitación"
                       @click="reenviarNotificacion(user)"
                     />
-                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirEditar(user)" />
+                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" title="Editar usuario" @click="abrirEditar(user)" />
                     <!-- Botón Cambiar Estado (Activo/Inactivo) -->
                     <Button
                       v-if="user.estado !== 'PENDIENTE'"
                       :icon="user.estado === 'ACTIVO' ? 'pi pi-user-minus' : 'pi pi-user-plus'"
                       :class="user.estado === 'ACTIVO' ? 'p-button-danger' : 'p-button-success'"
                       class="p-button-rounded p-button-text p-button-sm"
+                      :title="user.estado === 'ACTIVO' ? 'Inactivar usuario' : 'Activar usuario'"
                       @click="cambiarEstado(user)"
                     />
                     <!-- Botón Borrar -->
@@ -115,13 +123,9 @@
                       v-if="user.estado === 'PENDIENTE' || user.estado === 'INACTIVO'"
                       icon="pi pi-trash"
                       class="p-button-rounded p-button-text p-button-sm p-button-danger"
+                      title="Eliminar usuario"
                       @click="borrar(user)"
                     />
-                  </template>
-                  <!-- Si es Master Admin, solo permitir edición -->
-                  <template v-else>
-                    <Button icon="pi pi-lock" class="p-button-rounded p-button-text p-button-sm p-button-secondary" disabled />
-                    <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirEditar(user)" />
                   </template>
                 </div>
               </td>
@@ -186,10 +190,12 @@
                     v-model="formulario.rol"
                     :options="roles"
                     placeholder="Seleccionar"
-                    :disabled="formulario.id === 1"
+                    :disabled="formulario.id === 1 || formulario.id === currentUserId"
                     class="w-full border border-gray-200 rounded-xl text-sm h-[54px] flex items-center font-bold disabled:bg-gray-100 disabled:opacity-70"
                     :class="{ 'border-red-500': errores.rol }"
                   />
+                  <small v-if="formulario.id === currentUserId && esEdicion" class="text-gray-500 text-xs block font-medium">No puedes modificar tu propio rol de usuario.</small>
+                  <small v-else-if="formulario.id === 1 && esEdicion" class="text-gray-500 text-xs block font-medium">El rol del usuario master es permanente.</small>
                   <small v-if="errores.rol" class="text-red-500 text-xs block">{{ errores.rol }}</small>
                 </div>
               </div>
@@ -215,6 +221,7 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue';
   import { useUserStore } from '@/stores/userStore';
+  import { useAuthStore } from '@/stores/authStore';
   import Swal from 'sweetalert2';
   import { useToast } from 'primevue/usetoast';
   import InputText from 'primevue/inputtext';
@@ -223,7 +230,10 @@
   import Paginator from 'primevue/paginator';
 
   const userStore = useUserStore()
+  const authStore = useAuthStore()
   const toast = useToast()
+
+  const currentUserId = computed(() => authStore.user?.id)
 
   // Datos reactivos del store
   const usuarios = computed(() => userStore.users)
@@ -388,6 +398,14 @@
         life: 3500
       })
     }
+    if(user.id === currentUserId.value){
+      return toast.add({
+        severity: 'warn',
+        summary: 'Acción no permitida',
+        detail: 'No puedes cambiar el estado de tu propia cuenta.',
+        life: 3500
+      })
+    }
     if(user.estado === 'PENDIENTE'){
       return toast.add({
         severity: 'info',
@@ -438,6 +456,14 @@
         severity: 'warn',
         summary: 'Protegido',
         detail: 'No se puede eliminar al usuario maestro.',
+        life: 3500
+      })
+    }
+    if(user.id === currentUserId.value){
+      return toast.add({
+        severity: 'warn',
+        summary: 'Acción no permitida',
+        detail: 'No puedes eliminar tu propia cuenta de usuario.',
         life: 3500
       })
     }
