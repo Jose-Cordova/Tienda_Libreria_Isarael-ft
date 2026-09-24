@@ -4,12 +4,9 @@
     <div class="p-3 sm:p-4 bg-white border-b border-shop-border shrink-0">
       <div class="relative w-full flex items-center group">
         <i class="pi pi-search absolute left-4 z-10 text-shop-green text-sm" />
-        <InputText
-          v-model="busqueda"
-          placeholder="Buscar producto..."
+        <InputText v-model="busqueda" placeholder="Buscar producto..."
           class="w-full !pl-12 border-2 focus:border-shop-green transition-colors font-bold rounded-shop text-sm"
-          @input="debouncedSearch"
-        />
+          @input="debouncedSearch" />
       </div>
     </div>
 
@@ -21,12 +18,8 @@
     <!-- Grid de productos -->
     <div v-else class="flex-1 overflow-y-auto p-4 custom-scrollbar">
       <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-        <div
-          v-for="prod in productos"
-          :key="prod.id"
-          @click="seleccionarProducto(prod)"
-          class="bg-white border border-shop-border rounded-shop-sm p-3 cursor-pointer hover:border-shop-green hover:shadow-shop transition-all flex flex-col justify-between"
-        >
+        <div v-for="prod in productos" :key="prod.id" @click="seleccionarProducto(prod)"
+          class="bg-white border border-shop-border rounded-shop-sm p-3 cursor-pointer hover:border-shop-green hover:shadow-shop transition-all flex flex-col justify-between">
           <div class="mb-2">
             <span class="text-[10px] uppercase font-bold text-shop-text tracking-wider">
               {{ prod.categoria?.nombre ?? 'Sin categoría' }}
@@ -53,29 +46,18 @@
 
       <!-- Paginador corregido -->
       <div v-if="!loading && totalRegistros > 0" class="flex justify-center mt-4">
-        <Paginator
-          :rows="10"
-          :totalRecords="totalRegistros"
-          :first="(pagina - 1) * 10"
-          @page="onPageChange"
-          template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
-          class="bg-transparent p-0"
-          :pt="{
+        <Paginator :rows="10" :totalRecords="totalRegistros" :first="(pagina - 1) * 10" @page="onPageChange"
+          template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" class="bg-transparent p-0" :pt="{
             pageButton: { class: 'w-8 h-8 text-sm font-bold rounded-shop-sm text-shop-text-2 hover:bg-shop-green-pale hover:text-shop-green' },
             activePageButton: { class: 'bg-shop-green text-white hover:bg-shop-green-dark' }
-          }"
-        />
+          }" />
       </div>
     </div>
 
     <!-- Modal de confirmación con cantidad -->
-    <Dialog
-      v-model:visible="mostrarModalProducto"
-      modal
-      :header="productoSeleccionado?.nombre"
+    <Dialog v-model:visible="mostrarModalProducto" modal :header="productoSeleccionado?.nombre"
       class="w-[90vw] max-w-[350px]"
-      :pt="{ root: { class: 'rounded-shop overflow-hidden' }, header: { class: 'bg-white pb-2' } }"
-    >
+      :pt="{ root: { class: 'rounded-shop overflow-hidden' }, header: { class: 'bg-white pb-2' } }">
       <div class="flex flex-col gap-4 pt-4" v-if="productoSeleccionado">
         <div class="bg-shop-surface-2 p-4 rounded-shop-sm text-center border border-shop-border">
           <span class="text-xs font-bold text-shop-text-2 uppercase flex items-center justify-center gap-2">
@@ -88,22 +70,12 @@
 
         <div class="flex items-center gap-3">
           <label class="font-bold text-shop-text-2 text-sm">Cantidad:</label>
-          <InputNumber
-            v-model="cantidadSeleccionada"
-            :min="1"
-            :max="productoSeleccionado.stock"
-            class="flex-1"
-            inputClass="w-full text-center font-bold rounded-shop-sm"
-          />
+          <InputNumber v-model="cantidadSeleccionada" :min="1" :max="productoSeleccionado.stock" class="flex-1"
+            inputClass="w-full text-center font-bold rounded-shop-sm" />
         </div>
 
-        <Button
-          label="Agregar al Carrito"
-          icon="pi pi-shopping-cart"
-          class="w-full py-3 text-lg font-bold rounded-shop-sm"
-          severity="success"
-          @click="confirmarAgregar"
-        />
+        <Button label="Agregar al Carrito" icon="pi pi-shopping-cart"
+          class="w-full py-3 text-lg font-bold rounded-shop-sm" severity="success" @click="confirmarAgregar" />
       </div>
     </Dialog>
   </div>
@@ -134,7 +106,10 @@ const cargarProductos = async (search = '', page = 1) => {
     const params = { estado: 'ACTIVO', page }
     if (search) params.search = search
     const { data } = await api.get('/productos', { params })
-    productos.value = data.data
+
+    // ✅ Excluir productos sin stock (0 o menos)
+    productos.value = data.data.filter(p => Number(p.stock) >= 1)
+
     pagina.value = data.current_page
     totalRegistros.value = data.total
   } catch (error) {
@@ -172,6 +147,15 @@ const precioCalculado = computed(() => {
 })
 
 const seleccionarProducto = (prod) => {
+  if (Number(prod.stock) < 1) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Sin stock',
+      detail: `${prod.nombre} no tiene existencias disponibles`,
+      life: 3000
+    })
+    return
+  }
   productoSeleccionado.value = prod
   cantidadSeleccionada.value = 1
   mostrarModalProducto.value = true
@@ -189,10 +173,20 @@ const confirmarAgregar = () => {
     toast.add({ severity: 'error', summary: 'Error', detail: error.message || 'No se pudo agregar el producto', life: 4000 })
   }
 }
+defineExpose({ cargarProductos });
 </script>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background-color: #a7f3d0; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #a7f3d0;
+  border-radius: 10px;
+}
 </style>

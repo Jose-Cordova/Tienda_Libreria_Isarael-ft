@@ -66,7 +66,7 @@
         </button>
         <button
           @click="confirmar"
-          :disabled="!monto || monto <= 0 || !metodoPago"
+          :disabled="monto === null || monto === undefined || monto <= 0 || !metodoPago"
           class="flex-1 py-3 bg-[#0a3622] hover:bg-[#062417] text-white font-bold rounded-xl shadow-lg transition-all text-sm uppercase tracking-widest disabled:opacity-50"
         >
           Confirmar
@@ -89,12 +89,12 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'confirmar']);
 
-const monto = ref(0);
+const monto = ref(null);
 const metodoPago = ref(null);
 
 watch(() => props.visible, (newVal) => {
   if (newVal) {
-    monto.value = 0;
+    monto.value = null;
     metodoPago.value = null;
   }
 });

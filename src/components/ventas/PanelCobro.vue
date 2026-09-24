@@ -263,6 +263,7 @@ const mostrarModalNuevoCliente = ref(false);
 const mostrarConfirmarVenta = ref(false);
 
 const clientesCredito = ref([]);
+const emit = defineEmits(['venta-registrada']);
 
 onMounted(async () => {
   try {
@@ -360,7 +361,12 @@ const procesarVenta = async () => {
     }
     limpiarTodo();
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'No se pudo registrar la venta', life: 5000 });
+    // ✅ Extraer mensaje de errores de validación (422) o mensaje general
+    const errores = error.response?.data?.errors;
+    const mensaje = (errores && Object.values(errores)[0]?.[0])
+      || error.response?.data?.message
+      || 'No se pudo registrar la venta';
+    toast.add({ severity: 'error', summary: 'Error', detail: mensaje, life: 5000 });
   } finally {
     loading.value = false;
   }
@@ -368,7 +374,10 @@ const procesarVenta = async () => {
 
 const limpiarTodo = () => {
   ventaStore.resetCarrito();
-  // El store ya restablece montoRecibido a null, no es necesario aquí
+  opcionImprimirTicket.value = false;
+  clienteExistenteSeleccionado.value = null;
+  modoDialogo.value = 'buscar';
+  emit('venta-registrada');
 };
 </script>
 
