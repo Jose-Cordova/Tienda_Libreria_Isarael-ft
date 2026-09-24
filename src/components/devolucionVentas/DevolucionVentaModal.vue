@@ -413,7 +413,7 @@ const registrarDevolucion = async () => {
     if (selecciones[index]) {
       selecciones[index].forEach(sub => {
         if (sub.activo) {
-          // Validar descripción obligatoria cuando es DANIADO
+          // validar descripción obligatoria cuando es DANIADO
           if (sub.condicion === 'DANIADO' && !sub.descripcion.trim()) {
             sub.errorDescripcion = 'La descripción es obligatoria para productos dañados.';
             hayErrores = true;
