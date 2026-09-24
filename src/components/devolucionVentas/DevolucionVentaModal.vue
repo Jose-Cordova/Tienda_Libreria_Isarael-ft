@@ -70,7 +70,6 @@
           <div>Método: {{ ventaEncontrada.metodo_pago?.nombre || 'Sin método' }}</div>
         </div>
 
-        <!-- Aviso si la venta no es válida para devolución -->
         <div
           v-if="!ventaValida"
           class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm font-bold mt-3"
@@ -151,14 +150,20 @@
                   </div>
 
                   <div v-if="sub.condicion === 'DANIADO'" class="flex flex-col gap-1">
-                    <label class="text-xs font-bold text-gray-600">Descripción del daño:</label>
+                    <label class="text-xs font-bold text-gray-600">
+                      Descripción del daño: <span class="text-red-500">*</span>
+                    </label>
                     <Textarea
                       v-model="sub.descripcion"
                       rows="2"
                       class="w-full border border-gray-300 rounded-lg text-xs"
                       placeholder="Describa el daño..."
                       :disabled="!ventaValida"
+                      :class="{ 'p-invalid': sub.errorDescripcion }"
                     />
+                    <small v-if="sub.errorDescripcion" class="text-red-500 text-xs">
+                      {{ sub.errorDescripcion }}
+                    </small>
                   </div>
 
                   <div v-if="selecciones[index].length > 1" class="text-right">
@@ -173,15 +178,19 @@
                 </div>
               </div>
             </div>
-            <div v-if="detalleVenta.cantidad > 1 && cantidadAsignada(index) < detalleVenta.cantidad" class="mt-2 text-right">
-            <Button
-              label="Agregar otra condición"
-              icon="pi pi-plus-circle"
-              class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
-              @click="agregarSubDetalle(index)"
-              :disabled="!ventaValida || cantidadAsignada(index) >= detalleVenta.cantidad"
-            />
-          </div>
+
+            <!-- Botón para agregar otra condición (máximo 2 sub-detalles por producto) -->
+            <div
+              v-if="puedeAgregarSubDetalle(index, detalleVenta)"
+              class="mt-2 text-right"
+            >
+              <Button
+                label="Agregar otra condición"
+                icon="pi pi-plus-circle"
+                class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
+                @click="agregarSubDetalle(index)"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -203,6 +212,7 @@
             class="w-full border border-gray-300 rounded-lg text-sm font-bold"
             placeholder="Ej: Producto en mal estado, cliente no deseado..."
             :disabled="!ventaValida"
+            :class="{ 'p-invalid': errorMotivo }"
           />
           <small v-if="errorMotivo" class="text-red-500 text-xs">{{ errorMotivo }}</small>
         </div>
@@ -220,7 +230,7 @@
         label="Registrar Devolución"
         icon="pi pi-check"
         class="p-button-sm bg-[#0a3622] border-none"
-        :disabled="!ventaEncontrada || !ventaValida || totalSeleccionado === 0 || !motivo.trim() || registrando"
+        :disabled="!ventaEncontrada || !ventaValida || totalSeleccionado === 0 || registrando"
         @click="registrarDevolucion"
       />
     </template>
@@ -260,12 +270,27 @@ const errorMotivo = ref('');
 const registrando = ref(false);
 
 const selecciones = reactive([]);
+
+// Total de cantidad asignada en sub-detalles de un producto
 const cantidadAsignada = (index) => {
   if (!selecciones[index]) return 0;
   return selecciones[index].reduce((total, sub) => total + (sub.cantidad || 0), 0);
 };
 
-// Computed para validar si la venta encontrada permite devolución
+// Determina si se puede agregar otro sub-detalle
+const puedeAgregarSubDetalle = (index, detalleVenta) => {
+  if (!ventaValida.value) return false;
+  if (selecciones[index].length >= 2) return false;
+  if (cantidadAsignada(index) >= detalleVenta.cantidad) return false;
+
+  // Evitar condiciones duplicadas (ya hay un PERFECTO y un DANIADO)
+  const tienePerfecto = selecciones[index].some(s => s.condicion === 'PERFECTO');
+  const tieneDaniado  = selecciones[index].some(s => s.condicion === 'DANIADO');
+  if (tienePerfecto && tieneDaniado) return false;
+
+  return true;
+};
+
 const ventaValida = computed(() => {
   if (!ventaEncontrada.value) return false;
   return ['PAGADA', 'CREDITO'].includes(ventaEncontrada.value.estado);
@@ -297,11 +322,21 @@ const formatearFecha = (fecha) => {
 };
 
 const agregarSubDetalle = (index) => {
+  const existePerfecto = selecciones[index].some(s => s.condicion === 'PERFECTO');
+  const existeDaniado  = selecciones[index].some(s => s.condicion === 'DANIADO');
+
+  // Determinar la condición del nuevo sub-detalle
+  let condicion = 'PERFECTO';
+  if (existePerfecto && !existeDaniado) condicion = 'DANIADO';
+  else if (existeDaniado && !existePerfecto) condicion = 'PERFECTO';
+  else if (existePerfecto && existeDaniado) return; // no debería llegar aquí
+
   selecciones[index].push({
     activo: false,
     cantidad: 1,
-    condicion: 'PERFECTO',
-    descripcion: ''
+    condicion,
+    descripcion: '',
+    errorDescripcion: ''
   });
 };
 
@@ -328,7 +363,13 @@ const buscarVenta = async () => {
     if (response.data.data && response.data.data.length === 1) {
       ventaEncontrada.value = response.data.data[0];
       ventaEncontrada.value.detalle_ventas.forEach(() => {
-        selecciones.push([{ activo: false, cantidad: 1, condicion: 'PERFECTO', descripcion: '' }]);
+        selecciones.push([{
+          activo: false,
+          cantidad: 1,
+          condicion: 'PERFECTO',
+          descripcion: '',
+          errorDescripcion: ''
+        }]);
       });
     }
   } catch (error) {
@@ -350,30 +391,55 @@ const limpiarBusqueda = () => {
 
 const registrarDevolucion = async () => {
   if (!ventaEncontrada.value || !ventaValida.value) return;
+
+  // Validar motivo (mínimo 5 caracteres)
+  errorMotivo.value = '';
   if (!motivo.value.trim()) {
     errorMotivo.value = 'El motivo es obligatorio.';
     return;
   }
-  errorMotivo.value = '';
+  if (motivo.value.trim().length < 5) {
+    errorMotivo.value = 'El motivo debe tener al menos 5 caracteres.';
+    return;
+  }
+
+  // Limpiar errores previos de descripción
+  selecciones.forEach(grupo => grupo.forEach(sub => { sub.errorDescripcion = ''; }));
 
   const detalle = [];
+  let hayErrores = false;
+
   ventaEncontrada.value.detalle_ventas.forEach((detalleVenta, index) => {
     if (selecciones[index]) {
       selecciones[index].forEach(sub => {
         if (sub.activo) {
+          // Validar descripción obligatoria cuando es DANIADO
+          if (sub.condicion === 'DANIADO' && !sub.descripcion.trim()) {
+            sub.errorDescripcion = 'La descripción es obligatoria para productos dañados.';
+            hayErrores = true;
+            return;
+          }
+          if (sub.condicion === 'DANIADO' && sub.descripcion.trim().length < 3) {
+            sub.errorDescripcion = 'La descripción debe tener al menos 3 caracteres.';
+            hayErrores = true;
+            return;
+          }
+
           const item = {
             detalle_venta_id: detalleVenta.id,
             cantidad: sub.cantidad || 1,
             condicion: sub.condicion,
           };
           if (sub.condicion === 'DANIADO') {
-            item.descripcion = sub.descripcion || 'Sin descripción';
+            item.descripcion = sub.descripcion.trim();
           }
           detalle.push(item);
         }
       });
     }
   });
+
+  if (hayErrores) return;
 
   if (detalle.length === 0) {
     toast.add({ severity: 'warn', summary: 'Aviso', detail: 'Selecciona al menos un producto.', life: 3000 });
@@ -385,7 +451,7 @@ const registrarDevolucion = async () => {
     const response = await api.post('/devoluciones-ventas', {
       venta_id: ventaEncontrada.value.id,
       motivo: motivo.value.trim(),
-      detalle: detalle
+      detalle
     });
 
     toast.add({ severity: 'success', summary: 'Éxito', detail: 'Devolución registrada correctamente.', life: 4000 });
@@ -393,7 +459,10 @@ const registrarDevolucion = async () => {
     emit('update:visible', false);
     limpiarBusqueda();
   } catch (error) {
-    const mensaje = error.response?.data?.message || 'Error al registrar la devolución.';
+    const errores = error.response?.data?.errors;
+    const mensaje = (errores && Object.values(errores)[0]?.[0])
+      || error.response?.data?.message
+      || 'Error al registrar la devolución.';
     toast.add({ severity: 'error', summary: 'Error', detail: mensaje, life: 5000 });
   } finally {
     registrando.value = false;

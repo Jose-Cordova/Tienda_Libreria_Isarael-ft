@@ -37,7 +37,7 @@ export const useVentaStore = defineStore('venta', {
 
   actions: {
     // Cargar métodos de pago desde API y obtener ID de transferencia
-     async cargarMetodosPago() {
+    async cargarMetodosPago() {
       try {
         const response = await api.get('/metodos-pagos');
         this.metodosPago = response.data;
@@ -167,30 +167,30 @@ export const useVentaStore = defineStore('venta', {
         })),
       };
 
-  if (this.estado !== 'CREDITO') {
-    payload.metodo_pago_id = this.metodo_pago_id;
-  } else {
-    delete payload.metodo_pago_id;
-  }
+      if (this.estado !== 'CREDITO') {
+        payload.metodo_pago_id = this.metodo_pago_id;
+      } else {
+        delete payload.metodo_pago_id;
+      }
 
 
 
-  if (this.estado === 'PAGADA' && this.metodo_pago_id && this.isTransferencia === false && this.montoRecibido !== null && this.montoRecibido !== undefined) {
-    payload.monto_recibido = this.montoRecibido;
-  }
+      if (this.estado === 'PAGADA' && this.metodo_pago_id && this.isTransferencia === false && this.montoRecibido !== null && this.montoRecibido !== undefined) {
+        payload.monto_recibido = this.montoRecibido;
+      }
 
-  if (this.estado === 'CREDITO') {
-    if (this.cliente_credito_id) {
-      payload.cliente_credito_id = this.cliente_credito_id;
-    } else {
-      payload.nombre = this.nombre_cliente;
-      payload.dui = this.dui_cliente;
-      payload.telefono = this.telefono_cliente;
-    }
-  }
+      if (this.estado === 'CREDITO') {
+        if (this.cliente_credito_id) {
+          payload.cliente_credito_id = this.cliente_credito_id;
+        } else {
+          payload.nombre = this.nombre_cliente;
+          payload.dui = this.dui_cliente;
+          payload.telefono = this.telefono_cliente;
+        }
+      }
 
-  return payload;
-},
+      return payload;
+    },
 
     // Confirmar venta (envía al backend y limpia el carrito)
     async confirmarVenta() {
@@ -203,11 +203,16 @@ export const useVentaStore = defineStore('venta', {
     resetCarrito() {
       this.items = [];
       this.estado = 'PAGADA';
-      this.metodo_pago_id = null;
+      this.tipo_cliente = 'DETALLES';
       this.cliente_credito_id = null;
       this.nombre_cliente = null;
       this.dui_cliente = null;
       this.telefono_cliente = null;
-    },
+      this.montoRecibido = null;
+
+      // ✅ Reasignar EFECTIVO por defecto
+      const efectivo = this.metodosPago.find(m => m.nombre.toUpperCase() === 'EFECTIVO');
+      this.metodo_pago_id = efectivo ? efectivo.id : null;
+    }
   },
 });

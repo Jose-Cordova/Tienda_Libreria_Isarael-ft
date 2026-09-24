@@ -3,7 +3,7 @@
 
     <!-- Panel izquierdo: Buscador de productos -->
     <div class="flex-1 bg-shop-surface rounded-shop shadow-shop border border-shop-border overflow-hidden min-h-[400px] sm:min-h-[500px]">
-      <BuscadorProductos />
+      <BuscadorProductos ref="buscadorRef" />
     </div>
 
     <!-- Panel derecho: Carrito + Cobro -->
@@ -14,7 +14,7 @@
       </div>
 
       <div class="bg-shop-surface rounded-shop shadow-shop border border-shop-border p-3 sm:p-4">
-        <PanelCobro />
+        <PanelCobro @venta-registrada="onVentaRegistrada" />
       </div>
 
     </div>
@@ -23,7 +23,14 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import BuscadorProductos from '@/components/ventas/BuscadorProductos.vue';
 import CarritoVenta from '@/components/ventas/CarritoVenta.vue';
 import PanelCobro from '@/components/ventas/PanelCobro.vue';
+
+const buscadorRef = ref(null);
+
+const onVentaRegistrada = () => {
+  buscadorRef.value?.cargarProductos();
+};
 </script>
