@@ -188,15 +188,15 @@
               </div>
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Precio detalle ($) *</label>
-                <InputNumber v-model="productoNuevo.precio_detalle" mode="decimal" :minFractionDigits="2" inputClass="w-full border border-gray-200 rounded-xl p-3 text-sm font-bold" />
+                <InputNumber v-model="productoNuevo.precio_detalle" mode="currency" currency="USD" locale="en-US" class="w-full border border-gray-200 rounded-xl p-3" />
               </div>
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Precio mayor ($) *</label>
-                <InputNumber v-model="productoNuevo.precio_mayor" mode="decimal" :minFractionDigits="2" inputClass="w-full border border-gray-200 rounded-xl p-3 text-sm font-bold" />
+                <InputNumber v-model="productoNuevo.precio_mayor" mode="currency" currency="USD" locale="en-US" class="w-full border border-gray-200 rounded-xl p-3" />
               </div>
               <div class="space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Stock mínimo *</label>
-                <InputNumber v-model="productoNuevo.stock_minimo" :min="1" inputClass="w-full border border-gray-200 rounded-xl p-3 text-sm font-bold" />
+                <InputNumber v-model="productoNuevo.stock_minimo" :min="1" class="w-full border border-gray-200 rounded-xl p-3" />
               </div>
             </div>
             <div class="flex gap-4 mt-8">
@@ -349,7 +349,7 @@ const abrirCrearProducto = () => {
     nombre: '', seccion: props.itemAceptar?.producto?.seccion || null,
     categoria_id: null, marca_id: null,
     perecedero: props.itemAceptar?.producto?.perecedero || 'NORMAL',
-    precio_detalle: 0, precio_mayor: 0, stock_minimo: 5
+    precio_detalle: null, precio_mayor: null, stock_minimo: 1
   };
   mostrarModalCrearProducto.value = true;
 };
@@ -361,8 +361,14 @@ const guardarProductoNuevo = () => {
   if (!productoNuevo.value.seccion || !productoNuevo.value.categoria_id || !productoNuevo.value.marca_id) {
     return Swal.fire('Incompleto', 'Debe seleccionar sección, categoría y marca.', 'warning');
   }
-  if (!productoNuevo.value.precio_detalle || !productoNuevo.value.precio_mayor) {
-    return Swal.fire('Incompleto', 'Debe indicar los precios del producto.', 'warning');
+  if (!productoNuevo.value.precio_detalle || productoNuevo.value.precio_detalle <= 0) {
+    return Swal.fire('Incompleto', 'El precio detalle debe ser mayor a 0.', 'warning');
+  }
+  if (!productoNuevo.value.precio_mayor || productoNuevo.value.precio_mayor <= 0) {
+    return Swal.fire('Incompleto', 'El precio mayor debe ser mayor a 0.', 'warning');
+  }
+  if (productoNuevo.value.precio_mayor >= productoNuevo.value.precio_detalle) {
+    return Swal.fire('Error de Precios', 'El precio mayorista debe ser menor que el precio detalle.', 'warning');
   }
   productoNuevoCreado.value = { ...productoNuevo.value, id: null };
   productoReemplazoSeleccionado.value = null;

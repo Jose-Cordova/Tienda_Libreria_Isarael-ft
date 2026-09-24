@@ -82,6 +82,17 @@ export const useCambioProductoStore = defineStore('cambioProducto', {
       } finally {
         this.loading = false;
       }
+    },
+
+    async actualizarCantidadCambio(id, cantidad) {
+      this.loading = true;
+      try {
+        const response = await cambioProductoService.actualizarCantidad(id, cantidad);
+        await this.fetchCambios({ page: this.pagination.current_page, per_page: this.pagination.per_page });
+        return response;
+      } finally {
+        this.loading = false;
+      }
     }
   }
 })

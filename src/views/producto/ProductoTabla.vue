@@ -6,13 +6,9 @@
           <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
             <th class="py-3 px-4">Producto</th>
             <th class="py-3 px-4">Sección</th>
-            <th class="py-3 px-4">Categoría</th>
             <th class="py-3 px-4">Marca</th>
             <th class="py-3 px-4">P. Detalle</th>
-            <th class="py-3 px-4">P. Mayor</th>
             <th class="py-3 px-4">Stock</th>
-            <th class="py-3 px-4">Stock Mínimo</th>
-            <th class="py-3 px-4 text-center">Perec.</th>
             <th class="py-3 px-4 text-center">Estado</th>
             <th class="py-3 px-4 text-center">Acciones</th>
           </tr>
@@ -24,12 +20,8 @@
               <td class="py-4 px-4"><Skeleton width="100%" height="1.5rem" /></td>
               <td class="py-4 px-4"><Skeleton width="80%" height="1.5rem" /></td>
               <td class="py-4 px-4"><Skeleton width="80%" height="1.5rem" /></td>
-              <td class="py-4 px-4"><Skeleton width="80%" height="1.5rem" /></td>
-              <td class="py-4 px-4"><Skeleton width="70%" height="1.5rem" /></td>
               <td class="py-4 px-4"><Skeleton width="70%" height="1.5rem" /></td>
               <td class="py-4 px-4"><Skeleton width="50%" height="1.5rem" /></td>
-              <td class="py-4 px-4"><Skeleton width="50%" height="1.5rem" /></td>
-              <td class="py-4 px-4"><Skeleton width="40%" height="1.5rem" class="mx-auto" /></td>
               <td class="py-4 px-4"><Skeleton width="60%" height="1.5rem" class="mx-auto" /></td>
               <td class="py-4 px-4"><Skeleton width="60%" height="1.5rem" class="mx-auto" /></td>
             </tr>
@@ -43,33 +35,23 @@
                   {{ formatSeccion(prod.seccion) }}
                 </span>
               </td>
-              <td class="py-4 px-4">
-                <span class="bg-green-50 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold border border-green-200">
-                  {{ prod.categoria?.nombre || 'N/A' }}
-                </span>
-              </td>
               <td class="py-4 px-4 font-bold text-gray-800 text-sm">{{ prod.marca?.nombre || 'N/A' }}</td>
               <td class="py-4 px-4 font-bold text-gray-800 text-sm">${{ formatPrice(prod.precio_detalle) }}</td>
-              <td class="py-4 px-4 font-bold text-gray-800 text-sm">${{ formatPrice(prod.precio_mayor) }}</td>
               <td class="py-4 px-4">
                 <div :class="prod.stock <= prod.stock_minimo ? 'bg-red-100 text-red-600 border-red-200' : 'bg-green-100 text-green-700 border-green-200'" class="w-16 text-center py-1 rounded font-black border text-[10px]">
                   {{ prod.stock }} u.
                 </div>
-              </td>
-              <td class="py-4 px-4 text-center text-sm font-semibold text-gray-600">
-                {{ prod.stock_minimo }} u.
-              </td>
-              <td class="py-4 px-4 text-center">
-                <Checkbox :binary="true" :modelValue="prod.perecedero === 'PERECEDERO'" disabled class="p-checkbox-sm" />
               </td>
               <td class="py-4 px-4 text-center">
                 <Tag :severity="prod.estado === 'ACTIVO' ? 'success' : 'danger'" :value="prod.estado" />
               </td>
               <td class="py-4 px-4">
                 <div class="flex items-center justify-center gap-1">
-                  <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="$emit('editar', prod)" />
+                  <Button icon="pi pi-eye" v-tooltip.top="'Ver resumen'" class="p-button-rounded p-button-text p-button-sm !text-blue-600 hover:!bg-blue-50" @click="$emit('verResumen', prod)" />
+                  <Button icon="pi pi-pencil" v-tooltip.top="'Editar'" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="$emit('editar', prod)" />
                   <Button
                     icon="pi pi-power-off"
+                    v-tooltip.top="prod.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'"
                     class="p-button-rounded p-button-sm text-white !border-none"
                     :class="prod.estado === 'ACTIVO' ? '!bg-red-600 hover:!bg-red-700 focus:!ring-0 focus:!ring-offset-0' : '!bg-green-600 hover:!bg-green-700 focus:!ring-0 focus:!ring-offset-0'"
                     @click="$emit('cambiarEstado', prod.id, prod.estado)"
@@ -78,7 +60,7 @@
               </td>
             </tr>
             <tr v-if="productos.length === 0">
-              <td colspan="11" class="py-10 text-center italic text-gray-400">No se encontraron productos.</td>
+              <td colspan="7" class="py-10 text-center italic text-gray-400">No se encontraron productos.</td>
             </tr>
           </template>
         </tbody>
@@ -99,7 +81,6 @@
 
 <script setup>
 import Button from 'primevue/button'
-import Checkbox from 'primevue/checkbox'
 import Tag from 'primevue/tag'
 import Paginator from 'primevue/paginator'
 import Skeleton from 'primevue/skeleton'
@@ -111,7 +92,7 @@ defineProps({
   perPage: { type: Number, required: true }
 })
 
-defineEmits(['editar', 'cambiarEstado', 'cambiarPagina'])
+defineEmits(['editar', 'cambiarEstado', 'cambiarPagina', 'verResumen'])
 
 const formatPrice = (value) => Number(value).toFixed(2)
 

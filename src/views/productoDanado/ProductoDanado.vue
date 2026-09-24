@@ -16,6 +16,39 @@
         />
       </div>
 
+      <!-- Tarjetas Resumen KPI -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-[20px] shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center font-bold text-xl shrink-0">
+            <i class="pi pi-dollar"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Pérdida Total</p>
+            <h4 class="text-lg font-extrabold text-gray-800">${{ kpis.totalPerdida.toFixed(2) }}</h4>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-[20px] shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xl shrink-0">
+            <i class="pi pi-box"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Piezas Perdidas</p>
+            <h4 class="text-lg font-extrabold text-gray-800">{{ kpis.piezasPerdidas }} uds.</h4>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-[20px] shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0">
+            <i class="pi pi-briefcase"></i>
+          </div>
+          <div class="text-left">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Rechazos Proveedor</p>
+            <h4 class="text-lg font-extrabold text-gray-800">{{ kpis.rechazosProveedor }} reg.</h4>
+          </div>
+        </div>
+      </div>
+
       <!-- Fila Inferior: Filtros -->
       <div class="flex flex-wrap items-center gap-3 w-full">
         <span class="relative flex-1 sm:flex-none">
@@ -76,18 +109,8 @@
       </div>
     </section>
 
-    <!-- Sumatorias -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white p-4 rounded-xl shadow-sm flex items-center justify-between group transition-all text-left border-[1px] border-[#d1333e] border-l-[10px] overflow-hidden">
-        <div>
-          <p class="text-[10px] font-black text-[#d1333e] uppercase tracking-[0.2em] mb-1">Sumatoria Pérdidas</p>
-          <p class="text-2xl font-black text-[#d1333e] tracking-tighter">${{ totalPerdidas }}</p>
-        </div>
-      </div>
-    </div>
-
     <!-- Tabla modular -->
-    <DanadoTabla :registros="registros" @anular="procesarAnular" />
+    <DanadoTabla :registros="registros" @anular="procesarAnular" @verResumen="verResumen" />
 
     <!-- Paginador -->
     <div class="p-3 border-t border-gray-400 bg-gray-50/50 mt-4 rounded-xl shadow-sm bg-white">
@@ -104,6 +127,93 @@
 
     <!-- Formulario Modal modular -->
     <DanadoModalForm v-model:visible="mostrarModal" @guardado="cargarRegistros" />
+
+    <!-- Modal Resumen del Producto Dañado -->
+    <Teleport to="body">
+      <div v-if="mostrarResumen && itemResumen" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] backdrop-blur-sm p-4 font-dm-sans">
+        <div class="bg-white rounded-[24px] w-[95vw] max-w-xl shadow-2xl relative overflow-hidden border border-gray-100 animate-fade-up">
+          <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
+          <button @click="cerrarResumen" class="absolute top-5 right-6 text-gray-400 hover:text-gray-700 transition z-10">
+            <i class="pi pi-times text-lg"></i>
+          </button>
+
+          <div class="p-8 pt-10 text-left">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <i class="pi pi-eye text-lg"></i>
+              </div>
+              <div>
+                <h2 class="text-lg font-extrabold text-[#0a3622]">Resumen de Producto Dañado</h2>
+                <p class="text-[12px] text-gray-400 font-medium">Detalle del registro de salida por avería</p>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <!-- Producto -->
+              <div class="flex justify-between items-start border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Producto</span>
+                <div class="text-right">
+                  <p class="text-sm font-extrabold text-gray-800">{{ itemResumen.producto?.nombre }}</p>
+                  <p class="text-[11px] text-gray-400">{{ itemResumen.producto?.marca?.nombre || 'Sin marca' }}</p>
+                </div>
+              </div>
+
+              <!-- Origen -->
+              <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Origen del Daño</span>
+                <span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full uppercase bg-orange-100 text-orange-800">
+                  {{ formatOrigen(itemResumen.origen) }}
+                </span>
+              </div>
+
+              <!-- Lote (si perecedero) -->
+              <div v-if="itemResumen.lote" class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Lote</span>
+                <span class="text-sm font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                  {{ itemResumen.lote?.codigo_lote }}
+                </span>
+              </div>
+
+              <!-- Cantidad y Costo -->
+              <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Cantidad / Costo Unit.</span>
+                <span class="text-sm font-extrabold text-gray-800">{{ itemResumen.cantidad }} uds. × ${{ parseFloat(itemResumen.costo_unitario || 0).toFixed(2) }}</span>
+              </div>
+
+              <!-- Total Pérdida -->
+              <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Total Pérdida</span>
+                <span class="text-sm font-extrabold text-red-600">${{ parseFloat(itemResumen.total_perdida || 0).toFixed(2) }}</span>
+              </div>
+
+              <!-- Fecha -->
+              <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Fecha de Salida</span>
+                <span class="text-sm font-bold text-gray-600">{{ formatearFecha(itemResumen.fecha) }}</span>
+              </div>
+
+              <!-- Motivo / Descripción -->
+              <div class="flex justify-between items-start border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Motivo / Descripción</span>
+                <p class="text-xs font-bold text-gray-700 max-w-xs text-right">{{ itemResumen.descripcion || 'Sin descripción' }}</p>
+              </div>
+
+              <!-- Estado -->
+              <div class="flex justify-between items-center">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Estado</span>
+                <span class="text-[11px] font-extrabold px-3 py-1 rounded-full uppercase bg-gray-100 text-gray-800 border">
+                  {{ itemResumen.estado }}
+                </span>
+              </div>
+            </div>
+
+            <button @click="cerrarResumen" class="w-full mt-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition text-sm">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </main>
 </template>
 
@@ -127,6 +237,27 @@ const toast = useToast();
 
 const registros = computed(() => store.registros);
 
+const kpis = computed(() => {
+  const lista = registros.value || [];
+  let totalPerdida = 0;
+  let piezasPerdidas = 0;
+  let rechazosProveedor = 0;
+
+  lista.forEach(item => {
+    if (item.estado !== 'ANULADO') {
+      totalPerdida += parseFloat(item.total_perdida || 0);
+      piezasPerdidas += parseInt(item.cantidad || 0);
+    }
+    if (item.origen === 'PROVEEDOR') rechazosProveedor++;
+  });
+
+  return {
+    totalPerdida,
+    piezasPerdidas,
+    rechazosProveedor
+  };
+});
+
 const paginacion = ref({
   pagina_actual: 1,
   filas_por_pagina: 10,
@@ -148,11 +279,37 @@ const opcionesEstado = ref([
 const opcionesOrigen = ref([
   { label: 'Todos', value: null },
   { label: 'Daño Directo', value: 'DIRECTO' },
-  { label: 'Vencimiento', value: 'VENCIMIENTO' },
-  { label: 'Venta', value: 'VENTA' }
+  { label: 'Rechazo Proveedor', value: 'PROVEEDOR' },
+  { label: 'Devolución Venta', value: 'VENTA' }
 ]);
 
 const mostrarModal = ref(false);
+const mostrarResumen = ref(false);
+const itemResumen = ref(null);
+
+const verResumen = (item) => {
+  itemResumen.value = item;
+  mostrarResumen.value = true;
+};
+
+const cerrarResumen = () => {
+  mostrarResumen.value = false;
+  itemResumen.value = null;
+};
+
+const formatOrigen = (origen) => {
+  switch (origen) {
+    case 'DIRECTO': return 'Daño Directo';
+    case 'PROVEEDOR': return 'Rechazo Proveedor';
+    case 'VENTA': return 'Devolución Venta';
+    default: return origen || 'Directo';
+  }
+};
+
+const formatearFecha = (fechaStr) => {
+  if (!fechaStr) return '';
+  return new Date(fechaStr).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
 
 const mostrarToast = (mensaje, tipo = 'success') => {
   toast.add({
@@ -198,10 +355,6 @@ const limpiarFiltros = () => {
   cargarRegistros();
 };
 
-const totalPerdidas = computed(() => {
-  return registros.value.reduce((sum, r) => sum + (parseFloat(r.cantidad) * parseFloat(r.costo_unitario)), 0).toFixed(2);
-});
-
 const abrirNuevo = () => {
   mostrarModal.value = true;
 };
@@ -245,4 +398,9 @@ onMounted(() => {
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c6e5d3; border-radius: 4px; }
+.animate-fade-up { animation: fadeUp 0.25s ease-out forwards; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>

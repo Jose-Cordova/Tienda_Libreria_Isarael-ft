@@ -44,6 +44,12 @@
               <div class="flex items-center justify-center gap-1">
                 <template v-if="item.estado === 'PENDIENTE'">
                   <Button
+                    icon="pi pi-pencil"
+                    v-tooltip.top="'Editar cantidad'"
+                    class="p-button-rounded p-button-text p-button-sm p-button-info !text-blue-600 hover:!bg-blue-50"
+                    @click="emit('editar-cantidad', item)"
+                  />
+                  <Button
                     icon="pi pi-check"
                     v-tooltip.top="'Aceptar reemplazo'"
                     class="p-button-rounded p-button-text p-button-sm p-button-success !text-green-600 hover:!bg-green-50"
@@ -87,7 +93,7 @@ defineProps({
   }
 });
 
-const emit = defineEmits(['aceptar', 'rechazar', 'anular']);
+const emit = defineEmits(['aceptar', 'rechazar', 'anular', 'editar-cantidad']);
 
 const formatearFecha = (fechaStr) => {
   if (!fechaStr) return '';

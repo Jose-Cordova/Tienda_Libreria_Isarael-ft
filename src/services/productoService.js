@@ -15,5 +15,8 @@ export default {
   },
   cambiarEstado(id) {
     return api.patch(`/productos/${id}/cambiar-estado`)
+  },
+  getAjustesStock(id) {
+    return api.get(`/productos/${id}/ajustes-stock`)
   }
 }
