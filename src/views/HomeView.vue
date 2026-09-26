@@ -3,7 +3,7 @@
     <!-- ENCABEZADO -->
     <div class="bg-shop-sidebar-bg text-white rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-shop animate-fade-up">
       <div class="text-center sm:text-left">
-        <h1 class="text-xl sm:text-2xl font-bold mb-1 italic">Buenos días 🌤️, <span class="not-italic">Administrador</span></h1>
+        <h1 class="text-xl sm:text-2xl font-bold mb-1 italic">{{ saludo.texto }} {{ saludo.icono }}, <span class="not-italic">Administrador</span></h1>
         <p class="text-[10px] sm:text-xs text-shop-accent font-black uppercase tracking-[0.3em]">Tienda y Librería Israel · Panel de Control</p>
       </div>
       <div class="text-center sm:text-right">
@@ -197,7 +197,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed} from "vue";
+import { ref, onMounted, onUnmounted, computed} from "vue";
 import { useRouter } from "vue-router";
 import { useDashboardStore } from '@/stores/dashboardStore';
 import Chart from 'chart.js/auto';
@@ -205,6 +205,18 @@ import Chart from 'chart.js/auto';
 const router = useRouter();
 const dashboardStore = useDashboardStore();
 const currentDate = ref(new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+
+//Hora actual; se refresca cada minuto para que el saludo cambie sin recargar
+const horaActual = ref(new Date().getHours());
+let relojSaludo = null;
+
+//Días de 5:00 a 11:59, tardes de 12:00 a 18:59, noches de 19:00 a 4:59
+const saludo = computed(() => {
+  const hora = horaActual.value;
+  if (hora >= 5 && hora < 12) return { texto: 'Buenos días', icono: '🌤️' };
+  if (hora >= 12 && hora < 19) return { texto: 'Buenas tardes', icono: '🌇' };
+  return { texto: 'Buenas noches', icono: '🌙' };
+});
 
 const selectedPeriodo = ref('day');
 
@@ -355,9 +367,13 @@ const handlePeriodoChange = async () => {
 };
 
 onMounted(async () => {
+  relojSaludo = setInterval(() => { horaActual.value = new Date().getHours(); }, 60000);
   await dashboardStore.fetchDashboardData(selectedPeriodo.value);
   initCharts();
 });
+
+//Detiene el reloj del saludo al salir del dashboard
+onUnmounted(() => clearInterval(relojSaludo));
 </script>
 
 <style scoped>
