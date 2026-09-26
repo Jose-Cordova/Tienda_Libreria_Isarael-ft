@@ -323,6 +323,10 @@ const guardar = async () => {
   if(!formulario.value.descripcion || !formulario.value.descripcion.trim()){
     errores.value.descripcion = 'La descripción es obligatoria.'
     valido = false
+  }else if(formulario.value.descripcion.trim().length < 5){
+    //Mínimo 5 caracteres sin contar espacios de los extremos
+    errores.value.descripcion = 'La descripción debe tener al menos 5 caracteres.'
+    valido = false
   }
 
   if(!valido) return
