@@ -1,7 +1,8 @@
 <template>
   <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar">
     <!-- Cabecera -->
-    <div class="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
+    <div
+      class="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
       <i class="pi pi-chart-bar text-2xl text-green-600"></i>
       <h1 class="text-lg font-extrabold text-[#0a3622]">Reportes del Sistema</h1>
     </div>
@@ -31,8 +32,11 @@
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('cierreDiario')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('cierre-diario', cierreDiario)" :disabled="generandoReporte || !cierreDiario.fecha" />
+          <Button label="Limpiar" icon="pi pi-filter-slash"
+            class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
+            @click="limpiarFiltros('cierreDiario')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+            @click="generar('cierre-diario', cierreDiario)" :disabled="generandoReporte || !cierreDiario.fecha" />
         </div>
       </AccordionTab>
 
@@ -55,8 +59,11 @@
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('general')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('general', general)" :disabled="generandoReporte || !general.fecha_inicio || !general.fecha_fin" />
+          <Button label="Limpiar" icon="pi pi-filter-slash"
+            class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('general')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+            @click="generar('general', general)"
+            :disabled="generandoReporte || !general.fecha_inicio || !general.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -83,7 +90,8 @@
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Método de Pago</label>
-            <Dropdown v-model="ventas.metodo_pago_id" :options="metodosPago" optionLabel="nombre" optionValue="id" placeholder="Todos" class="w-full" />
+            <Dropdown v-model="ventas.metodo_pago_id" :options="metodosPago" optionLabel="nombre" optionValue="id"
+              placeholder="Todos" class="w-full" />
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Estado</label>
@@ -91,8 +99,11 @@
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('ventas')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('ventas', ventas)" :disabled="generandoReporte || !ventas.fecha_inicio || !ventas.fecha_fin" />
+          <Button label="Limpiar" icon="pi pi-filter-slash"
+            class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('ventas')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+            @click="generar('ventas', ventas)"
+            :disabled="generandoReporte || !ventas.fecha_inicio || !ventas.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -115,12 +126,17 @@
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Estado</label>
-            <Dropdown v-model="devoluciones.estado" :options="estadosDevolucion" optionLabel="label" optionValue="value" placeholder="Todos" class="w-full" />
+            <Dropdown v-model="devoluciones.estado" :options="estadosDevolucion" optionLabel="label" optionValue="value"
+              placeholder="Todos" class="w-full" />
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('devoluciones')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('devoluciones-ventas', devoluciones)" :disabled="generandoReporte || !devoluciones.fecha_inicio || !devoluciones.fecha_fin" />
+          <Button label="Limpiar" icon="pi pi-filter-slash"
+            class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
+            @click="limpiarFiltros('devoluciones')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+            @click="generar('devoluciones-ventas', devoluciones)"
+            :disabled="generandoReporte || !devoluciones.fecha_inicio || !devoluciones.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -143,16 +159,9 @@
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Cliente Crédito</label>
-            <Dropdown
-              v-model="creditos.cliente_credito_id"
-              :options="clientesCredito"
-              optionLabel="nombre"
-              optionValue="id"
-              placeholder="Seleccione un cliente"
-              class="w-full"
-              filter
-              emptyFilterMessage="No se encontraron clientes"
-            >
+            <Dropdown v-model="creditos.cliente_credito_id" :options="clientesCredito" optionLabel="nombre"
+              optionValue="id" placeholder="Seleccione un cliente" class="w-full" filter
+              emptyFilterMessage="No se encontraron clientes">
               <template #option="slotProps">
                 <div class="flex flex-col py-1">
                   <span class="font-bold">{{ slotProps.option.nombre }}</span>
@@ -161,10 +170,19 @@
               </template>
             </Dropdown>
           </div>
+
+          <!-- ✅ Nuevo filtro de estado -->
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-600">Estado</label>
+            <Dropdown v-model="creditos.estado" :options="estadosCredito" placeholder="Todos" class="w-full" />
+          </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('creditos')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('creditos', creditos)" :disabled="generandoReporte || !creditos.fecha_inicio || !creditos.fecha_fin" />
+          <Button label="Limpiar" icon="pi pi-filter-slash"
+            class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('creditos')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+            @click="generar('creditos', creditos)"
+            :disabled="generandoReporte || !creditos.fecha_inicio || !creditos.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -187,19 +205,9 @@
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Proveedor</label>
-            <Dropdown
-              v-model="compras.proveedor_id"
-              :options="proveedores"
-              optionLabel="nombre"
-              optionValue="id"
-              placeholder="Seleccione un proveedor"
-              class="w-full"
-              filter
-              @filter="buscarProveedores"
-              :loading="cargandoProveedores"
-              resetFilterOnHide
-              emptyFilterMessage="No se encontraron proveedores"
-            >
+            <Dropdown v-model="compras.proveedor_id" :options="proveedores" optionLabel="nombre" optionValue="id"
+              placeholder="Seleccione un proveedor" class="w-full" filter @filter="buscarProveedores"
+              :loading="cargandoProveedores" resetFilterOnHide emptyFilterMessage="No se encontraron proveedores">
               <template #option="slotProps">
                 <div class="flex flex-col py-1">
                   <span class="font-bold text-shop-text">{{ slotProps.option.nombre }}</span>
@@ -210,8 +218,11 @@
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('compras')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('compras', compras)" :disabled="generandoReporte || !compras.fecha_inicio || !compras.fecha_fin" />
+          <Button label="Limpiar" icon="pi pi-filter-slash"
+            class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('compras')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+            @click="generar('compras', compras)"
+            :disabled="generandoReporte || !compras.fecha_inicio || !compras.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -230,35 +241,15 @@
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Marca</label>
-            <Dropdown
-              v-model="inventario.marca_id"
-              :options="marcas"
-              optionLabel="nombre"
-              optionValue="id"
-              placeholder="Todas"
-              class="w-full"
-              filter
-              @filter="buscarMarcas"
-              :loading="cargandoMarcas"
-              resetFilterOnHide
-              emptyFilterMessage="No se encontraron marcas"
-            />
+            <Dropdown v-model="inventario.marca_id" :options="marcas" optionLabel="nombre" optionValue="id"
+              placeholder="Todas" class="w-full" filter @filter="buscarMarcas" :loading="cargandoMarcas"
+              resetFilterOnHide emptyFilterMessage="No se encontraron marcas" />
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Categoría</label>
-            <Dropdown
-              v-model="inventario.categoria_id"
-              :options="categorias"
-              optionLabel="nombre"
-              optionValue="id"
-              placeholder="Todas"
-              class="w-full"
-              filter
-              @filter="buscarCategorias"
-              :loading="cargandoCategorias"
-              resetFilterOnHide
-              emptyFilterMessage="No se encontraron categorías"
-            />
+            <Dropdown v-model="inventario.categoria_id" :options="categorias" optionLabel="nombre" optionValue="id"
+              placeholder="Todas" class="w-full" filter @filter="buscarCategorias" :loading="cargandoCategorias"
+              resetFilterOnHide emptyFilterMessage="No se encontraron categorías" />
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Estado</label>
@@ -266,8 +257,11 @@
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('inventario')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('inventario', inventario)" :disabled="generandoReporte" />
+          <Button label="Limpiar" icon="pi pi-filter-slash"
+            class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
+            @click="limpiarFiltros('inventario')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+            @click="generar('inventario', inventario)" :disabled="generandoReporte" />
         </div>
       </AccordionTab>
 
@@ -290,12 +284,17 @@
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Estado</label>
-            <Dropdown v-model="cambioProducto.estado" :options="estadosCambioProducto" placeholder="Todos" class="w-full" />
+            <Dropdown v-model="cambioProducto.estado" :options="estadosCambioProducto" placeholder="Todos"
+              class="w-full" />
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('cambioProducto')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('cambio-producto', cambioProducto)" :disabled="generandoReporte || !cambioProducto.fecha_inicio || !cambioProducto.fecha_fin" />
+          <Button label="Limpiar" icon="pi pi-filter-slash"
+            class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
+            @click="limpiarFiltros('cambioProducto')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+            @click="generar('cambio-producto', cambioProducto)"
+            :disabled="generandoReporte || !cambioProducto.fecha_inicio || !cambioProducto.fecha_fin" />
         </div>
       </AccordionTab>
 
@@ -318,16 +317,32 @@
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Origen</label>
-            <Dropdown v-model="productosDaniados.origen" :options="origenesDanio" optionLabel="label" optionValue="value" placeholder="Todos" class="w-full" />
+            <Dropdown v-model="productosDaniados.origen" :options="origenesDanio" optionLabel="label"
+              optionValue="value" placeholder="Todos" class="w-full" />
           </div>
           <div class="flex flex-col gap-1">
             <label class="text-xs font-bold text-gray-600">Estado</label>
-            <Dropdown v-model="productosDaniados.estado" :options="estadosProductoDaniado" placeholder="Todos" class="w-full" />
+
+            <!-- Cuando el origen es MANUAL, mostrar el dropdown con ANULADO -->
+            <Dropdown v-if="productosDaniados.origen === 'DIRECTO'" v-model="productosDaniados.estado"
+              :options="estadosProductoDaniado" placeholder="Todos" class="w-full" />
+
+            <!-- Para otros orígenes (VENTA, VENCIMIENTO, PROVEEDOR), mostrar "No aplica" -->
+            <InputText v-else-if="productosDaniados.origen" value="No aplica" disabled
+              class="w-full !bg-gray-100 !text-gray-500 font-bold italic" />
+
+            <!-- Sin origen seleccionado, mostrar dropdown normal -->
+            <Dropdown v-else v-model="productosDaniados.estado" :options="estadosProductoDaniado" placeholder="Todos"
+              class="w-full" />
           </div>
         </div>
         <div class="flex justify-between p-4 pt-0">
-          <Button label="Limpiar" icon="pi pi-filter-slash" class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]" @click="limpiarFiltros('productosDaniados')" />
-          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none" @click="generar('productos-daniados', productosDaniados)" :disabled="generandoReporte || !productosDaniados.fecha_inicio || !productosDaniados.fecha_fin" />
+          <Button label="Limpiar" icon="pi pi-filter-slash"
+            class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
+            @click="limpiarFiltros('productosDaniados')" />
+          <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+            @click="generar('productos-daniados', productosDaniados)"
+            :disabled="generandoReporte || !productosDaniados.fecha_inicio || !productosDaniados.fecha_fin" />
         </div>
       </AccordionTab>
     </Accordion>
@@ -344,6 +359,8 @@ import Calendar from 'primevue/calendar';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
+import { InputText } from '@/utils/primevue';
+
 
 const toast = useToast();
 
@@ -378,18 +395,21 @@ const origenesDanio = [
   { label: 'Vencimiento', value: 'VENCIMIENTO' },
   { label: 'Proveedor', value: 'PROVEEDOR' }
 ];
-const estadosProductoDaniado = ['REGISTRADO', 'RECHAZADO', 'DEVOLUCION', 'ANULADO'];
+// ✅ Solo ANULADO se selecciona manualmente
+const estadosProductoDaniado = ['ANULADO'];
 const estadosCambioProducto = ['PENDIENTE', 'ACEPTADO', 'RECHAZADO', 'ANULADO'];
 
 const secciones = ['TIENDA', 'LIBRERIA', 'MEDICAMENTO'];
 const estadosProducto = ['ACTIVO', 'INACTIVO'];
+
+const estadosCredito = ['PENDIENTE', 'PAGADO'];
 
 // --- Modelos reactivos para cada reporte ---
 const cierreDiario = reactive({ fecha: null });
 const general = reactive({ fecha_inicio: null, fecha_fin: null });
 const ventas = reactive({ fecha_inicio: null, fecha_fin: null, tipo_cliente: null, metodo_pago_id: null, estado: null });
 const devoluciones = reactive({ fecha_inicio: null, fecha_fin: null, estado: null }); // ✅ nueva
-const creditos = reactive({ fecha_inicio: null, fecha_fin: null, cliente_credito_id: null });
+const creditos = reactive({ fecha_inicio: null, fecha_fin: null, cliente_credito_id: null, estado: null });
 const compras = reactive({ fecha_inicio: null, fecha_fin: null, proveedor_id: null });
 const inventario = reactive({ seccion: null, marca_id: null, categoria_id: null, estado: null });
 const cambioProducto = reactive({ fecha_inicio: null, fecha_fin: null, estado: null });
@@ -401,7 +421,7 @@ const valoresIniciales = {
   general: { fecha_inicio: null, fecha_fin: null },
   ventas: { fecha_inicio: null, fecha_fin: null, tipo_cliente: null, metodo_pago_id: null, estado: null },
   devoluciones: { fecha_inicio: null, fecha_fin: null, estado: null }, // ✅
-  creditos: { fecha_inicio: null, fecha_fin: null, cliente_credito_id: null },
+  creditos: { fecha_inicio: null, fecha_fin: null, cliente_credito_id: null, estado: null },
   compras: { fecha_inicio: null, fecha_fin: null, proveedor_id: null },
   inventario: { seccion: null, marca_id: null, categoria_id: null, estado: null },
   cambioProducto: { fecha_inicio: null, fecha_fin: null, estado: null },
@@ -506,6 +526,11 @@ watch(() => inventario.seccion, async (nuevaSeccion) => {
   }
 });
 
+// ✅ Al cambiar el origen, limpiar el estado porque ya no aplica
+watch(() => productosDaniados.origen, () => {
+  productosDaniados.estado = null;
+});
+
 // --- función genérica para generar reporte (descarga directa) ---
 const generar = async (tipo, filtros) => {
   if (generandoReporte.value) return;
@@ -568,6 +593,12 @@ const generar = async (tipo, filtros) => {
 </script>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c6e5d3; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #c6e5d3;
+  border-radius: 4px;
+}
 </style>
