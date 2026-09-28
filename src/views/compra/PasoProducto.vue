@@ -67,7 +67,7 @@
           <!-- Barra informativa de contexto: stock y costo promedio anterior -->
           <div v-if="item.producto_id" class="flex flex-wrap gap-x-5 gap-y-2 text-[10px] sm:text-[11px] text-gray-800 font-bold ml-1">
             <span>STOCK ACTUAL EN TIENDA: <b class="text-gray-800 bg-gray-100 px-2 py-0.5 rounded shadow-sm">{{ item.stock_inventario_previo }} u.</b></span>
-            <span>COSTO PROMEDIO ANTERIOR: <b class="text-gray-800 bg-gray-100 px-2 py-0.5 rounded shadow-sm">${{ (item.costo_promedio_previo || 0).toFixed(2) }}</b></span>
+            <span>COSTO PROMEDIO ANTERIOR: <b class="text-gray-800 bg-gray-100 px-2 py-0.5 rounded shadow-sm">{{ item.costo_promedio_previo > 0 ? '$' + item.costo_promedio_previo.toFixed(2) : 'SIN COSTO REGISTRADO' }}</b></span>
           </div>
 
           <!-- Grid de Inputs -->
@@ -695,9 +695,9 @@
     // El costo base por unidad real
     const costoUnitarioBase = costoFactura / factor
 
-    // Datos del stock anterior
-    const stockPrevio = item.stock_inventario_previo || 0
+    // Datos del stock anterior (stock sin costo conocido no participa en el promedio)
     const cppAnterior = item.costo_promedio_previo || 0
+    const stockPrevio = cppAnterior > 0 ? (item.stock_inventario_previo || 0) : 0
     // Unidades nuevas que ingresaran en la compra actual
     const cantidadComprada = calcularCantidad(index) * factor
     // Aplicamos la formula del cpp
@@ -725,8 +725,8 @@
     const factor = parseInt(item.factor_conversion) || 1
     const costoUnitarioCompra = costoFactura / factor
 
-    const stockPrevio = item.stock_inventario_previo || 0
     const cppAnterior = item.costo_promedio_previo || 0
+    const stockPrevio = cppAnterior > 0 ? (item.stock_inventario_previo || 0) : 0
     const cantidadComprada = calcularCantidad(index) * factor
 
     const totalUnidades = stockPrevio + cantidadComprada
