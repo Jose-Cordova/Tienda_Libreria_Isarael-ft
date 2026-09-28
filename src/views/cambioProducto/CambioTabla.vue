@@ -11,7 +11,7 @@
             <th class="py-4 px-5 text-center">Valor</th>
             <th class="py-4 px-5">Efecto en stock</th>
             <th class="py-4 px-5 text-center">Estado</th>
-            <th class="py-4 px-5 text-center">Acciones</th>
+            <th class="py-4 px-5 text-center min-w-[210px] pr-8">Acciones</th>
           </tr>
         </thead>
         <tbody class="text-gray-800 divide-y divide-gray-100">
@@ -40,7 +40,7 @@
                 {{ item.estado }}
               </span>
             </td>
-            <td class="py-4 px-5">
+            <td class="py-4 px-5 pr-8">
               <div class="flex items-center justify-center gap-1">
                 <template v-if="item.estado === 'PENDIENTE'">
                   <Button
