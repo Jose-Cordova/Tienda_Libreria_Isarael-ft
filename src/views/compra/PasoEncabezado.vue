@@ -21,7 +21,7 @@
             <label class="block text-[10px] sm:text-[11px] font-black text-gray-800 uppercase tracking-[0.25em] ml-1">Nº de Control *</label>
             <InputText
               v-model="formulario.numero_factura"
-              @input="formulario.numero_factura = formulario.numero_factura.toUpperCase()"
+              @input="formulario.numero_factura = formulario.numero_factura.toUpperCase(); validarLongitud('numero_factura')"
               class="w-full border border-gray-200 rounded-xl p-3 sm:p-4 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none shadow-sm transition-all uppercase"
               :class="{ 'border-red-500': errores.numero_factura }"
               placeholder="Ej: DTE-03-12345678-000000000000001"
@@ -33,7 +33,7 @@
             <label class="block text-[10px] sm:text-[11px] font-black text-gray-800 uppercase tracking-[0.25em] ml-1">Código de Generación *</label>
             <InputText
               v-model="formulario.codigo_factura"
-              @input="formulario.codigo_factura = formulario.codigo_factura.toUpperCase()"
+              @input="formulario.codigo_factura = formulario.codigo_factura.toUpperCase(); validarLongitud('codigo_factura')"
               class="w-full border border-gray-200 rounded-xl p-3 sm:p-4 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none shadow-sm transition-all uppercase"
               :class="{ 'border-red-500': errores.codigo_factura }"
               placeholder="Ej: C6A9868C-028D-421B-A9A0-36274CECC2C7"
@@ -89,6 +89,7 @@
 <script setup>
   import { ref, onMounted } from 'vue';
   import { useProveedorStore } from '@/stores/proveedorStore';
+  import api from '@/services/api';
   import InputText from 'primevue/inputtext';
   import Dropdown from 'primevue/dropdown';
   import Calendar from 'primevue/calendar';
@@ -132,18 +133,44 @@
     }
   })
 
+  // Máximo de caracteres del DTE (mismas reglas que el backend)
+  const reglasDte = {
+    numero_factura: { nombre: 'Nº de Control', largo: 31 },
+    codigo_factura: { nombre: 'Código de Generación', largo: 36 }
+  }
+
+  // Mientras escribe: avisa en cuanto se pasa del máximo de caracteres
+  const validarLongitud = (campo) => {
+    const valor = formulario.value[campo].trim()
+    const regla = reglasDte[campo]
+    errores.value[campo] = valor.length > regla.largo
+      ? `El ${regla.nombre} admite máximo ${regla.largo} caracteres (tiene ${valor.length}).`
+      : ''
+  }
+
+  // Al continuar: obligatorio y máximo de caracteres
+  const validarCampoDte = (campo) => {
+    const valor = (formulario.value[campo] || '').trim()
+    const regla = reglasDte[campo]
+    if(!valor) return `El ${regla.nombre} es obligatorio.`
+    if(valor.length > regla.largo) return `El ${regla.nombre} admite máximo ${regla.largo} caracteres (tiene ${valor.length}).`
+    return ''
+  }
+
   // Validación inline de campos obligatorios
-  const validarContinuar = () => {
+  const validarContinuar = async () => {
     limpiarErrores()
     let valido = true
 
-    if(!formulario.value.numero_factura || !formulario.value.numero_factura.trim()){
-      errores.value.numero_factura = 'El Nº de Control es obligatorio.'
-      valido = false
-    }
-    if(!formulario.value.codigo_factura || !formulario.value.codigo_factura.trim()){
-      errores.value.codigo_factura = 'El Código de Generación es obligatorio.'
-      valido = false
+    formulario.value.numero_factura = (formulario.value.numero_factura || '').trim()
+    formulario.value.codigo_factura = (formulario.value.codigo_factura || '').trim()
+
+    for(const campo of ['numero_factura', 'codigo_factura']){
+      const error = validarCampoDte(campo)
+      if(error){
+        errores.value[campo] = error
+        valido = false
+      }
     }
     if(!formulario.value.fecha_emision){
       errores.value.fecha_emision = 'La fecha de emisión es obligatoria.'
@@ -152,6 +179,28 @@
     if(!formulario.value.proveedor_id){
       errores.value.proveedor_id = 'Debe seleccionar un proveedor.'
       valido = false
+    }
+
+    if(!valido) return
+
+    // Verificamos que la factura no esté registrada (el backend lo vuelve a validar al guardar)
+    try{
+      const { data } = await api.get('/compras/verificar-factura', {
+        params: {
+          numero_factura: formulario.value.numero_factura,
+          codigo_factura: formulario.value.codigo_factura
+        }
+      })
+      if(data.numero_factura_existe){
+        errores.value.numero_factura = 'Ya existe una compra registrada con ese Nº de Control.'
+        valido = false
+      }
+      if(data.codigo_factura_existe){
+        errores.value.codigo_factura = 'Ya existe una compra registrada con ese Código de Generación.'
+        valido = false
+      }
+    }catch(err){
+      console.warn('No se pudo verificar la factura en el servidor: ', err)
     }
 
     if(!valido) return
