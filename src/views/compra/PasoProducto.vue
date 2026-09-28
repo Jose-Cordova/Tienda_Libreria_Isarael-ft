@@ -172,17 +172,17 @@
 
                     <!-- Selector rápido de lotes activos existentes -->
                     <select
-                      v-if="item.lotes_existentes && item.lotes_existentes.length > 0"
+                      v-if="lotesParaCopiar(item).length > 0"
                       @change="seleccionarLoteExistente($event, index, lIdx)"
                       class="w-full sm:w-auto sm:max-w-[200px] text-[9px] font-black text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 outline-none cursor-pointer hover:bg-blue-100 transition-colors truncate"
                     >
                       <option value="">-- Copiar Lote --</option>
                       <option
-                        v-for="lex in item.lotes_existentes"
-                        :key="lex.id"
+                        v-for="lex in lotesParaCopiar(item)"
+                        :key="lex.codigo_lote + lex.fecha_vencimiento"
                         :value="JSON.stringify(lex)"
                       >
-                        {{ lex.codigo_lote }} ({{ (lex.fecha_vencimiento || '').slice(0, 10) }})
+                        {{ lex.codigo_lote }} (vence {{ lex.fecha_vencimiento.split('-').reverse().join('/') }})
                       </option>
                     </select>
                   </div>
@@ -745,6 +745,20 @@
   const agregarLote = (idx) => {
     productosAgregados.value[idx].lotes.push({ codigo_lote: '', fecha_vencimiento: '', cantidad: 1 })
   }
+  // Lotes que se pueden copiar: una opción por código y vencimiento, solo activos, con stock y sin vencer
+  const lotesParaCopiar = (item) => {
+    const grupos = {}
+    ;(item.lotes_existentes || [])
+      .filter(l => l.estado === 'ACTIVO' && Number(l.cantidad_actual) > 0 && (l.fecha_vencimiento || '').slice(0, 10) >= fechaMinimaLote.value)
+      .forEach(l => {
+        const codigo = (l.codigo_lote || '').trim().toUpperCase()
+        const fecha = l.fecha_vencimiento.slice(0, 10)
+        const clave = `${codigo}|${fecha}`
+        if(!grupos[clave]) grupos[clave] = { codigo_lote: codigo, fecha_vencimiento: fecha }
+      })
+    return Object.values(grupos).sort((a, b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento))
+  }
+
   // Funcion para buscar y selecionar lotes existentes
   const seleccionarLoteExistente  = (event, pIdx, lIdx) => {
     const value = event.target.value
@@ -822,10 +836,30 @@
         mensaje = 'El margen al mayor debe ser menor que el margen al detalle.';
       }
       if(p.perecedero === 'PERECEDERO'){
+        // Vencimientos ya registrados por código (sin contar lotes anulados)
+        const vencimientosEnBd = {}
+        ;(p.lotes_existentes || [])
+          .filter(lex => lex.motivo_inactivo !== 'ANULACION')
+          .forEach(lex => { vencimientosEnBd[(lex.codigo_lote || '').trim().toUpperCase()] = (lex.fecha_vencimiento || '').slice(0, 10) })
+        const codigosEnProducto = []
+
         p.lotes.forEach(l => {
+          l.codigo_lote = (l.codigo_lote || '').trim().toUpperCase()
           if(!l.codigo_lote || !l.fecha_vencimiento || l.cantidad <= 0){
             incompleto = true
              mensaje = 'Complete todos los campos de los lotes para productos perecederos (código, fecha y cantidad).'
+            return
+          }
+          if(codigosEnProducto.includes(l.codigo_lote)){
+            incompleto = true
+            mensaje = `El lote ${l.codigo_lote} está repetido en el producto ${p.nombre}.`
+          }
+          codigosEnProducto.push(l.codigo_lote)
+
+          const vencimientoBd = vencimientosEnBd[l.codigo_lote]
+          if(vencimientoBd && vencimientoBd !== l.fecha_vencimiento){
+            incompleto = true
+            mensaje = `El lote ${l.codigo_lote} de ${p.nombre} ya está registrado con vencimiento ${vencimientoBd.split('-').reverse().join('/')}.`
           }
         })
       }else{
