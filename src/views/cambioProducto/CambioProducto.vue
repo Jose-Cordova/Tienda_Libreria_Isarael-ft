@@ -113,7 +113,7 @@
               <th class="py-4 px-5 text-center">Valor</th>
               <th class="py-4 px-5">Efecto en stock</th>
               <th class="py-4 px-5 text-center">Estado</th>
-              <th class="py-4 px-5 text-center">Acciones</th>
+              <th class="py-4 px-5 text-center min-w-[210px] pr-8">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-gray-800 divide-y divide-gray-100">
@@ -145,17 +145,23 @@
                   {{ item.estado }}
                 </span>
               </td>
-              <td class="py-4 px-5">
-                <div class="flex items-center justify-center gap-1">
-                  <!-- Botón Resumen (siempre visible) -->
-                  <Button icon="pi pi-eye" v-tooltip.top="'Ver resumen'" class="p-button-rounded p-button-text p-button-sm !text-blue-600 hover:!bg-blue-50" @click="verResumen(item)" />
+              <td class="py-4 px-5 text-center">
+                <div class="flex items-center justify-center relative min-h-[40px]">
                   <template v-if="item.estado === 'PENDIENTE'">
-                    <Button icon="pi pi-pencil" v-tooltip.top="'Editar cantidad'" class="p-button-rounded p-button-text p-button-sm !text-blue-600 hover:!bg-blue-50" @click="procesarEditarCantidad(item)" />
-                    <Button icon="pi pi-check" v-tooltip.top="'Aceptar reemplazo'" class="p-button-rounded p-button-text p-button-sm p-button-success !text-green-600 hover:!bg-green-50" @click="procesarAceptar(item)" />
-                    <Button icon="pi pi-times" v-tooltip.top="'Rechazar reclamación'" class="p-button-rounded p-button-text p-button-sm p-button-danger !text-red-600 hover:!bg-red-50" @click="procesarRechazar(item)" />
-                    <Button v-if="item.origen !== 'VENCIMIENTO'" icon="pi pi-ban" v-tooltip.top="'Anular registro (Revertir)'" class="p-button-rounded p-button-text p-button-sm p-button-warning !text-amber-600 hover:!bg-amber-50" @click="procesarAnular(item)" />
+                    <SpeedDial
+                      :model="obtenerItemsSpeedDial(item)"
+                      direction="left"
+                      :transitionDelay="60"
+                      showIcon="pi pi-bars"
+                      hideIcon="pi pi-times"
+                      buttonClass="p-button-outlined p-button-secondary p-button-sm"
+                      class="custom-speeddial"
+                    />
                   </template>
-                  <span v-if="item.estado !== 'PENDIENTE'" class="text-xs text-gray-400 italic font-medium">Completado</span>
+                  <div v-else class="flex items-center justify-center gap-2">
+                    <Button icon="pi pi-eye" v-tooltip.top="'Ver resumen'" class="p-button-rounded p-button-text p-button-sm !text-blue-600 hover:!bg-blue-50" @click="verResumen(item)" />
+                    <span class="text-xs text-gray-400 italic font-medium">Completado</span>
+                  </div>
                 </div>
               </td>
             </tr>
@@ -286,12 +292,50 @@ import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import Calendar from 'primevue/calendar';
 import Paginator from 'primevue/paginator';
+import SpeedDial from 'primevue/speeddial';
 import { useCambioProductoStore } from '@/stores/cambioProductoStore';
 import CambioModalForm from './CambioModalForm.vue';
 import CambioWizardAceptar from './CambioWizardAceptar.vue';
 
 const store = useCambioProductoStore();
 const toast = useToast();
+
+const obtenerItemsSpeedDial = (item) => {
+  const items = [];
+
+  if (item.origen !== 'VENCIMIENTO') {
+    items.push({
+      label: 'Anular registro',
+      icon: 'pi pi-ban',
+      command: () => procesarAnular(item)
+    });
+  }
+
+  items.push(
+    {
+      label: 'Rechazar reclamación',
+      icon: 'pi pi-times',
+      command: () => procesarRechazar(item)
+    },
+    {
+      label: 'Aceptar reemplazo',
+      icon: 'pi pi-check',
+      command: () => procesarAceptar(item)
+    },
+    {
+      label: 'Editar cantidad',
+      icon: 'pi pi-pencil',
+      command: () => procesarEditarCantidad(item)
+    },
+    {
+      label: 'Ver resumen',
+      icon: 'pi pi-eye',
+      command: () => verResumen(item)
+    }
+  );
+
+  return items;
+};
 
 const cambios = computed(() => store.cambios);
 
@@ -404,6 +448,8 @@ const procesarEditarCantidad = (item) => {
     cancelButtonText: 'Cancelar',
     confirmButtonColor: '#062c1b',
     cancelButtonColor: '#708090',
+    heightAuto: false,
+    target: 'body',
     inputValidator: (value) => {
       if (!value || parseInt(value) < 1) {
         return 'Por favor ingrese una cantidad válida (mínimo 1).';
@@ -439,7 +485,9 @@ const procesarRechazar = (item) => {
     cancelButtonColor: '#708090',
     confirmButtonText: 'Confirmar',
     cancelButtonText: 'Cancelar',
-    reverseButtons: true
+    reverseButtons: true,
+    heightAuto: false,
+    target: 'body'
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
@@ -464,7 +512,9 @@ const procesarAnular = (item) => {
     cancelButtonColor: '#708090',
     confirmButtonText: 'Confirmar',
     cancelButtonText: 'Cancelar',
-    reverseButtons: true
+    reverseButtons: true,
+    heightAuto: false,
+    target: 'body'
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
@@ -541,5 +591,40 @@ onMounted(() => cargarRegistros());
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+:deep(.custom-speeddial) {
+  position: absolute !important;
+  right: 1.5rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+:deep(.custom-speeddial .p-speeddial-button) {
+  width: 1.85rem !important;
+  height: 1.85rem !important;
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+:deep(.custom-speeddial .p-speeddial-button:hover) {
+  background-color: #e2e8f0 !important;
+}
+:deep(.custom-speeddial .p-speeddial-button .p-button-icon) {
+  font-size: 0.8rem !important;
+  color: #334155 !important;
+}
+:deep(.custom-speeddial .p-speeddial-action) {
+  width: 1.85rem !important;
+  height: 1.85rem !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+}
+:deep(.custom-speeddial .p-speeddial-action:hover) {
+  background-color: #f8fafc !important;
+}
+:deep(.custom-speeddial .p-speeddial-action .p-speeddial-action-icon) {
+  font-size: 0.75rem !important;
+  color: #475569 !important;
 }
 </style>

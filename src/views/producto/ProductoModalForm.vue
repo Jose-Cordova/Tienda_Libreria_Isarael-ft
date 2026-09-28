@@ -551,8 +551,8 @@ const confirmarAjusteStockModal = () => {
     errors.value.lote_id = 'Debe seleccionar el lote a afectar.'
     tieneError = true
   }
-  if (!productoForm.value.motivo_ajuste || productoForm.value.motivo_ajuste.trim().length < 4) {
-    errors.value.motivo_ajuste = 'Ingrese un motivo de ajuste válido (mín. 4 caracteres).'
+  if (!productoForm.value.motivo_ajuste || productoForm.value.motivo_ajuste.trim().length < 3) {
+    errors.value.motivo_ajuste = 'Ingrese un motivo de ajuste válido (mín. 3 caracteres).'
     tieneError = true
   }
 
@@ -744,8 +744,8 @@ const solicitarConfirmacionGuardado = async () => {
 
   if (props.esEdicion) {
     if (modificarStock.value && productoForm.value.nuevo_stock !== null && productoForm.value.nuevo_stock !== productoForm.value.stock_actual) {
-      if (!productoForm.value.motivo_ajuste || productoForm.value.motivo_ajuste.trim().length < 4) {
-        errors.value.motivo_ajuste = 'El motivo del ajuste debe tener al menos 4 caracteres.'
+      if (!productoForm.value.motivo_ajuste || productoForm.value.motivo_ajuste.trim().length < 3) {
+        errors.value.motivo_ajuste = 'El motivo del ajuste debe tener al menos 3 caracteres.'
       }
       if (productoForm.value.perecedero && !productoForm.value.lote_id) {
         errors.value.lote_id = 'Debe seleccionar un lote para el producto perecedero.'
@@ -779,23 +779,11 @@ const solicitarConfirmacionGuardado = async () => {
   }
 
   if (Object.keys(errors.value).length > 0) {
+    emit('toast', { tipo: 'warn', mensaje: 'Por favor complete todos los campos obligatorios del formulario.' })
     return
   }
 
-  const result = await Swal.fire({
-    title: '¿Guardar Cambios?',
-    text: props.esEdicion ? 'Se actualizará la información del producto.' : 'Se creará el nuevo producto.',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonColor: '#003d00',
-    cancelButtonColor: '#d6dfd6',
-    confirmButtonText: 'Sí, Guardar',
-    cancelButtonText: 'Cancelar'
-  })
-
-  if (result.isConfirmed) {
-    await guardarProducto()
-  }
+  await guardarProducto()
 }
 
 const guardarProducto = async () => {
@@ -865,9 +853,7 @@ const guardarProducto = async () => {
           errors.value[key] = Array.isArray(resData.errors[key]) ? resData.errors[key][0] : resData.errors[key]
         }
       }
-      if (resData.message) {
-        emit('toast', { tipo: 'error', mensaje: resData.message })
-      }
+      emit('toast', { tipo: 'warn', mensaje: resData.message || 'Por favor complete todos los campos obligatorios del formulario.' })
     } else {
       const msg = error.response?.data?.message || 'Ocurrió un error inesperado al guardar el producto.'
       emit('toast', { tipo: 'error', mensaje: msg })

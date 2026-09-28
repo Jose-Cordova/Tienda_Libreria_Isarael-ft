@@ -278,11 +278,25 @@ const secciones = [
 
 // Toast de PrimeVue
 const mostrarToast = (tipo, mensaje) => {
+  const severityMap = {
+    success: 'success',
+    warn: 'warn',
+    warning: 'warn',
+    error: 'error',
+    info: 'info'
+  }
+  const summaryMap = {
+    success: 'Éxito',
+    warn: 'Advertencia',
+    warning: 'Advertencia',
+    error: 'Error',
+    info: 'Información'
+  }
   toast.add({
-    severity: tipo === 'success' ? 'success' : 'error',
-    summary: tipo === 'success' ? 'Éxito' : 'Error',
+    severity: severityMap[tipo] || 'info',
+    summary: summaryMap[tipo] || 'Notificación',
     detail: mensaje,
-    life: tipo === 'success' ? 3500 : 5000
+    life: tipo === 'success' ? 3500 : 4500
   })
 }
 
