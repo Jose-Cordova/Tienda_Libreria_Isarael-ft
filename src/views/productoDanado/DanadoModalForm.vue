@@ -22,11 +22,13 @@
                   optionLabel="nombre"
                   optionValue="id"
                   placeholder="Seleccione el producto..."
-                  class="w-full border border-gray-200 rounded-xl text-sm h-[54px] flex items-center font-bold"
+                  class="w-full border rounded-xl text-sm h-[54px] flex items-center font-bold"
+                  :class="errors.producto_id ? 'border-red-500' : 'border-gray-200'"
                   filter
                   @change="onProductoChange"
                   :loading="cargandoProductos"
                 />
+                <small v-if="errors.producto_id" class="text-red-500 text-xs block font-bold">{{ errors.producto_id }}</small>
               </div>
 
               <!-- Lote (si perecedero) -->
@@ -38,21 +40,25 @@
                   optionLabel="codigo_lote"
                   optionValue="id"
                   placeholder="Elegir lote..."
-                  class="w-full border border-gray-200 rounded-xl text-sm h-[54px] flex items-center font-bold"
+                  class="w-full border rounded-xl text-sm h-[54px] flex items-center font-bold"
+                  :class="errors.lote_id ? 'border-red-500' : 'border-gray-200'"
                   filter
                 />
+                <small v-if="errors.lote_id" class="text-red-500 text-xs block font-bold">{{ errors.lote_id }}</small>
               </div>
 
               <!-- Cantidad -->
               <div :class="esPerecederoSeleccionado ? 'col-span-1' : 'col-span-2'" class="space-y-2 text-left">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Cantidad Dañada *</label>
-                <InputNumber v-model="formulario.cantidad" :min="1" inputClass="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" placeholder="1" />
+                <InputNumber v-model="formulario.cantidad" :min="1" inputClass="w-full border rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" :class="errors.cantidad ? 'border-red-500' : 'border-gray-200'" placeholder="1" />
+                <small v-if="errors.cantidad" class="text-red-500 text-xs block font-bold">{{ errors.cantidad }}</small>
               </div>
 
               <!-- Motivo / Descripción -->
               <div class="col-span-2 space-y-2">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em]">Motivo del Daño *</label>
-                <Textarea v-model="formulario.descripcion" rows="3" class="w-full border border-gray-200 rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" placeholder="Explique brevemente qué ocurrió con el producto..." />
+                <Textarea v-model="formulario.descripcion" rows="3" class="w-full border rounded-xl p-4 text-sm font-bold focus:border-[#0a3622] outline-none" :class="errors.descripcion ? 'border-red-500' : 'border-gray-200'" placeholder="Explique brevemente qué ocurrió con el producto..." />
+                <small v-if="errors.descripcion" class="text-red-500 text-xs block font-bold">{{ errors.descripcion }}</small>
               </div>
             </div>
 
@@ -95,6 +101,7 @@ const productosDisponibles = ref([]);
 const lotesDisponibles = ref([]);
 const guardando = ref(false);
 const cargandoProductos = ref(false);
+const errors = ref({});
 
 const formulario = ref({
   origen: 'DIRECTO',
@@ -107,6 +114,7 @@ const formulario = ref({
 
 watch(() => props.visible, (newVal) => {
   if (newVal) {
+    errors.value = {};
     formulario.value = {
       origen: 'DIRECTO',
       producto_id: null,
@@ -122,10 +130,10 @@ watch(() => props.visible, (newVal) => {
 
 const mostrarToast = (mensaje, tipo = 'success') => {
   toast.add({
-    severity: tipo,
+    severity: tipo === 'warn' ? 'warn' : tipo,
     summary: tipo === 'success' ? 'Éxito' : (tipo === 'warn' ? 'Advertencia' : 'Error'),
     detail: mensaje,
-    life: 3000
+    life: 3500
   });
 };
 
@@ -166,20 +174,24 @@ const onProductoChange = () => {
 };
 
 const guardar = async () => {
+  errors.value = {};
+
   if (!formulario.value.producto_id) {
-    mostrarToast('Seleccione el producto dañado.', 'warn');
-    return;
+    errors.value.producto_id = 'El producto dañado es obligatorio.';
   }
   if (esPerecederoSeleccionado.value && !formulario.value.lote_id) {
-    mostrarToast('Seleccione el lote del producto perecedero.', 'warn');
-    return;
+    errors.value.lote_id = 'El lote del producto perecedero es obligatorio.';
   }
   if (!formulario.value.cantidad || formulario.value.cantidad < 1) {
-    mostrarToast('Ingrese una cantidad válida.', 'warn');
-    return;
+    errors.value.cantidad = 'La cantidad debe ser al menos 1.';
   }
-  if (!formulario.value.descripcion) {
-    mostrarToast('Por favor ingrese el motivo del daño.', 'warn');
+  if (!formulario.value.descripcion || !formulario.value.descripcion.trim()) {
+    errors.value.descripcion = 'El motivo del daño es obligatorio.';
+  } else if (formulario.value.descripcion.trim().length < 3) {
+    errors.value.descripcion = 'El motivo del daño debe tener al menos 3 caracteres.';
+  }
+
+  if (Object.keys(errors.value).length > 0) {
     return;
   }
 
@@ -198,8 +210,17 @@ const guardar = async () => {
     emit('guardado');
   } catch (error) {
     console.error(error);
-    const msg = error.response?.data?.message || 'Error al guardar el registro.';
-    mostrarToast(msg, 'error');
+    if (error.response?.status === 422) {
+      const resData = error.response?.data || {};
+      if (resData.errors) {
+        for (const key in resData.errors) {
+          errors.value[key] = Array.isArray(resData.errors[key]) ? resData.errors[key][0] : resData.errors[key];
+        }
+      }
+    } else {
+      const msg = error.response?.data?.message || 'Error al guardar el registro.';
+      mostrarToast(msg, 'error');
+    }
   } finally {
     guardando.value = false;
   }

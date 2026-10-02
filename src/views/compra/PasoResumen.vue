@@ -16,17 +16,17 @@
         </div>
       </div>
       <div class="p-8 grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div class="space-y-1">
+        <div class="space-y-1 min-w-0">
           <p class="text-[12px] font-black text-gray-800 uppercase tracking-widest">Nº Factura</p>
-          <p class="text-1xl font-bold text-[#000000]">{{ datos.numero_factura }}</p>
+          <p class="text-1xl font-bold text-[#000000] break-all">{{ datos.numero_factura }}</p>
         </div>
-        <div class="space-y-1">
+        <div class="space-y-1 min-w-0">
           <p class="text-[12px] font-black text-gray-800 uppercase tracking-widest">Código de Generación</p>
-          <p class="text-1xl font-bold text-[#000000]">{{ datos.codigo_factura }}</p>
+          <p class="text-1xl font-bold text-[#000000] break-all">{{ datos.codigo_factura }}</p>
         </div>
-        <div class="space-y-1">
+        <div class="space-y-1 min-w-0">
           <p class="text-[12px] font-black text-gray-800 uppercase tracking-widest">Proveedor</p>
-          <p class="text-1xl font-bold text-[#000000]">{{ nombreProveedor }}</p>
+          <p class="text-1xl font-bold text-[#000000] break-words">{{ nombreProveedor }}</p>
         </div>
         <div class="space-y-1">
           <p class="text-[12px] font-black text-gray-800 uppercase tracking-widest">Fecha de Emisión</p>

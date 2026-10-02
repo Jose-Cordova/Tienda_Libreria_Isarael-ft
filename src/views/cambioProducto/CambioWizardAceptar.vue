@@ -41,18 +41,28 @@
               <div v-if="itemAceptar?.producto?.perecedero === 'PERECEDERO'" class="space-y-3">
                 <div class="flex gap-2">
                   <button type="button" class="flex-1 py-2 rounded-xl border-2 text-xs font-bold transition-all"
-                    :class="wizard.loteOpcion === 'mismo-lote' ? 'border-[#0a3622] bg-[#f0f7f3] text-[#0a3622]' : 'border-gray-200 text-gray-500'"
-                    @click="wizard.loteOpcion = 'mismo-lote'">Mismo lote</button>
+                    :class="[
+                      esLoteOriginalVencido ? 'border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed opacity-60' :
+                      (wizard.loteOpcion === 'mismo-lote' ? 'border-[#0a3622] bg-[#f0f7f3] text-[#0a3622]' : 'border-gray-200 text-gray-500')
+                    ]"
+                    :disabled="esLoteOriginalVencido"
+                    @click="!esLoteOriginalVencido && (wizard.loteOpcion = 'mismo-lote')">
+                    Mismo lote
+                  </button>
                   <button type="button" class="flex-1 py-2 rounded-xl border-2 text-xs font-bold transition-all"
                     :class="wizard.loteOpcion === 'nuevo-lote' ? 'border-[#0a3622] bg-[#f0f7f3] text-[#0a3622]' : 'border-gray-200 text-gray-500'"
                     @click="wizard.loteOpcion = 'nuevo-lote'">Un lote nuevo</button>
                 </div>
 
-                <div v-if="wizard.loteOpcion === 'mismo-lote'" class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-800">
+                <div v-if="esLoteOriginalVencido" class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+                  <i class="pi pi-exclamation-triangle mr-1"></i> El lote original ya se encuentra vencido. Se debe registrar un <b>nuevo lote</b> obligatoriamente.
+                </div>
+
+                <div v-else-if="wizard.loteOpcion === 'mismo-lote'" class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-800">
                   Se repondrá el stock en el lote original <b>{{ itemAceptar?.lote?.codigo_lote || '—' }}</b>
                 </div>
 
-                <div v-else class="grid grid-cols-2 gap-4">
+                <div v-if="wizard.loteOpcion === 'nuevo-lote'" class="grid grid-cols-2 gap-4">
                   <div class="space-y-2">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">Código del lote nuevo *</label>
                     <InputText v-model="wizard.codigo" class="w-full border border-gray-200 rounded-xl p-3 text-sm font-bold" placeholder="Ej. LT-XX-03" />
@@ -266,6 +276,16 @@ const tiposProducto = [
   { label: 'Perecedero', value: 'PERECEDERO' }
 ];
 
+const esLoteOriginalVencido = computed(() => {
+  if (!props.itemAceptar) return false;
+  if (props.itemAceptar.origen === 'VENCIMIENTO') return true;
+  const fechaVenc = props.itemAceptar.lote?.fecha_vencimiento;
+  if (!fechaVenc) return false;
+  const hoy = new Date().toISOString().split('T')[0];
+  const vencSolo = String(fechaVenc).split('T')[0];
+  return vencSolo <= hoy;
+});
+
 const fechaMinima = computed(() => {
   const mañana = new Date();
   mañana.setDate(mañana.getDate() + 1);
@@ -291,7 +311,15 @@ const productoRecibido = computed(() => {
 // Reiniciar el wizard cuando se abre el modal
 watch(() => props.visible, async (newVal) => {
   if (newVal) {
-    wizard.value = { tipo: 'mismo', loteOpcion: props.itemAceptar?.producto?.perecedero === 'PERECEDERO' ? 'nuevo-lote' : 'mismo-lote', codigo: '', vencimiento: null, productoReemplazoId: null, creado: false };
+    const debeSerNuevoLote = esLoteOriginalVencido.value || props.itemAceptar?.producto?.perecedero === 'PERECEDERO';
+    wizard.value = {
+      tipo: 'mismo',
+      loteOpcion: debeSerNuevoLote ? 'nuevo-lote' : 'mismo-lote',
+      codigo: '',
+      vencimiento: null,
+      productoReemplazoId: null,
+      creado: false
+    };
     wizardPaso.value = 1;
     buscarProducto.value = '';
     productosFiltrados.value = [];
