@@ -125,6 +125,7 @@ import { useToast } from 'primevue/usetoast';
 import InputText from 'primevue/inputtext';
 import InputMask from 'primevue/inputmask';
 import Button from 'primevue/button';
+import { esCorreoValido, MENSAJE_CORREO_INVALIDO } from '@/utils/validaciones';
 
 const toast = useToast();
 
@@ -151,7 +152,7 @@ const cargarConfiguracion = async () => {
     form.telefono = data.telefono || '';
     form.email = data.email || '';
     Object.assign(original, { ...form });
-  } catch (error) {
+  } catch {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar la configuración.', life: 5000 });
   } finally {
     cargando.value = false;
@@ -178,6 +179,14 @@ const cancelarEdicion = () => {
 
 const guardar = async () => {
   limpiarErrores();
+  if (!form.email || !form.email.trim()) {
+    errores.email = 'El correo electrónico es obligatorio.';
+    return;
+  }
+  if (!esCorreoValido(form.email)) {
+    errores.email = MENSAJE_CORREO_INVALIDO;
+    return;
+  }
   guardando.value = true;
   try {
     await api.put('/configuracion/1', form);
@@ -189,7 +198,7 @@ const guardar = async () => {
       const { errors } = error.response.data;
       if (errors) {
         for (const key in errors) {
-          if (errores.hasOwnProperty(key)) {
+          if (Object.hasOwn(errores, key)) {
             errores[key] = Array.isArray(errors[key]) ? errors[key][0] : errors[key];
           }
         }

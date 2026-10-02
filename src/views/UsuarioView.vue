@@ -228,6 +228,7 @@
   import Button from 'primevue/button';
   import Dropdown from 'primevue/dropdown';
   import Paginator from 'primevue/paginator';
+  import { esCorreoValido, MENSAJE_CORREO_INVALIDO } from '@/utils/validaciones';
 
   const userStore = useUserStore()
   const authStore = useAuthStore()
@@ -313,6 +314,9 @@
     }
     if(!formulario.value.email || !formulario.value.email.trim()){
       errores.value.email = 'El correo electrónico es obligatorio.'
+      valido = false
+    }else if(!esCorreoValido(formulario.value.email)){
+      errores.value.email = MENSAJE_CORREO_INVALIDO
       valido = false
     }
     if(!formulario.value.rol){
