@@ -19,7 +19,7 @@
         <div class="space-y-0.5">
           <RouterLink to="/punto-venta" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-shopping-cart text-lg text-shop-accent"></i>
-            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Punto de Ventas</span>
+            <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Ventas</span>
           </RouterLink>
           <RouterLink to="/historial-ventas" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <i class="pi pi-file text-lg text-shop-accent"></i>
@@ -28,7 +28,7 @@
           <RouterLink to="/creditos" class="flex items-center justify-between px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">
             <div class="flex items-center gap-3">
               <i class="pi pi-credit-card text-lg text-shop-accent"></i>
-              <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Crédito/Fiados</span>
+              <span class="text-sm font-bold tracking-wide text-gray-200 group-hover:text-white">Créditos</span>
             </div>
           </RouterLink>
           <RouterLink to="/devoluciones-ventas" class="flex items-center gap-3 px-7 py-2.5 transition-all hover:bg-shop-sidebar-hover group no-underline">

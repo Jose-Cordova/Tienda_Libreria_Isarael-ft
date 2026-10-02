@@ -109,6 +109,10 @@ const validarFormatoDUI = (dui) => /^\d{8}-\d{1}$/.test(dui);
 const validarDuiLocal = (dui) => {
   if (!validarFormatoDUI(dui)) return false;
 
+  const soloDigitos = dui.replace('-', '');
+  if (/^0+$/.test(soloDigitos)) return false;
+
+
   const digitos = dui.replace('-', '').split('').map(Number);
   const factores = [9, 8, 7, 6, 5, 4, 3, 2];
   let suma = 0;
