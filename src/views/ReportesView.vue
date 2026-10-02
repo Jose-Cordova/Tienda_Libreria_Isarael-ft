@@ -345,6 +345,33 @@
             :disabled="generandoReporte || !productosDaniados.fecha_inicio || !productosDaniados.fecha_fin" />
         </div>
       </AccordionTab>
+      <!-- ==================== REPORTE DE PRODUCTOS POR VENCER ==================== -->
+    <AccordionTab>
+      <template #header>
+        <div class="flex items-center gap-4 text-[#0a3622] font-extrabold">
+          <i class="pi pi-clock text-xl"></i>
+          <span>PRODUCTOS PRÓXIMOS A VENCER</span>
+        </div>
+      </template>
+
+      <div class="p-4">
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+          <i class="pi pi-info-circle text-amber-600 text-lg mt-0.5"></i>
+          <div>
+            <p class="text-sm font-bold text-amber-900">Reporte informativo</p>
+            <p class="text-xs text-amber-800 mt-1">
+              Este reporte muestra los productos perecederos cuyos lotes están próximos a vencer en los siguientes
+              <strong>15 días</strong>. No requiere filtros, solo presiona Generar.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end p-4 pt-0">
+        <Button label="Generar" icon="pi pi-file-pdf" class="p-button-sm bg-[#0a3622] border-none"
+          @click="generar('productos-por-vencer', productosPorVencer)" :disabled="generandoReporte" />
+      </div>
+    </AccordionTab>
     </Accordion>
   </main>
 </template>
@@ -412,6 +439,7 @@ const devoluciones = reactive({ fecha_inicio: null, fecha_fin: null, estado: nul
 const creditos = reactive({ fecha_inicio: null, fecha_fin: null, cliente_credito_id: null, estado: null });
 const compras = reactive({ fecha_inicio: null, fecha_fin: null, proveedor_id: null });
 const inventario = reactive({ seccion: null, marca_id: null, categoria_id: null, estado: null });
+const productosPorVencer = reactive({});
 const cambioProducto = reactive({ fecha_inicio: null, fecha_fin: null, estado: null });
 const productosDaniados = reactive({ fecha_inicio: null, fecha_fin: null, origen: null, estado: null });
 
@@ -424,11 +452,12 @@ const valoresIniciales = {
   creditos: { fecha_inicio: null, fecha_fin: null, cliente_credito_id: null, estado: null },
   compras: { fecha_inicio: null, fecha_fin: null, proveedor_id: null },
   inventario: { seccion: null, marca_id: null, categoria_id: null, estado: null },
+  productosPorVencer: {},
   cambioProducto: { fecha_inicio: null, fecha_fin: null, estado: null },
   productosDaniados: { fecha_inicio: null, fecha_fin: null, origen: null, estado: null }
 };
 
-const reportesMap = { cierreDiario, general, ventas, devoluciones, creditos, compras, inventario, cambioProducto, productosDaniados }; // ✅
+const reportesMap = { cierreDiario, general, ventas, devoluciones, creditos, compras, inventario, productosPorVencer, cambioProducto, productosDaniados };
 
 const limpiarFiltros = (nombre) => {
   const estado = reportesMap[nombre];

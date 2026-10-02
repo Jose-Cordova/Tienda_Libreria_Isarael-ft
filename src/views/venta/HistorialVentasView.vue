@@ -28,8 +28,10 @@
     <TablaHistorial
       v-else
       :ventas="ventasFormateadas"
+      :metodos="metodosPago"
       @ver-detalle="abrirDetalle"
       @anular="confirmarAnulacion"
+      @cambiar-metodo="cambiarMetodoPago"
     />
 
     <!-- Paginador -->
@@ -186,6 +188,40 @@ const confirmarAnulacion = async (venta) => {
         life: 5000
       });
     }
+  }
+};
+
+// -----------------------------------------------
+// Método para cambiar el método de pago
+// -----------------------------------------------
+const cambiarMetodoPago = async ({ venta, metodo_pago_id }) => {
+  try {
+    await api.patch(`/ventas/${venta.id}/metodo-pago`, {
+      metodo_pago_id
+    });
+
+    toast.add({
+      severity: 'success',
+      summary: 'Método actualizado',
+      detail: `La venta #${venta.correlativo} cambió su método de pago correctamente.`,
+      life: 3500
+    });
+
+    // Recargar las ventas para reflejar el cambio
+    store.fetchVentas(store.currentPage);
+
+  } catch (error) {
+    const errores = error.response?.data?.errors;
+    const mensaje = (errores && Object.values(errores)[0]?.[0])
+      || error.response?.data?.message
+      || 'No se pudo actualizar el método de pago.';
+
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: mensaje,
+      life: 5000
+    });
   }
 };
 

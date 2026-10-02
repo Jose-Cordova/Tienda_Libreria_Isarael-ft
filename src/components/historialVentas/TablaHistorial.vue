@@ -31,7 +31,7 @@
               <div class="text-[10px] text-gray-400 font-bold">{{ venta.hora }}</div>
             </td>
 
-            <!-- Productos (primeros 2 + resto) -->
+            <!-- Productos -->
             <td class="py-4 px-5">
               <template v-if="venta.productos">
                 <div class="font-bold text-gray-800 text-xs leading-tight">
@@ -98,6 +98,13 @@
                   @click="$emit('ver-detalle', venta)"
                 />
                 <Button
+                  v-if="venta.estado === 'Pagada'"
+                  icon="pi pi-credit-card"
+                  class="p-button-rounded p-button-text p-button-sm p-button-warning"
+                  v-tooltip="'Cambiar método de pago'"
+                  @click="abrirConfirmacionMetodo(venta)"
+                />
+                <Button
                   icon="pi pi-ban"
                   class="p-button-rounded p-button-text p-button-sm"
                   :class="(venta.estado === 'Anulada' || venta.estado === 'Devolucion') ? 'opacity-30 cursor-not-allowed' : 'p-button-danger'"
@@ -151,23 +158,76 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de cambio de método de pago -->
+    <div
+      v-if="mostrarConfirmarMetodo"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-[70] backdrop-blur-sm p-4 text-center"
+    >
+      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
+        <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
+        <div class="p-8">
+          <div class="flex justify-center mb-4 text-amber-500">
+            <i class="pi pi-credit-card text-5xl"></i>
+          </div>
+          <h2 class="text-lg font-extrabold text-gray-800 mb-2">Cambiar método de pago</h2>
+          <p class="text-xs text-gray-500 mb-6 font-medium leading-relaxed">
+            Venta <span class="text-gray-800 font-bold">"{{ ventaMetodo?.correlativo }}"</span>
+            del día <span class="text-gray-800 font-bold">"{{ ventaMetodo?.fecha }}"</span>.
+          </p>
+
+          <div class="flex flex-col gap-2 text-left mb-6">
+            <label class="text-[11px] font-extrabold text-[#3a5a3a] uppercase tracking-wider">Nuevo método de pago</label>
+            <Dropdown
+              v-model="metodoSeleccionado"
+              :options="metodos"
+              optionLabel="nombre"
+              optionValue="id"
+              placeholder="Seleccione un método"
+              class="w-full"
+            />
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button
+              @click="cerrarModalMetodo"
+              class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white transition-colors text-sm"
+            >
+              Cancelar
+            </button>
+            <button
+              @click="confirmarCambioMetodo"
+              :disabled="!metodoSeleccionado"
+              class="flex-1 py-3 bg-[#0a3622] hover:bg-[#115033] text-white font-bold rounded-xl shadow-md transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import Button from 'primevue/button';
+import Dropdown from 'primevue/dropdown';
 
 defineProps({
   ventas: {
     type: Array,
     required: true
+  },
+  metodos: {
+    type: Array,
+    default: () => []
   }
 });
 
-const emit = defineEmits(['ver-detalle', 'anular']);
+const emit = defineEmits(['ver-detalle', 'anular', 'cambiar-metodo']);
 
-// Lógica de confirmación
+// Confirmación de anulación
 const mostrarConfirmarAnular = ref(false);
 const ventaAAnular = ref(null);
 
@@ -180,6 +240,34 @@ const confirmarAnulacion = () => {
   emit('anular', ventaAAnular.value);
   mostrarConfirmarAnular.value = false;
   ventaAAnular.value = null;
+};
+
+// Confirmación de cambio de método de pago
+const mostrarConfirmarMetodo = ref(false);
+const ventaMetodo = ref(null);
+const metodoSeleccionado = ref(null);
+
+const abrirConfirmacionMetodo = (venta) => {
+  ventaMetodo.value = venta;
+  metodoSeleccionado.value = null;
+  mostrarConfirmarMetodo.value = true;
+};
+
+const cerrarModalMetodo = () => {
+  mostrarConfirmarMetodo.value = false;
+  ventaMetodo.value = null;
+  metodoSeleccionado.value = null;
+};
+
+const confirmarCambioMetodo = () => {
+  if (!metodoSeleccionado.value) return;
+
+  emit('cambiar-metodo', {
+    venta: ventaMetodo.value,
+    metodo_pago_id: metodoSeleccionado.value
+  });
+
+  cerrarModalMetodo();
 };
 </script>
 

@@ -13,7 +13,8 @@
     </div>
 
     <!-- Indicador de venta al crédito -->
-    <div v-if="ventaStore.estado === 'CREDITO'" class="flex flex-col gap-1 bg-shop-yellow-pale text-shop-yellow font-bold text-sm px-3 py-2 rounded-shop-sm">
+    <div v-if="ventaStore.estado === 'CREDITO'"
+      class="flex flex-col gap-1 bg-shop-yellow-pale text-shop-yellow font-bold text-sm px-3 py-2 rounded-shop-sm">
       <div class="flex items-center gap-2">
         <i class="pi pi-book"></i> VENTA AL CRÉDITO (Fiado)
       </div>
@@ -30,12 +31,8 @@
         <label class="text-[11px] font-bold text-shop-text-2 uppercase flex items-center gap-1">
           <i class="pi pi-users text-[10px]"></i> Tipo de Precio
         </label>
-        <Dropdown
-          v-model="ventaStore.tipo_cliente"
-          :options="['DETALLES', 'MAYORISTA']"
-          class="w-full font-bold"
-          @change="ventaStore.cambiarTipoCliente($event.value)"
-        >
+        <Dropdown v-model="ventaStore.tipo_cliente" :options="['DETALLES', 'MAYORISTA']" class="w-full font-bold"
+          @change="ventaStore.cambiarTipoCliente($event.value)">
           <template #value="slotProps">
             <div class="flex items-center gap-2">
               <i :class="slotProps.value === 'MAYORISTA' ? 'pi pi-box' : 'pi pi-tag'" class="text-shop-green"></i>
@@ -50,18 +47,12 @@
         <label class="text-[11px] font-bold text-shop-text-2 uppercase flex items-center gap-1">
           <i class="pi pi-credit-card text-[10px]"></i> Método de Pago
         </label>
-        <Dropdown
-          v-model="ventaStore.metodo_pago_id"
-          :options="ventaStore.metodosPago"
-          optionLabel="nombre"
-          optionValue="id"
-          class="w-full font-bold"
-          placeholder="Seleccione..."
-        >
+        <Dropdown v-model="ventaStore.metodo_pago_id" :options="ventaStore.metodosPago" optionLabel="nombre"
+          optionValue="id" class="w-full font-bold" placeholder="Seleccione...">
           <template #value="slotProps">
             <div v-if="slotProps.value" class="flex items-center gap-2">
               <i class="pi pi-wallet text-shop-green"></i>
-              <span>{{ ventaStore.metodosPago.find(m => m.id === slotProps.value)?.nombre }}</span>
+              <span>{{ventaStore.metodosPago.find(m => m.id === slotProps.value)?.nombre}}</span>
             </div>
           </template>
         </Dropdown>
@@ -69,34 +60,26 @@
     </div>
 
     <!-- Monto recibido y vuelto (solo PAGADA y NO transferencia) -->
-    <div v-if="ventaStore.estado !== 'CREDITO' && !ventaStore.isTransferencia" class="bg-shop-surface-2 p-3 rounded-shop border border-shop-border mt-1">
+    <div v-if="ventaStore.estado !== 'CREDITO' && !ventaStore.isTransferencia"
+      class="bg-shop-surface-2 p-3 rounded-shop border border-shop-border mt-1">
       <label class="text-[11px] font-bold text-shop-text-2 uppercase mb-1 block">Dinero Recibido:</label>
       <div class="p-inputgroup">
         <span class="p-inputgroup-addon bg-white font-bold text-shop-green">$</span>
-        <InputNumber
-          v-model="montoRecibido"
-          @input="onMontoInput"
-          mode="decimal"
-          :minFractionDigits="2"
-          :maxFractionDigits="2"
-          placeholder="0.00"
-          class="font-bold"
-          :locale="'es-SV'"
-          :decimalSeparator="','"
-          :thousandSeparator="'.'"
-          :lazy="false"
-        />
+        <InputNumber v-model="montoRecibido" @input="onMontoInput" mode="decimal" :minFractionDigits="2"
+          :maxFractionDigits="2" placeholder="0.00" class="font-bold" :locale="'es-SV'" :decimalSeparator="','"
+          :thousandSeparator="'.'" :lazy="false" />
       </div>
 
       <div class="flex justify-between items-center mt-3 text-sm"
-        :class="{'text-shop-red font-bold': cambio < 0, 'text-shop-green font-bold': cambio >= 0}">
+        :class="{ 'text-shop-red font-bold': cambio < 0, 'text-shop-green font-bold': cambio >= 0 }">
         <span>{{ cambio < 0 ? 'Falta dinero:' : 'Vuelto a entregar:' }}</span>
-        <span class="text-lg">${{ Math.abs(cambio).toFixed(2) }}</span>
+            <span class="text-lg">${{ Math.abs(cambio).toFixed(2) }}</span>
       </div>
     </div>
 
     <!-- Mensaje cuando es transferencia -->
-    <div v-else-if="ventaStore.estado !== 'CREDITO' && ventaStore.isTransferencia" class="text-center text-shop-text-3 text-sm py-2">
+    <div v-else-if="ventaStore.estado !== 'CREDITO' && ventaStore.isTransferencia"
+      class="text-center text-shop-text-3 text-sm py-2">
       <i class="pi pi-building-columns text-lg mb-1 block"></i>
       Pago por transferencia bancaria. No requiere vuelto.
     </div>
@@ -113,16 +96,12 @@
         class="flex items-center justify-between bg-white border p-2 rounded-shop px-3 cursor-pointer transition-all duration-200"
         :class="opcionImprimirTicket
           ? 'border-shop-green bg-shop-green-pale shadow-[0_0_12px_rgba(34,197,94,0.5)]'
-          : 'border-shop-border hover:bg-shop-bg'"
-        @click="opcionImprimirTicket = !opcionImprimirTicket"
-      >
+          : 'border-shop-border hover:bg-shop-bg'" @click="opcionImprimirTicket = !opcionImprimirTicket">
         <label class="text-xs font-bold text-shop-text-2 uppercase flex items-center gap-2 cursor-pointer">
           <i class="pi pi-print text-shop-text-3 text-sm"></i> Imprimir Ticket
         </label>
-        <i
-          class="pi text-xl transition-colors duration-200"
-          :class="opcionImprimirTicket ? 'pi-check-circle text-shop-green' : 'pi-circle text-shop-text-3'"
-        ></i>
+        <i class="pi text-xl transition-colors duration-200"
+          :class="opcionImprimirTicket ? 'pi-check-circle text-shop-green' : 'pi-circle text-shop-text-3'"></i>
       </div>
 
       <!-- Botón Crédito -->
@@ -130,12 +109,12 @@
         class="w-full py-2 border-2 border-shop-green text-shop-green font-bold rounded-shop-sm hover:bg-shop-green-pale transition-colors flex items-center justify-center gap-2 mt-1"
         :class="{ 'bg-shop-green text-white hover:bg-shop-green-dark': ventaStore.estado === 'CREDITO' }">
         <i class="pi pi-book"></i>
-        {{ ventaStore.estado === 'CREDITO' ? 'Cambiar Cliente Crédito' : 'Asignar a Crédito (Fiado)' }}
+        {{ ventaStore.estado === 'CREDITO' ? 'Cambiar Cliente Crédito' : 'Asignar a Crédito' }}
       </button>
 
       <!-- Botón Finalizar Venta -->
       <button @click="abrirConfirmacionVenta"
-        class="w-full py-3 bg-shop-green text-white font-black text-lg rounded-shop-sm hover:bg-shop-green-dark transition-colors shadow-shop flex items-center justify-center gap-2"
+        class="w-full py-3 bg-shop-green text-white font-black text-lg rounded-shop-sm transition-all shadow-shop flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none hover:bg-shop-green-dark disabled:hover:bg-gray-400"
         :disabled="ventaStore.detalle.length === 0 || loading">
         <i class="pi pi-check-circle text-xl"></i> FINALIZAR VENTA
       </button>
@@ -148,83 +127,73 @@
     </div>
 
     <!-- Diálogo de Crédito (buscar existente + nuevo) -->
-    <Dialog
-      v-model:visible="mostrarDialogoCredito"
-      modal
-      header="Cliente Crédito"
-      :style="{ width: '450px' }"
-      :pt="{ root: { class: 'rounded-shop overflow-hidden' }, header: { class: 'bg-white pb-0' } }"
-      appendTo="body"
-    >
+    <Dialog v-model:visible="mostrarDialogoCredito" modal header="Cliente Crédito" :style="{ width: '450px' }"
+      :pt="{ root: { class: 'rounded-shop overflow-hidden' }, header: { class: 'bg-white pb-0' } }" appendTo="body">
       <div class="pt-2 flex flex-col gap-4">
         <div class="flex border-b border-shop-border">
-          <button
-            @click="modoDialogo = 'buscar'"
-            class="flex-1 pb-2 text-sm font-bold transition-colors border-b-2"
-            :class="modoDialogo === 'buscar' ? 'border-shop-green text-shop-green' : 'border-transparent text-shop-text-3 hover:text-shop-text'"
-          >Buscar Existente</button>
-          <button
-            @click="modoDialogo = 'nuevo'"
-            class="flex-1 pb-2 text-sm font-bold transition-colors border-b-2"
-            :class="modoDialogo === 'nuevo' ? 'border-shop-green text-shop-green' : 'border-transparent text-shop-text-3 hover:text-shop-text'"
-          >Registrar Nuevo</button>
+          <button @click="modoDialogo = 'buscar'" class="flex-1 pb-2 text-sm font-bold transition-colors border-b-2"
+            :class="modoDialogo === 'buscar' ? 'border-shop-green text-shop-green' : 'border-transparent text-shop-text-3 hover:text-shop-text'">Buscar
+            Existente</button>
+          <button @click="modoDialogo = 'nuevo'" class="flex-1 pb-2 text-sm font-bold transition-colors border-b-2"
+            :class="modoDialogo === 'nuevo' ? 'border-shop-green text-shop-green' : 'border-transparent text-shop-text-3 hover:text-shop-text'">Registrar
+            Nuevo</button>
         </div>
 
         <div v-if="modoDialogo === 'buscar'" class="flex flex-col gap-1 py-2">
           <label class="text-xs font-bold text-shop-text-2 uppercase">Seleccionar de la base de datos</label>
-          <Dropdown
-            v-model="clienteExistenteSeleccionado"
-            :options="clientesCredito"
-            optionLabel="nombre"
-            optionValue="id"
-            filter
-            placeholder="Escribe el nombre o DUI..."
-            class="w-full rounded-shop-sm"
-            emptyFilterMessage="No se encontraron clientes"
-          >
+          <Dropdown v-model="clienteExistenteSeleccionado" :options="clientesCredito" optionLabel="nombre"
+            optionValue="id" filter placeholder="Escribe el nombre o DUI..." class="w-full rounded-shop-sm"
+            emptyFilterMessage="No se encontraron clientes">
             <template #option="slotProps">
               <div class="flex flex-col py-1">
                 <span class="font-bold text-shop-text">{{ slotProps.option.nombre }}</span>
-                <span class="text-xs text-shop-text-3"><i class="pi pi-id-card text-[10px]"></i> DUI: {{ slotProps.option.dui }}</span>
+                <span class="text-xs text-shop-text-3"><i class="pi pi-id-card text-[10px]"></i> DUI: {{
+                  slotProps.option.dui }}</span>
               </div>
             </template>
           </Dropdown>
           <div class="flex justify-end gap-2 mt-4">
-            <Button label="Cancelar" icon="pi pi-times" text severity="secondary" @click="mostrarDialogoCredito = false" class="rounded-shop-sm" />
-            <Button label="Asignar Existente" icon="pi pi-check" severity="success" @click="asignarClienteExistente" :disabled="!clienteExistenteSeleccionado" class="rounded-shop-sm" />
+            <Button label="Cancelar" icon="pi pi-times" text severity="secondary" @click="mostrarDialogoCredito = false"
+              class="rounded-shop-sm" />
+            <Button label="Asignar Existente" icon="pi pi-check" severity="success" @click="asignarClienteExistente"
+              :disabled="!clienteExistenteSeleccionado" class="rounded-shop-sm" />
           </div>
         </div>
 
         <div v-if="modoDialogo === 'nuevo'" class="flex flex-col items-center py-4">
           <p class="text-sm text-shop-text-2 mb-4">Registre un nuevo cliente crédito</p>
-          <Button label="Abrir formulario nuevo cliente" icon="pi pi-user-plus" severity="info" @click="abrirModalNuevoCliente" class="rounded-shop-sm" />
-          <Button label="Volver" icon="pi pi-arrow-left" text severity="secondary" @click="modoDialogo = 'buscar'" class="mt-2 rounded-shop-sm" />
+          <Button label="Abrir formulario nuevo cliente" icon="pi pi-user-plus" severity="info"
+            @click="abrirModalNuevoCliente" class="rounded-shop-sm" />
+          <Button label="Volver" icon="pi pi-arrow-left" text severity="secondary" @click="modoDialogo = 'buscar'"
+            class="mt-2 rounded-shop-sm" />
         </div>
       </div>
     </Dialog>
 
     <!-- Modal de registro de cliente crédito (componente independiente) -->
-    <ClienteCreditoModal
-      v-model:visible="mostrarModalNuevoCliente"
-      @clienteGuardado="onClienteNuevoGuardado"
-    />
+    <ClienteCreditoModal v-model:visible="mostrarModalNuevoCliente" @clienteGuardado="onClienteNuevoGuardado" />
 
     <!-- Modal de confirmación personalizado -->
-    <div v-if="mostrarConfirmarVenta" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] backdrop-blur-sm p-4 text-center">
-      <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
+    <div v-if="mostrarConfirmarVenta"
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] backdrop-blur-sm p-4 text-center">
+      <div
+        class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#044e04]"></div>
         <div class="p-10">
           <div class="flex justify-center mb-6 text-green-600"><i class="pi pi-check-circle text-6xl"></i></div>
           <h2 class="text-xl font-extrabold text-gray-800 mb-2">¿Finalizar Venta?</h2>
           <div class="space-y-1 mb-8">
-             <p class="text-1xl text-gray-800 font-bold">Total: <span class="font-black text-green-700">${{ ventaStore.total.toFixed(2) }}</span></p>
-             <p class="text-xs text-gray-800 font-medium uppercase tracking-wider">
-               {{ ventaStore.estado === 'CREDITO' ? 'Crédito' : metodoPagoNombre }} • {{ ventaStore.tipo_cliente }}
-             </p>
+            <p class="text-1xl text-gray-800 font-bold">Total: <span class="font-black text-green-700">${{
+              ventaStore.total.toFixed(2) }}</span></p>
+            <p class="text-xs text-gray-800 font-medium uppercase tracking-wider">
+              {{ ventaStore.estado === 'CREDITO' ? 'Crédito' : metodoPagoNombre }} • {{ ventaStore.tipo_cliente }}
+            </p>
           </div>
           <div class="flex items-center gap-3">
-            <button @click="mostrarConfirmarVenta = false" class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm transition-colors">Cancelar</button>
-            <button @click="ejecutarFinalizarVenta" class="flex-1 py-3 bg-[#0a3622] hover:bg-[#115033] text-white font-bold rounded-xl shadow-md text-sm transition-colors">Confirmar</button>
+            <button @click="mostrarConfirmarVenta = false"
+              class="flex-1 py-3 bg-[#d6dfd6] text-[#3a5a3a] font-bold rounded-xl border border-[#e2eee2] hover:bg-white text-sm transition-colors">Cancelar</button>
+            <button @click="ejecutarFinalizarVenta"
+              class="flex-1 py-3 bg-[#0a3622] hover:bg-[#115033] text-white font-bold rounded-xl shadow-md text-sm transition-colors">Confirmar</button>
           </div>
         </div>
       </div>
@@ -385,8 +354,16 @@ const limpiarTodo = () => {
 .animate-fade-up {
   animation: fadeUp 0.3s ease-out forwards;
 }
+
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
