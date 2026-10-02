@@ -345,8 +345,7 @@
             :disabled="generandoReporte || !productosDaniados.fecha_inicio || !productosDaniados.fecha_fin" />
         </div>
       </AccordionTab>
-      <!-- ==================== REPORTE DE PRODUCTOS POR VENCER ==================== -->
-    <AccordionTab>
+      <AccordionTab>
       <template #header>
         <div class="flex items-center gap-4 text-[#0a3622] font-extrabold">
           <i class="pi pi-clock text-xl"></i>
