@@ -554,7 +554,8 @@
 
   // Función para abrir el modal de producto nuevo
   const prepararNuevoProducto = () => {
-    // Limpiar listas y formulario al abrir
+    // Limpiar listas y formulario
+    // al abrir
     categorias.value = [];
     marcas.value = [];
     nuevoProducto.value = {
@@ -599,7 +600,7 @@
         .toLowerCase()
         .trim()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '') 
+        .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]/g, '')
   }
 
