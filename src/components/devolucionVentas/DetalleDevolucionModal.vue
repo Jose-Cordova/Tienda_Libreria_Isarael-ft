@@ -1,7 +1,8 @@
 <template>
+  <Teleport to="body">
   <div
     v-if="visible"
-    class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4"
+    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4"
   >
     <div class="bg-white rounded-xl w-[90vw] max-w-3xl shadow-2xl overflow-hidden animate-fade-up border border-gray-100 flex flex-col max-h-[90vh]">
       <!-- Cabecera -->
@@ -15,8 +16,8 @@
         </button>
       </div>
 
-      <!-- Cuerpo -->
-      <div class="p-6" v-if="devolucion">
+      <!-- Cuerpo (con scroll; la cabecera queda fija) -->
+      <div class="p-6 overflow-y-auto min-h-0" v-if="devolucion">
         <!-- Datos generales -->
         <div class="grid grid-cols-2 gap-4 text-sm mb-6">
           <div>
@@ -51,7 +52,7 @@
         <!-- Tabla de productos devueltos -->
         <h3 class="font-extrabold !text-gray-800 mb-2 text-sm">Productos Devueltos</h3>
         <div class="overflow-x-auto border border-black rounded-lg">
-          <table class="w-full text-left text-xs">
+          <table class="w-full text-left text-xs tabla-responsiva">
             <thead class="bg-[#99bba7]">
               <tr>
                 <th class="py-2 px-3">Producto</th>
@@ -62,9 +63,9 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
               <tr v-for="detalle in devolucion.detalle_devolucion_ventas" :key="detalle.id">
-                <td class="py-2 px-3 font-bold">{{ detalle.producto?.nombre || 'Producto #' + detalle.producto_id }}</td>
-                <td class="py-2 px-3 text-center font-bold">{{ detalle.cantidad }}</td>
-                <td class="py-2 px-3 font-bold">
+                <td class="celda-titulo py-2 px-3 font-bold">{{ detalle.producto?.nombre || 'Producto #' + detalle.producto_id }}</td>
+                <td data-label="Cantidad" class="py-2 px-3 text-center font-bold">{{ detalle.cantidad }}</td>
+                <td class="celda-chip py-2 px-3 font-bold">
                   <span
                     :class="detalle.condicion === 'PERFECTO' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'"
                     class="px-2 py-0.5 rounded text-xs font-extrabold border"
@@ -72,7 +73,7 @@
                     {{ detalle.condicion === 'PERFECTO' ? 'Perfecto' : 'Dañado' }}
                   </span>
                 </td>
-                <td class="py-2 px-3 text-gray-800 font-bold">
+                <td data-label="Daño" class="py-2 px-3 text-gray-800 font-bold">
                   {{ detalle.producto_daniado?.descripcion || '-' }}
                 </td>
               </tr>
@@ -88,6 +89,7 @@
       </div>
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup>

@@ -1,7 +1,8 @@
 <template>
+  <Teleport to="body">
   <div
     v-if="visible"
-    class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4"
+    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4"
   >
     <div class="bg-white rounded-xl w-[90vw] max-w-3xl shadow-2xl overflow-hidden animate-fade-up border border-gray-100 flex flex-col max-h-[90vh]">
       <!-- Cabecera -->
@@ -14,12 +15,12 @@
         </button>
       </div>
 
-      <!-- Cuerpo -->
-      <div class="p-6" v-if="venta">
+      <!-- Cuerpo (con scroll si hay muchos productos; la cabecera queda fija) -->
+      <div class="p-6 overflow-y-auto min-h-0" v-if="venta">
         <!-- Tabla de productos -->
         <h3 class="font-extrabold !text-gray-800 mb-2 text-sm">Productos</h3>
         <div class="overflow-x-auto border border-black rounded-lg">
-          <table class="w-full text-left text-xs">
+          <table class="w-full text-left text-xs tabla-responsiva">
             <thead class="bg-[#99bba7]">
               <tr>
                 <th class="py-2 px-3">Producto</th>
@@ -31,11 +32,11 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
               <tr v-for="detalle in venta.detalle_ventas" :key="detalle.id">
-                <td class="py-2 px-3 font-bold">{{ detalle.producto?.nombre }}</td>
-                <td class="py-2 px-3 text-center font-bold">{{ detalle.cantidad }}</td>
-                <td class="py-2 px-3 text-right font-bold">${{ Number(detalle.precio_unitario).toFixed(2) }}</td>
-                <td class="py-2 px-3 text-right font-bold">${{ Number(detalle.subtotal).toFixed(2) }}</td>
-                <td class="py-2 px-3 text-gray-800 font-bold">{{ detalle.lote?.codigo_lote || '-' }}</td>
+                <td class="celda-titulo py-2 px-3 font-bold">{{ detalle.producto?.nombre }}</td>
+                <td data-label="Cantidad" class="py-2 px-3 text-center font-bold">{{ detalle.cantidad }}</td>
+                <td data-label="P. Unit." class="py-2 px-3 text-right font-bold">${{ Number(detalle.precio_unitario).toFixed(2) }}</td>
+                <td class="celda-destacada py-2 px-3 text-right font-bold">${{ Number(detalle.subtotal).toFixed(2) }}</td>
+                <td data-label="Lote" class="py-2 px-3 text-gray-800 font-bold">{{ detalle.lote?.codigo_lote || '-' }}</td>
               </tr>
             </tbody>
           </table>
@@ -70,10 +71,11 @@
       </div>
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup>
-const props = defineProps({
+defineProps({
   visible: { type: Boolean, required: true },
   venta: { type: Object, default: null }
 });

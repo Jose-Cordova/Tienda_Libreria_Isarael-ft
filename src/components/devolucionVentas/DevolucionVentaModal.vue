@@ -10,10 +10,11 @@
   >
     <div class="flex flex-col gap-5">
       <!-- 1. Buscar Venta por Correlativo -->
-      <div class="flex items-end gap-3">
-        <div class="flex flex-col gap-1 flex-1">
-          <label class="text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-wider">
-            <i class="pi pi-search mr-1"></i> Correlativo de Venta
+      <!-- Celular: campo a lo ancho y botones debajo. Desde 640px: todo en una fila -->
+      <div class="flex flex-col sm:flex-row sm:items-end gap-3">
+        <div class="flex flex-col gap-1 flex-1 min-w-0">
+          <label class="flex items-center gap-1.5 whitespace-nowrap text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-wider">
+            <i class="pi pi-search"></i> Correlativo de Venta
           </label>
           <InputText
             v-model="correlativo"
@@ -23,20 +24,22 @@
             @keyup.enter="buscarVenta"
           />
         </div>
-        <Button
-          label="Buscar"
-          icon="pi pi-search"
-          class="p-button-sm bg-[#0a3622] border-none"
-          @click="buscarVenta"
-          :disabled="cargandoBusqueda || !correlativo.trim()"
-        />
-        <Button
-          v-if="ventaEncontrada"
-          label="Nueva búsqueda"
-          icon="pi pi-refresh"
-          class="p-button-sm p-button-outlined border-[#0a3622] text-[#0a3622]"
-          @click="limpiarBusqueda"
-        />
+        <div class="flex gap-2">
+          <Button
+            label="Buscar"
+            icon="pi pi-search"
+            class="p-button-sm !bg-[#0a3622] hover:!bg-[#115033] !border-none flex-1 sm:flex-none justify-center whitespace-nowrap"
+            @click="buscarVenta"
+            :disabled="cargandoBusqueda || !correlativo.trim()"
+          />
+          <Button
+            v-if="ventaEncontrada"
+            label="Nueva búsqueda"
+            icon="pi pi-refresh"
+            class="p-button-sm p-button-outlined !border-[#0a3622] !text-[#0a3622] hover:!bg-green-50 flex-1 sm:flex-none justify-center whitespace-nowrap"
+            @click="limpiarBusqueda"
+          />
+        </div>
       </div>
 
       <!-- Spinner mientras busca -->
@@ -372,7 +375,7 @@ const buscarVenta = async () => {
         }]);
       });
     }
-  } catch (error) {
+  } catch {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo buscar la venta.', life: 3000 });
   } finally {
     cargandoBusqueda.value = false;

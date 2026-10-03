@@ -186,7 +186,7 @@
               </div>
 
               <div v-else-if="ajustesHistorial.length > 0" class="overflow-x-auto border border-gray-200 rounded-xl">
-                <table class="w-full text-left text-xs border-collapse whitespace-nowrap">
+                <table class="w-full text-left text-xs border-collapse whitespace-nowrap tabla-responsiva">
                   <thead>
                     <tr class="bg-gray-50 text-gray-500 font-extrabold uppercase tracking-wider border-b border-gray-200">
                       <th class="py-2.5 px-4">Fecha</th>
@@ -199,20 +199,20 @@
                   </thead>
                   <tbody class="divide-y divide-gray-100 text-gray-700">
                     <tr v-for="ajuste in ajustesHistorial" :key="ajuste.id" class="hover:bg-gray-50/80 transition">
-                      <td class="py-2.5 px-4 font-bold text-gray-800">{{ formatearFecha(ajuste.created_at) }}</td>
-                      <td class="py-2.5 px-4 font-bold text-gray-600">{{ formatearHora(ajuste.created_at) }}</td>
-                      <td class="py-2.5 px-4 text-center">
+                      <td class="celda-titulo py-2.5 px-4 font-bold text-gray-800">{{ formatearFecha(ajuste.created_at) }}</td>
+                      <td class="celda-subtitulo py-2.5 px-4 font-bold text-gray-600">{{ formatearHora(ajuste.created_at) }}</td>
+                      <td class="celda-chip py-2.5 px-4 text-center">
                         <span :class="ajuste.tipo_ajuste === 'INCREMENTO' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'" class="px-2 py-0.5 rounded font-black text-[10px] border uppercase">
                           {{ ajuste.tipo_ajuste }}
                         </span>
                       </td>
-                      <td class="py-2.5 px-4 text-center font-black" :class="ajuste.tipo_ajuste === 'INCREMENTO' ? 'text-green-700' : 'text-red-700'">
+                      <td class="celda-destacada py-2.5 px-4 text-center font-black" :class="ajuste.tipo_ajuste === 'INCREMENTO' ? 'text-green-700' : 'text-red-700'">
                         {{ ajuste.tipo_ajuste === 'INCREMENTO' ? '+' : '-' }}{{ ajuste.cantidad }} u.
                       </td>
-                      <td class="py-2.5 px-4 text-center font-semibold text-gray-600">
+                      <td data-label="Stock" class="py-2.5 px-4 text-center font-semibold text-gray-600">
                         {{ ajuste.stock_anterior }} &rarr; <strong>{{ ajuste.stock_nuevo }}</strong>
                       </td>
-                      <td class="py-2.5 px-4 font-medium text-gray-700 max-w-xs truncate" :title="ajuste.motivo">
+                      <td data-label="Motivo" class="py-2.5 px-4 font-medium text-gray-700 max-w-xs truncate" :title="ajuste.motivo">
                         {{ ajuste.motivo || 'Sin motivo especificado' }}
                       </td>
                     </tr>

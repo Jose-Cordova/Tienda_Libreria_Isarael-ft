@@ -9,6 +9,7 @@ import Tooltip from 'primevue/tooltip';
 
 // 1. IMPORTAR ESTILOS DE Tailwind
 import './assets/main.css';
+import './assets/tabla-responsiva.css';
 
 // 2. ESTILOS DE PRIMEVUE
 import 'primevue/resources/themes/saga-blue/theme.css';

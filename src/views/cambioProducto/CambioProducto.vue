@@ -103,7 +103,7 @@
     <!-- Tabla de los registros -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 text-left">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
+        <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
           <thead>
             <tr class="bg-gray-50 text-gray-500 text-[11px] font-extrabold uppercase tracking-widest border-b border-gray-200">
               <th class="py-4 px-5">Fecha</th>
@@ -118,8 +118,8 @@
           </thead>
           <tbody class="text-gray-800 divide-y divide-gray-100">
             <tr v-for="item in cambios" :key="item.id" class="hover:bg-gray-50/80 transition text-sm">
-              <td class="py-4 px-5 font-bold text-gray-600">{{ formatearFecha(item.fecha) }}</td>
-              <td class="py-4 px-5 font-bold">
+              <td class="celda-subtitulo py-4 px-5 font-bold text-gray-600">{{ formatearFecha(item.fecha) }}</td>
+              <td class="celda-titulo py-4 px-5 font-bold">
                 <div class="flex flex-col">
                   <span class="text-gray-800">{{ item.producto?.nombre }}</span>
                   <span class="text-[11px] text-gray-400">{{ item.producto?.marca?.nombre || 'Sin marca' }}</span>
@@ -128,24 +128,24 @@
                   </span>
                 </div>
               </td>
-              <td class="py-4 px-5">
+              <td data-label="Lote" class="py-4 px-5">
                 <span v-if="item.producto?.perecedero === 'PERECEDERO'" class="bg-blue-50 text-blue-700 text-[10px] font-black px-2 py-1 rounded border border-blue-100 shadow-sm">
                   {{ item.lote?.codigo_lote || 'Sin Lote' }}
                 </span>
                 <span v-else class="text-[11px] text-gray-400 italic">No aplica</span>
               </td>
-              <td class="py-4 px-5 text-center font-bold text-gray-800">{{ item.cantidad }}</td>
-              <td class="py-4 px-5 text-center font-bold text-gray-800">${{ parseFloat(item.total_perdida).toFixed(2) }}</td>
-              <td class="py-4 px-5">
+              <td data-label="Cantidad" class="py-4 px-5 text-center font-bold text-gray-800">{{ item.cantidad }}</td>
+              <td class="celda-destacada py-4 px-5 text-center font-bold text-gray-800">${{ parseFloat(item.total_perdida).toFixed(2) }}</td>
+              <td data-label="Efecto en stock" class="py-4 px-5">
                 <div v-html="efectoStockHtml(item)" class="text-xs"></div>
               </td>
-              <td class="py-4 px-5 text-center">
+              <td class="celda-chip py-4 px-5 text-center">
                 <span :class="obtenerBadgeClase(item.estado)" class="text-[10px] font-bold px-2 py-1 rounded-full uppercase inline-flex items-center gap-1 shadow-sm border border-gray-100">
                   <span class="w-1.5 h-1.5 rounded-full" :class="obtenerPuntoClase(item.estado)"></span>
                   {{ item.estado }}
                 </span>
               </td>
-              <td class="py-4 px-5 text-center">
+              <td class="celda-acciones py-4 px-5 text-center">
                 <div class="flex items-center justify-center relative min-h-[40px]">
                   <template v-if="item.estado === 'PENDIENTE'">
                     <SpeedDial
