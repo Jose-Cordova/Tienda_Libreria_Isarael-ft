@@ -11,7 +11,7 @@
     <!-- Tabla de configuración (una sola fila) -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
+        <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
           <thead>
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Nombre de la Tienda</th>
@@ -22,10 +22,10 @@
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
             <tr v-if="!cargando" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ form.nombre_tienda }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ form.telefono }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ form.email }}</td>
-              <td class="py-4 px-5">
+              <td class="celda-titulo py-4 px-5 font-bold text-gray-800 text-sm">{{ form.nombre_tienda }}</td>
+              <td data-label="Teléfono" class="py-4 px-5 font-bold text-gray-800 text-sm">{{ form.telefono }}</td>
+              <td data-label="Correo" class="py-4 px-5 font-bold text-gray-800 text-sm">{{ form.email }}</td>
+              <td class="celda-acciones py-4 px-5">
                 <div class="flex items-center justify-center gap-2">
                   <Button
                     icon="pi pi-pencil"

@@ -1,0 +1,132 @@
+/* Tablas responsivas: en pantallas menores a 768px cada fila se muestra como tarjeta.
+   Uso: <table class="tabla-responsiva"> y una clase en cada <td> según su lugar en la tarjeta:
+     celda-titulo     arriba a la izquierda (dato principal)
+     celda-destacada  arriba a la derecha (monto o dato clave)
+     celda-subtitulo  debajo del título, en gris
+     celda-chip       fila de etiquetas (estado, sección, stock…), una al lado de la otra
+     celda-acciones   botones al pie de la tarjeta
+     data-label="…"   (sin clase) renglón "ETIQUETA ...... valor"
+     ocultar-movil    no se muestra en el celular */
+@media (max-width: 767.98px) {
+  .tabla-responsiva { white-space: normal; }
+  .tabla-responsiva thead { display: none; }
+  .tabla-responsiva,
+  .tabla-responsiva tbody { display: block; width: 100%; }
+
+  .tabla-responsiva tbody { padding: 0.75rem; }
+
+  /* Cada fila es una tarjeta; las celdas se acomodan con flex y "order" */
+  .tabla-responsiva tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 0.5rem;
+    /* !important: divide-y de Tailwind en el tbody quitaría bordes de la tarjeta */
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: #fff;
+  }
+  /* Salto de línea invisible después de título + destacada: así una etiqueta corta
+     (ej. "0 activos") nunca sube a la primera línea cuando el monto es corto */
+  .tabla-responsiva tbody tr::before {
+    content: "";
+    order: 3;
+    flex-basis: 100%;
+    height: 0;
+  }
+  .tabla-responsiva tbody td {
+    display: block;
+    padding: 0 !important;
+    border: 0;
+    text-align: left;
+  }
+
+  /* Título (izq.) y dato destacado (der.) comparten la primera línea */
+  .tabla-responsiva td.celda-titulo {
+    order: 1;
+    flex: 1 1 calc(100% - 7rem);
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .tabla-responsiva tr:not(:has(.celda-destacada)) td.celda-titulo { flex-basis: 100%; }
+  /* Título armado con flex (por ejemplo avatar + nombre): se mantiene en una línea */
+  .tabla-responsiva td.celda-titulo.flex { display: flex; }
+  .tabla-responsiva td.celda-destacada {
+    order: 2;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    font-size: 1rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+  }
+  .tabla-responsiva td.celda-subtitulo {
+    order: 3;
+    flex-basis: 100%;
+    margin-top: 0.125rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #6b7280;
+    overflow-wrap: anywhere;
+  }
+
+  /* Etiquetas en una fila que baja de línea si no caben */
+  .tabla-responsiva td.celda-chip {
+    order: 4;
+    flex: 0 0 auto;
+    margin-top: 0.75rem;
+  }
+
+  /* Datos extra: "ETIQUETA ...... valor" a lo ancho.
+     La etiqueta flota a la izquierda y el valor se alinea a la derecha (sin flex,
+     para que un valor con varias partes, como "20 → <strong>40</strong>", no se separe) */
+  .tabla-responsiva td[data-label]:not(.celda-chip) {
+    order: 5;
+    flex-basis: 100%;
+    display: flow-root;
+    margin-top: 0.5rem;
+    text-align: right;
+    /* Textos largos (motivos, direcciones…) bajan de línea en vez de cortarse con "…" */
+    white-space: normal;
+    overflow-wrap: anywhere;
+    max-width: none;
+  }
+  .tabla-responsiva td[data-label]:not(.celda-chip)::before {
+    content: attr(data-label);
+    float: left;
+    margin-right: 1rem;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #4b5563;
+  }
+
+  /* Valores armados con flex (ícono + texto) también van a la derecha */
+  .tabla-responsiva td[data-label]:not(.celda-chip) > .flex { justify-content: flex-end; }
+
+  /* Botones al pie, a la derecha */
+  .tabla-responsiva td.celda-acciones {
+    order: 6;
+    flex-basis: 100%;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem !important;
+    border-top: 1px solid #f3f4f6;
+    text-align: right; /* botón suelto, sin <div> alrededor */
+  }
+  .tabla-responsiva td.celda-acciones > div { justify-content: flex-end; }
+
+  /* Filas especiales ("No se encontraron…", skeleton): a lo ancho y centradas */
+  .tabla-responsiva td[colspan],
+  .tabla-responsiva td:not([class*="celda-"]):not([data-label]) {
+    order: 7;
+    flex-basis: 100%;
+    text-align: center;
+    margin-top: 0.25rem;
+  }
+
+  /* Columnas que sobran en el celular */
+  .tabla-responsiva .ocultar-movil { display: none !important; }
+}

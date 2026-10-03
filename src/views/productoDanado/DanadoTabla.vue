@@ -1,7 +1,7 @@
 <template>
   <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 text-left">
     <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse whitespace-nowrap">
+      <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
         <thead>
           <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
             <th class="py-3 px-5">Producto</th>
@@ -15,7 +15,7 @@
         </thead>
         <tbody class="text-gray-800 divide-y divide-gray-100">
           <tr v-for="item in registros" :key="item.id" class="hover:bg-gray-50 transition text-sm">
-            <td class="py-4 px-5 font-bold">
+            <td class="celda-titulo py-4 px-5 font-bold">
               <div class="flex flex-col">
                 <span>{{ item.producto?.nombre }}</span>
                 <span v-if="item.lote" class="bg-blue-50 text-blue-700 text-[9px] font-black px-2 py-0.5 rounded border border-blue-100 uppercase mt-1 w-fit shadow-sm">
@@ -23,20 +23,20 @@
                 </span>
               </div>
             </td>
-            <td class="py-4 px-5 text-center">
+            <td class="celda-chip py-4 px-5 text-center">
               <span :class="obtenerBadgeOrigen(item.origen)" class="text-[10px] font-bold px-2 py-1 rounded-full uppercase">
                 {{ formatOrigen(item.origen) }}
               </span>
             </td>
-            <td class="py-4 px-5 text-center font-bold">{{ item.cantidad }}</td>
-            <td class="py-4 px-5 text-center font-bold">${{ parseFloat(item.total_perdida).toFixed(2) }}</td>
-            <td class="py-4 px-5 font-bold text-gray-700">{{ formatearFecha(item.fecha) }}</td>
-            <td class="py-4 px-5 text-center">
+            <td data-label="Cantidad" class="py-4 px-5 text-center font-bold">{{ item.cantidad }}</td>
+            <td class="celda-destacada py-4 px-5 text-center font-bold">${{ parseFloat(item.total_perdida).toFixed(2) }}</td>
+            <td class="celda-subtitulo py-4 px-5 font-bold text-gray-700">{{ formatearFecha(item.fecha) }}</td>
+            <td class="celda-chip py-4 px-5 text-center">
               <span :class="obtenerBadgeClase(item.estado)" class="text-[10px] font-bold px-2 py-1 rounded-full uppercase">
                 {{ item.estado }}
               </span>
             </td>
-            <td class="py-4 px-5">
+            <td class="celda-acciones py-4 px-5">
               <div class="flex items-center justify-center gap-1">
                 <Button
                   icon="pi pi-eye"
@@ -109,16 +109,6 @@ const esLoteVencido = (lote) => {
   const hoy = new Date().toISOString().split('T')[0];
   const fechaVenc = String(lote.fecha_vencimiento).split('T')[0];
   return fechaVenc <= hoy;
-};
-
-const efectoStockTexto = (item) => {
-  if (item.estado === 'ANULADO') return `+${item.cantidad}`;
-  return `-${item.cantidad}`;
-};
-
-const efectoStockClase = (item) => {
-  if (item.estado === 'ANULADO') return 'text-green-600';
-  return 'text-red-600';
 };
 
 const formatearFecha = (fechaStr) => {

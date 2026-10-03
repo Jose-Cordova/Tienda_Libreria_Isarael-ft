@@ -1,7 +1,8 @@
 <template>
+  <Teleport to="body">
   <div
     v-if="visible"
-    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[70] backdrop-blur-sm p-4"
+    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[120] backdrop-blur-sm p-4"
   >
     <div class="bg-white rounded-xl w-[90vw] max-w-md shadow-2xl overflow-hidden animate-fade-up border border-gray-100">
       <!-- Cabecera -->
@@ -74,6 +75,7 @@
       </div>
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup>

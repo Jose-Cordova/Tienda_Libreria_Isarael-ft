@@ -1,7 +1,7 @@
 <template>
   <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
     <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse whitespace-nowrap">
+      <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
         <thead>
           <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
             <th class="py-3 px-4">Producto</th>
@@ -29,23 +29,23 @@
           <!-- Normal Data -->
           <template v-else>
             <tr v-for="prod in productos" :key="prod.id" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-4 font-bold text-gray-800 text-sm">{{ prod.nombre }}</td>
-              <td class="py-4 px-4">
+              <td class="celda-titulo py-4 px-4 font-bold text-gray-800 text-sm">{{ prod.nombre }}</td>
+              <td class="celda-chip py-4 px-4">
                 <span :class="getSeccionClass(prod.seccion)" class="px-2 py-0.5 rounded text-[10px] font-bold border">
                   {{ formatSeccion(prod.seccion) }}
                 </span>
               </td>
-              <td class="py-4 px-4 font-bold text-gray-800 text-sm">{{ prod.marca?.nombre || 'N/A' }}</td>
-              <td class="py-4 px-4 font-bold text-gray-800 text-sm">${{ formatPrice(prod.precio_detalle) }}</td>
-              <td class="py-4 px-4">
-                <div :class="prod.stock <= prod.stock_minimo ? 'bg-red-100 text-red-600 border-red-200' : 'bg-green-100 text-green-700 border-green-200'" class="w-16 text-center py-1 rounded font-black border text-[10px]">
-                  {{ prod.stock }} u.
+              <td class="celda-subtitulo py-4 px-4 font-bold text-gray-800 text-sm">{{ prod.marca?.nombre || 'N/A' }}</td>
+              <td class="celda-destacada py-4 px-4 font-bold text-gray-800 text-sm">${{ formatPrice(prod.precio_detalle) }}</td>
+              <td class="celda-chip py-4 px-4">
+                <div :class="prod.stock <= prod.stock_minimo ? 'bg-red-100 text-red-600 border-red-200' : 'bg-green-100 text-green-700 border-green-200'" class="min-w-16 px-2 text-center py-1 rounded font-black border text-[10px]">
+                  <span class="md:hidden">Stock: </span>{{ prod.stock }} u.
                 </div>
               </td>
-              <td class="py-4 px-4 text-center">
+              <td class="celda-chip py-4 px-4 text-center">
                 <Tag :severity="prod.estado === 'ACTIVO' ? 'success' : 'danger'" :value="prod.estado" />
               </td>
-              <td class="py-4 px-4">
+              <td class="celda-acciones py-4 px-4">
                 <div class="flex items-center justify-center gap-1">
                   <Button icon="pi pi-eye" v-tooltip.top="'Ver resumen'" class="p-button-rounded p-button-text p-button-sm !text-blue-600 hover:!bg-blue-50" @click="$emit('verResumen', prod)" />
                   <Button icon="pi pi-pencil" v-tooltip.top="'Editar'" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="$emit('editar', prod)" />

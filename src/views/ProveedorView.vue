@@ -29,7 +29,7 @@
     <!-- Tabla de Datos -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
+        <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
           <thead>
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Nombre</th>
@@ -41,11 +41,11 @@
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
             <tr v-for="prov in store.filteredProveedores" :key="prov.id" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.nombre }}</td>
-              <td class="py-4 px-5 font-bold text-sm text-gray-800">{{ prov.telefono }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.email || '—' }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm max-w-xs truncate" :title="prov.direccion">{{ prov.direccion || '—' }}</td>
-              <td class="py-4 px-5">
+              <td class="celda-titulo py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.nombre }}</td>
+              <td data-label="Teléfono" class="py-4 px-5 font-bold text-sm text-gray-800">{{ prov.telefono }}</td>
+              <td data-label="Correo" class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.email || '—' }}</td>
+              <td data-label="Dirección" class="py-4 px-5 font-bold text-gray-800 text-sm max-w-xs truncate" :title="prov.direccion">{{ prov.direccion || '—' }}</td>
+              <td class="celda-acciones py-4 px-5">
                 <div class="flex items-center justify-center gap-1">
                   <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirEditar(prov)" />
                   <Button icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm p-button-danger" @click="borrar(prov)" />

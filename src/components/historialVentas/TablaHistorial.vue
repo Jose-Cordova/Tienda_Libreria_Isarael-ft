@@ -1,7 +1,7 @@
 <template>
   <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
     <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse whitespace-nowrap">
+      <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
         <thead>
           <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
             <th class="py-3 px-5">Correlativo</th>
@@ -21,18 +21,18 @@
             class="hover:bg-gray-50 transition"
           >
             <!-- Correlativo -->
-            <td class="py-4 px-5 font-mono font-bold text-gray-800">
+            <td class="celda-titulo py-4 px-5 font-mono font-bold text-gray-800">
               {{ venta.correlativo }}
             </td>
 
             <!-- Fecha y hora -->
-            <td class="py-4 px-5">
+            <td class="celda-subtitulo py-4 px-5">
               <div class="font-bold text-gray-800">{{ venta.fecha }}</div>
               <div class="text-[10px] text-gray-400 font-bold">{{ venta.hora }}</div>
             </td>
 
             <!-- Productos -->
-            <td class="py-4 px-5">
+            <td data-label="Productos" class="py-4 px-5">
               <template v-if="venta.productos">
                 <div class="font-bold text-gray-800 text-xs leading-tight">
                   {{ venta.productos.split(', ').slice(0, 2).join(', ') }}
@@ -50,7 +50,7 @@
             </td>
 
             <!-- Método de pago -->
-            <td class="py-4 px-5 font-bold text-gray-800">
+            <td data-label="Pago" class="py-4 px-5 font-bold text-gray-800">
               <div class="flex items-center gap-1.5">
                 <i
                   :class="venta.metodo === 'Efectivo' ? 'pi pi-money-bill text-green-600' : 'pi pi-credit-card text-blue-600'"
@@ -60,7 +60,7 @@
             </td>
 
             <!-- Tipo de cliente -->
-            <td class="py-4 px-5">
+            <td class="celda-chip py-4 px-5">
               <span
                 :class="venta.tipo === 'Mayorista'
                   ? 'bg-red-50 text-red-600 border border-red-100'
@@ -76,7 +76,7 @@
             </td>
 
             <!-- Estado -->
-            <td class="py-4 px-5">
+            <td class="celda-chip py-4 px-5">
               <span class="bg-green-50 text-green-700 border border-green-100 px-2 py-0.5 rounded text-[10px] font-extrabold flex items-center gap-1 w-max">
                 <i class="pi pi-check-circle text-[10px]"></i>
                 {{ venta.estado }}
@@ -84,12 +84,12 @@
             </td>
 
             <!-- Total -->
-            <td class="py-4 px-5 font-bold text-gray-800 text-sm">
+            <td class="celda-destacada py-4 px-5 font-bold text-gray-800 text-sm">
               ${{ venta.total.toFixed(2) }}
             </td>
 
             <!-- Acciones -->
-            <td class="py-4 px-5">
+            <td class="celda-acciones py-4 px-5">
               <div class="flex items-center justify-center gap-2">
                 <Button
                   icon="pi pi-eye"

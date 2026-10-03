@@ -1,7 +1,8 @@
 <template>
+  <Teleport to="body">
   <div
     v-if="visible"
-    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] backdrop-blur-sm p-4"
+    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[120] backdrop-blur-sm p-4"
   >
     <div class="bg-white rounded-xl w-[90vw] max-w-2xl shadow-2xl overflow-hidden animate-fade-up border border-gray-100 flex flex-col max-h-[80vh]">
       <!-- Cabecera -->
@@ -15,15 +16,15 @@
         </button>
       </div>
 
-      <!-- Cuerpo -->
-      <div class="p-6">
+      <!-- Cuerpo (con scroll; la cabecera queda fija) -->
+      <div class="p-6 overflow-y-auto min-h-0">
         <div v-if="abonos.length === 0" class="py-10 text-center text-gray-500 italic font-bold">
           No hay abonos registrados para este crédito.
         </div>
 
         <div v-else>
           <div class="overflow-x-auto border border-black rounded-lg">
-            <table class="w-full text-left text-xs">
+            <table class="w-full text-left text-xs tabla-responsiva">
               <thead class="bg-[#99bba7]">
                 <tr class="text-black font-bold uppercase">
                   <th class="py-2 px-3">Fecha</th>
@@ -36,16 +37,16 @@
               <tbody class="divide-y divide-gray-100">
                 <tr v-for="abono in abonosPaginados" :key="abono.id">
                   <!-- Solo fecha formateada -->
-                  <td class="py-3 px-3 font-bold text-gray-600">
+                  <td class="celda-titulo py-3 px-3 font-bold text-gray-600">
                     {{ formatearFecha(abono.fecha) }}
                   </td>
 
-                  <td class="py-3 px-3 font-extrabold text-green-700">${{ Number(abono.monto).toFixed(2) }}</td>
-                  <td class="py-3 px-3 font-bold text-gray-700">{{ abono.metodo }}</td>
-                  <td class="py-3 px-3">
+                  <td class="celda-destacada py-3 px-3 font-extrabold text-green-700">${{ Number(abono.monto).toFixed(2) }}</td>
+                  <td data-label="Método" class="py-3 px-3 font-bold text-gray-700">{{ abono.metodo }}</td>
+                  <td class="celda-chip py-3 px-3">
                     <CreditoEstadoBadge :estado="abono.estado" />
                   </td>
-                  <td class="py-3 px-3 text-center">
+                  <td class="celda-acciones py-3 px-3 text-center">
                     <Button
                       icon="pi pi-ban"
                       class="p-button-rounded p-button-text p-button-sm p-button-danger"
@@ -75,7 +76,7 @@
     </div>
 
     <!-- MODAL DE CONFIRMACIÓN DE ANULACIÓN -->
-    <div v-if="mostrarConfirmarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[70] backdrop-blur-sm p-4 text-center">
+    <div v-if="mostrarConfirmarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[130] backdrop-blur-sm p-4 text-center">
       <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#0a3622]"></div>
         <div class="p-10">
@@ -104,6 +105,7 @@
       </div>
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup>
