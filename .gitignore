@@ -40,3 +40,7 @@ __screenshots__/
 
 # Repomix
 /Contextualizacion
+
+# Dcoker
+Dockerfile
+nginx.conf
