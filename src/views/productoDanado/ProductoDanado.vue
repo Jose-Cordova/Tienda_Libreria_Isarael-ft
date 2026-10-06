@@ -193,9 +193,32 @@
               </div>
 
               <!-- Motivo / Descripción -->
-              <div class="flex justify-between items-start border-b border-gray-100 pb-3">
-                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Motivo / Descripción</span>
-                <p class="text-xs font-bold text-gray-700 max-w-xs text-right">{{ itemResumen.descripcion || 'Sin descripción' }}</p>
+              <div class="space-y-1.5 border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block">Motivo / Descripción</span>
+                <div
+                  @click="motivoResumenExpandido = !motivoResumenExpandido"
+                  class="relative p-3 rounded-xl text-xs leading-relaxed transition-all duration-200 cursor-pointer border overflow-hidden w-full"
+                  :class="motivoResumenExpandido
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-950 shadow-sm'
+                    : 'bg-gray-50/80 border-gray-200/80 text-gray-700 hover:bg-emerald-50/50 hover:border-emerald-200 hover:text-emerald-900'"
+                >
+                  <p
+                    class="text-xs leading-relaxed"
+                    :class="[
+                      motivoResumenExpandido ? 'motivo-expanded' : 'motivo-clamped',
+                      (itemResumen.descripcion || '').length > 25 ? 'pr-6' : ''
+                    ]"
+                  >
+                    {{ itemResumen.descripcion || 'Sin motivo especificado' }}
+                  </p>
+                  <i
+                    v-if="(itemResumen.descripcion || '').length > 25"
+                    class="pi text-xs absolute right-3 top-3 transition-transform duration-200"
+                    :class="[
+                      motivoResumenExpandido ? 'pi-chevron-up text-emerald-700 font-bold' : 'pi-chevron-down text-gray-400'
+                    ]"
+                  ></i>
+                </div>
               </div>
 
               <!-- Estado -->
@@ -286,15 +309,18 @@ const opcionesOrigen = ref([
 const mostrarModal = ref(false);
 const mostrarResumen = ref(false);
 const itemResumen = ref(null);
+const motivoResumenExpandido = ref(false);
 
 const verResumen = (item) => {
   itemResumen.value = item;
   mostrarResumen.value = true;
+  motivoResumenExpandido.value = false;
 };
 
 const cerrarResumen = () => {
   mostrarResumen.value = false;
   itemResumen.value = null;
+  motivoResumenExpandido.value = false;
 };
 
 const formatOrigen = (origen) => {
@@ -402,5 +428,23 @@ onMounted(() => {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+.motivo-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.motivo-expanded {
+  display: block;
+  overflow: visible;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 </style>

@@ -245,15 +245,26 @@ const abrirModalEditar = (categoria) => {
 }
 
 const guardar = async () => {
+  limpiarErrores()
   let valid = true
-  if (!form.value.nombre.trim()) {
+  const nombreTrim = form.value.nombre.trim()
+
+  if (!nombreTrim) {
     errorNombre.value = 'El nombre es obligatorio'
     valid = false
+  } else if (nombreTrim.length < 2) {
+    errorNombre.value = 'El nombre debe tener al menos 2 caracteres'
+    valid = false
+  } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombreTrim)) {
+    errorNombre.value = 'El nombre de la categoría solo debe contener letras'
+    valid = false
   }
+
   if (!form.value.seccion) {
     errorSeccion.value = 'Debe seleccionar una sección'
     valid = false
   }
+
   if (!valid) return
 
   loading.value = true
@@ -288,8 +299,8 @@ const guardar = async () => {
   } catch (error) {
     if (error.response?.status === 422) {
       const errors = error.response.data.errors || error.response.data.error
-      if (errors?.nombre) errorNombre.value = errors.nombre[0]
-      if (errors?.seccion) errorSeccion.value = errors.seccion[0]
+      if (errors?.nombre) errorNombre.value = Array.isArray(errors.nombre) ? errors.nombre[0] : errors.nombre
+      if (errors?.seccion) errorSeccion.value = Array.isArray(errors.seccion) ? errors.seccion[0] : errors.seccion
     } else {
       const msg = error.response?.data?.message || 'Error al guardar.'
       toast.add({

@@ -685,17 +685,35 @@ const fechaMinima = computed(() => {
 const lotesDisponibles = computed(() => {
   if (!productoForm.value.lotes) return []
   const hoy = new Date().toISOString().split('T')[0]
-  return productoForm.value.lotes.map(l => {
+  const grupos = {}
+  productoForm.value.lotes.forEach(l => {
+    const codigo = (l.codigo_lote || '').trim().toUpperCase()
     const fechaSolo = l.fecha_vencimiento ? String(l.fecha_vencimiento).split('T')[0] : ''
+    const clave = `${codigo}|${fechaSolo}`
+    if (!grupos[clave]) {
+      grupos[clave] = {
+        id: l.id,
+        codigo_lote: codigo,
+        fecha_vencimiento: fechaSolo,
+        cantidad_actual: Number(l.cantidad_actual || 0),
+        estado: l.estado
+      }
+    } else {
+      grupos[clave].cantidad_actual += Number(l.cantidad_actual || 0)
+    }
+  })
+
+  return Object.values(grupos).map(l => {
     let tag = ''
     if (l.cantidad_actual <= 0 || l.estado === 'INACTIVO') {
       tag = ' - AGOTADO'
-    } else if (fechaSolo && fechaSolo < hoy) {
+    } else if (l.fecha_vencimiento && l.fecha_vencimiento < hoy) {
       tag = ' - VENCIDO'
     }
+    const fechaFormat = l.fecha_vencimiento ? l.fecha_vencimiento.split('-').reverse().join('/') : 'Sin fecha'
     return {
       id: l.id,
-      label: `${l.codigo_lote} (Disp: ${l.cantidad_actual} | Vence: ${fechaSolo})${tag}`
+      label: `${l.codigo_lote} (Stock: ${l.cantidad_actual} u. | Vence: ${fechaFormat})${tag}`
     }
   })
 })
