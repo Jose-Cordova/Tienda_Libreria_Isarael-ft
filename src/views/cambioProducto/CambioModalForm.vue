@@ -141,7 +141,8 @@ const cargarProductos = async () => {
   try {
     cargandoProductos.value = true;
     const response = await productoService.getProductos({ estado: 'ACTIVO', sin_paginar: true });
-    productosDisponibles.value = response.data || [];
+    const lista = response.data || [];
+    productosDisponibles.value = lista.filter(p => Number(p.stock || 0) > 0);
   } catch (error) {
     console.error(error);
     mostrarToast('No se pudieron cargar los productos.', 'error');
@@ -159,7 +160,21 @@ const onProductoChange = () => {
   const prod = productosDisponibles.value.find(p => p.id === formulario.value.producto_id);
   if (prod) {
     if (prod.perecedero === 'PERECEDERO') {
-      lotesDisponibles.value = prod.lotes || [];
+      const lotesValidos = (prod.lotes || []).filter(l => l.estado === 'ACTIVO' && Number(l.cantidad_actual || 0) > 0);
+      const grupos = {};
+      lotesValidos.forEach(l => {
+        const codigo = (l.codigo_lote || '').trim().toUpperCase();
+        const fechaSolo = l.fecha_vencimiento ? String(l.fecha_vencimiento).split('T')[0] : '';
+        const clave = `${codigo}|${fechaSolo}`;
+        if (!grupos[clave]) {
+          const fechaFormat = fechaSolo ? fechaSolo.split('-').reverse().join('/') : 'Sin fecha';
+          grupos[clave] = {
+            id: l.id,
+            codigo_lote: `${codigo} (vence ${fechaFormat}) · ${l.cantidad_actual} u.`
+          };
+        }
+      });
+      lotesDisponibles.value = Object.values(grupos);
       formulario.value.lote_id = null;
     } else {
       lotesDisponibles.value = [];
