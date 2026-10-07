@@ -12,7 +12,7 @@
 
       <!-- Linea de copyright -->
       <div class="text-gray-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">
-        © {{ new Date().getFullYear() }} — Todos los derechos reservados
+        © Team SAA [^_+] <!--{{ new Date().getFullYear() }} -->
       </div>
 
     </div>
