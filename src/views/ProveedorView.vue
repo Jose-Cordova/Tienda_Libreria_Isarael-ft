@@ -29,7 +29,7 @@
     <!-- Tabla de Datos -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
+        <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
           <thead>
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Nombre</th>
@@ -41,11 +41,11 @@
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
             <tr v-for="prov in store.filteredProveedores" :key="prov.id" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.nombre }}</td>
-              <td class="py-4 px-5 font-bold text-sm text-gray-800">{{ prov.telefono }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.email || '—' }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm max-w-xs truncate" :title="prov.direccion">{{ prov.direccion || '—' }}</td>
-              <td class="py-4 px-5">
+              <td class="celda-titulo py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.nombre }}</td>
+              <td data-label="Teléfono" class="py-4 px-5 font-bold text-sm text-gray-800">{{ prov.telefono }}</td>
+              <td data-label="Correo" class="py-4 px-5 font-bold text-gray-800 text-sm">{{ prov.email || '—' }}</td>
+              <td data-label="Dirección" class="py-4 px-5 font-bold text-gray-800 text-sm max-w-xs truncate" :title="prov.direccion">{{ prov.direccion || '—' }}</td>
+              <td class="celda-acciones py-4 px-5">
                 <div class="flex items-center justify-center gap-1">
                   <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirEditar(prov)" />
                   <Button icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm p-button-danger" @click="borrar(prov)" />
@@ -119,8 +119,10 @@
                 <InputText
                   v-model="formulario.direccion"
                   class="w-full border border-gray-200 rounded-xl p-4 text-sm focus:border-[#003d00] outline-none"
+                  :class="{ 'border-red-500': errores.direccion }"
                   placeholder="Ej: Calle, ciudad..."
                 />
+                <small v-if="errores.direccion" class="text-red-500 text-xs block">{{ errores.direccion }}</small>
               </div>
             </div>
             <div class="flex items-center gap-4 mt-10">
@@ -147,6 +149,7 @@
   import Paginator from 'primevue/paginator';
   // Componente reutilizable de teléfono con selector de país
   import SelectorPaisTelefono from '@/components/ventas/SelectorPaisTelefono.vue';
+  import { esCorreoValido, MENSAJE_CORREO_INVALIDO } from '@/utils/validaciones';
 
   const store = useProveedorStore()
   const toast = useToast()
@@ -156,18 +159,23 @@
   const formulario = ref({id: null, nombre: '', telefono: '', email: '', direccion: ''})
   const selectorTelefono = ref(null)
 
+  // Límite de la dirección (mismo que ProveedorRequest y la columna en la base)
+  const LIMITE_DIRECCION = 250
+
   // Errores inline
   const errores = ref({
     nombre: '',
     telefono: '',
-    email: ''
+    email: '',
+    direccion: ''
   })
 
   const limpiarErrores = () => {
     errores.value = {
       nombre: '',
       telefono: '',
-      email: ''
+      email: '',
+      direccion: ''
     }
   }
 
@@ -216,6 +224,27 @@
       return
     }
 
+    // Validar correo (obligatorio y con formato válido)
+    if (!formulario.value.email || !formulario.value.email.trim()) {
+      errores.value.email = 'El correo es obligatorio.'
+      return
+    }
+    if (!esCorreoValido(formulario.value.email)) {
+      errores.value.email = MENSAJE_CORREO_INVALIDO
+      return
+    }
+
+    // Dirección opcional: si se escribe, entre 5 y 250 caracteres
+    const direccion = (formulario.value.direccion || '').trim()
+    if (direccion && direccion.length < 5) {
+      errores.value.direccion = 'La dirección debe tener al menos 5 caracteres.'
+      return
+    }
+    if (direccion.length > LIMITE_DIRECCION) {
+      errores.value.direccion = `La dirección no puede superar los ${LIMITE_DIRECCION} caracteres (tiene ${direccion.length}).`
+      return
+    }
+
     enviando.value = true
     try{
       if(esEdicion.value) {
@@ -243,6 +272,7 @@
         if(valErrors.nombre) errores.value.nombre = Array.isArray(valErrors.nombre) ? valErrors.nombre[0] : valErrors.nombre
         if(valErrors.telefono) errores.value.telefono = Array.isArray(valErrors.telefono) ? valErrors.telefono[0] : valErrors.telefono
         if(valErrors.email) errores.value.email = Array.isArray(valErrors.email) ? valErrors.email[0] : valErrors.email
+        if(valErrors.direccion) errores.value.direccion = Array.isArray(valErrors.direccion) ? valErrors.direccion[0] : valErrors.direccion
       } else {
         // Errores de servidor o red mostrados mediante Toast
         const msg = error.response?.data?.message || 'Error al guardar el proveedor.'

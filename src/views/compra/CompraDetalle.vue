@@ -1,5 +1,6 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4 text-left">
+  <Teleport to="body">
+  <div v-if="visible" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4 text-left">
     <div class="bg-white rounded-[24px] w-[95vw] max-w-4xl shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100 flex flex-col max-h-[90vh]">
       <!-- Barra superior verde -->
       <div class="absolute top-0 left-0 w-full h-2.5 bg-[#034e03]"></div>
@@ -23,7 +24,7 @@
             <i class="pi pi-list"></i> Productos Adquiridos
           </p>
           <div class="border border-gray-300 rounded-xl overflow-hidden shadow-sm">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse tabla-responsiva">
               <thead>
                 <tr class="bg-[#99bba7] text-[#000000] text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                   <th class="py-3 px-2 sm:px-5">Producto</th>
@@ -32,25 +33,25 @@
                   <th class="py-3 px-2 sm:px-5 text-right">Subtotal</th>
                 </tr>
               </thead>
-              <tbody class="text-[11px] sm:text-sm text-gray-700 divide-y divide-gray-400">
+              <tbody class="text-sm text-gray-700 divide-y divide-gray-400">
                 <tr v-for="item in compra?.detalle_compras" :key="item.id" class="hover:bg-gray-50/50 transition">
-                  <td class="py-3 px-2 sm:px-5">
+                  <td class="celda-titulo py-3 px-2 sm:px-5">
                     <p class="font-bold text-gray-800 leading-tight">{{ item.producto?.nombre }}</p>
                     <!-- Mostrar Lotes si existen -->
                     <div v-if="item.producto?.perecedero === 'PERECEDERO'" class="mt-1 flex flex-wrap gap-1">
                        <span
                         v-for="lote in obtenerLotesDelProducto(item.producto_id)"
                         :key="lote.id"
-                        class="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-md text-[8px] sm:text-[9px] font-bold border border-blue-100 uppercase flex items-center gap-1"
+                        class="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-md text-[10px] font-bold border border-blue-100 uppercase flex items-center gap-1"
                        >
-                        <i class="pi pi-tag text-[7px] sm:text-[8px]"></i>
+                        <i class="pi pi-tag text-[8px]"></i>
                         L: {{ lote.codigo_lote }} | V: {{ formatearFechaSimple(lote.fecha_vencimiento) }}
                       </span>
                     </div>
                   </td>
-                  <td class="py-3 px-2 sm:px-5 text-center font-bold text-gray-800">{{ item.cantidad }}</td>
-                  <td class="py-3 px-2 sm:px-5 text-center font-bold text-gray-800">${{ item.precio_unitario }}</td>
-                  <td class="py-3 px-2 sm:px-5 text-right font-bold text-gray-800">${{ item.subtotal }}</td>
+                  <td data-label="Cantidad" class="py-3 px-2 sm:px-5 text-center font-bold text-gray-800">{{ item.cantidad }}</td>
+                  <td data-label="P. Unit." class="py-3 px-2 sm:px-5 text-center font-bold text-gray-800">${{ item.precio_unitario }}</td>
+                  <td class="celda-destacada py-3 px-2 sm:px-5 text-right font-bold text-gray-800">${{ item.subtotal }}</td>
                 </tr>
               </tbody>
             </table>
@@ -72,6 +73,7 @@
       </div>
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup>

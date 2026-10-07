@@ -103,23 +103,22 @@
     <!-- Tabla de los registros -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 text-left">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
+        <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
           <thead>
             <tr class="bg-gray-50 text-gray-500 text-[11px] font-extrabold uppercase tracking-widest border-b border-gray-200">
               <th class="py-4 px-5">Fecha</th>
               <th class="py-4 px-5">Producto devuelto</th>
               <th class="py-4 px-5">Lote</th>
-              <th class="py-4 px-5 text-center">Cant.</th>
               <th class="py-4 px-5 text-center">Valor</th>
               <th class="py-4 px-5">Efecto en stock</th>
               <th class="py-4 px-5 text-center">Estado</th>
-              <th class="py-4 px-5 text-center min-w-[210px] pr-8">Acciones</th>
+              <th class="py-4 px-5 text-right w-[260px]">Acciones</th>
             </tr>
           </thead>
           <tbody class="text-gray-800 divide-y divide-gray-100">
             <tr v-for="item in cambios" :key="item.id" class="hover:bg-gray-50/80 transition text-sm">
-              <td class="py-4 px-5 font-bold text-gray-600">{{ formatearFecha(item.fecha) }}</td>
-              <td class="py-4 px-5 font-bold">
+              <td class="celda-subtitulo py-4 px-5 font-bold text-gray-600">{{ formatearFecha(item.fecha) }}</td>
+              <td class="celda-titulo py-4 px-5 font-bold">
                 <div class="flex flex-col">
                   <span class="text-gray-800">{{ item.producto?.nombre }}</span>
                   <span class="text-[11px] text-gray-400">{{ item.producto?.marca?.nombre || 'Sin marca' }}</span>
@@ -128,13 +127,12 @@
                   </span>
                 </div>
               </td>
-              <td class="py-4 px-5">
+              <td data-label="Lote" class="py-4 px-5">
                 <span v-if="item.producto?.perecedero === 'PERECEDERO'" class="bg-blue-50 text-blue-700 text-[10px] font-black px-2 py-1 rounded border border-blue-100 shadow-sm">
                   {{ item.lote?.codigo_lote || 'Sin Lote' }}
                 </span>
                 <span v-else class="text-[11px] text-gray-400 italic">No aplica</span>
               </td>
-              <td class="py-4 px-5 text-center font-bold text-gray-800">{{ item.cantidad }}</td>
               <td class="py-4 px-5 text-center font-bold text-gray-800">${{ parseFloat(item.total_perdida).toFixed(2) }}</td>
               <td class="py-4 px-5">
                 <div v-html="efectoStockHtml(item)" class="text-xs"></div>
@@ -145,28 +143,45 @@
                   {{ item.estado }}
                 </span>
               </td>
-              <td class="py-4 px-5 text-center">
-                <div class="flex items-center justify-center relative min-h-[40px]">
+              <td class="py-4 px-5 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <Button
+                    icon="pi pi-eye"
+                    v-tooltip.top="'Ver resumen'"
+                    class="p-button-rounded p-button-text p-button-sm !text-blue-600 hover:!bg-blue-50"
+                    @click="verResumen(item)"
+                  />
                   <template v-if="item.estado === 'PENDIENTE'">
-                    <SpeedDial
-                      :model="obtenerItemsSpeedDial(item)"
-                      direction="left"
-                      :transitionDelay="60"
-                      showIcon="pi pi-bars"
-                      hideIcon="pi pi-times"
-                      buttonClass="p-button-outlined p-button-secondary p-button-sm"
-                      class="custom-speeddial"
+                    <Button
+                      icon="pi pi-pencil"
+                      v-tooltip.top="'Editar'"
+                      class="p-button-rounded p-button-text p-button-sm !text-amber-600 hover:!bg-amber-50"
+                      @click="procesarEditarCantidad(item)"
+                    />
+                    <Button
+                      icon="pi pi-check"
+                      v-tooltip.top="'Aceptar'"
+                      class="p-button-rounded p-button-text p-button-sm !text-green-600 hover:!bg-green-50"
+                      @click="procesarAceptar(item)"
+                    />
+                    <Button
+                      icon="pi pi-times"
+                      v-tooltip.top="'Rechazar'"
+                      class="p-button-rounded p-button-text p-button-sm !text-red-600 hover:!bg-red-50"
+                      @click="procesarRechazar(item)"
+                    />
+                    <Button
+                      icon="pi pi-ban"
+                      v-tooltip.top="'Anular'"
+                      class="p-button-rounded p-button-text p-button-sm !text-gray-500 hover:!bg-gray-100"
+                      @click="procesarAnular(item)"
                     />
                   </template>
-                  <div v-else class="flex items-center justify-center gap-2">
-                    <Button icon="pi pi-eye" v-tooltip.top="'Ver resumen'" class="p-button-rounded p-button-text p-button-sm !text-blue-600 hover:!bg-blue-50" @click="verResumen(item)" />
-                    <span class="text-xs text-gray-400 italic font-medium">Completado</span>
-                  </div>
                 </div>
               </td>
             </tr>
             <tr v-if="cambios.length === 0">
-              <td colspan="9" class="py-12 text-center text-gray-400">
+              <td colspan="7" class="py-12 text-center text-gray-400">
                 <span class="italic text-sm">No hay registros de devoluciones al proveedor.</span>
               </td>
             </tr>
@@ -257,9 +272,32 @@
               </div>
 
               <!-- Motivo / Descripción -->
-              <div class="flex justify-between items-start border-b border-gray-100 pb-3">
-                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">Motivo / Descripción</span>
-                <p class="text-xs font-bold text-gray-700 max-w-xs text-right">{{ itemResumen.descripcion || 'Sin descripción' }}</p>
+              <div class="space-y-1.5 border-b border-gray-100 pb-3">
+                <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block">Motivo / Descripción</span>
+                <div
+                  @click="motivoResumenExpandido = !motivoResumenExpandido"
+                  class="relative p-3 rounded-xl text-xs leading-relaxed transition-all duration-200 cursor-pointer border overflow-hidden w-full"
+                  :class="motivoResumenExpandido
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-950 shadow-sm'
+                    : 'bg-gray-50/80 border-gray-200/80 text-gray-700 hover:bg-emerald-50/50 hover:border-emerald-200 hover:text-emerald-900'"
+                >
+                  <p
+                    class="text-xs leading-relaxed"
+                    :class="[
+                      motivoResumenExpandido ? 'motivo-expanded' : 'motivo-clamped',
+                      (itemResumen.descripcion || '').length > 25 ? 'pr-6' : ''
+                    ]"
+                  >
+                    {{ itemResumen.descripcion || 'Sin motivo especificado' }}
+                  </p>
+                  <i
+                    v-if="(itemResumen.descripcion || '').length > 25"
+                    class="pi text-xs absolute right-3 top-3 transition-transform duration-200"
+                    :class="[
+                      motivoResumenExpandido ? 'pi-chevron-up text-emerald-700 font-bold' : 'pi-chevron-down text-gray-400'
+                    ]"
+                  ></i>
+                </div>
               </div>
 
               <!-- Estado -->
@@ -292,50 +330,12 @@ import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import Calendar from 'primevue/calendar';
 import Paginator from 'primevue/paginator';
-import SpeedDial from 'primevue/speeddial';
 import { useCambioProductoStore } from '@/stores/cambioProductoStore';
 import CambioModalForm from './CambioModalForm.vue';
 import CambioWizardAceptar from './CambioWizardAceptar.vue';
 
 const store = useCambioProductoStore();
 const toast = useToast();
-
-const obtenerItemsSpeedDial = (item) => {
-  const items = [];
-
-  if (item.origen !== 'VENCIMIENTO') {
-    items.push({
-      label: 'Anular registro',
-      icon: 'pi pi-ban',
-      command: () => procesarAnular(item)
-    });
-  }
-
-  items.push(
-    {
-      label: 'Rechazar reclamación',
-      icon: 'pi pi-times',
-      command: () => procesarRechazar(item)
-    },
-    {
-      label: 'Aceptar reemplazo',
-      icon: 'pi pi-check',
-      command: () => procesarAceptar(item)
-    },
-    {
-      label: 'Editar cantidad',
-      icon: 'pi pi-pencil',
-      command: () => procesarEditarCantidad(item)
-    },
-    {
-      label: 'Ver resumen',
-      icon: 'pi pi-eye',
-      command: () => verResumen(item)
-    }
-  );
-
-  return items;
-};
 
 const cambios = computed(() => store.cambios);
 
@@ -365,6 +365,8 @@ const kpis = computed(() => {
     cantidadVencidos
   };
 });
+
+const motivoResumenExpandido = ref(false);
 
 const paginacion = ref({ pagina_actual: 1, filas_por_pagina: 10, total: 0 });
 const busqueda = ref('');
@@ -562,6 +564,7 @@ const itemResumen = ref(null);
 
 const verResumen = (item) => {
   itemResumen.value = item;
+  motivoResumenExpandido.value = false;
   mostrarResumen.value = true;
 };
 
@@ -593,38 +596,21 @@ onMounted(() => cargarRegistros());
   to   { opacity: 1; transform: translateY(0); }
 }
 
-:deep(.custom-speeddial) {
-  position: absolute !important;
-  right: 1.5rem !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
+.motivo-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
-:deep(.custom-speeddial .p-speeddial-button) {
-  width: 1.85rem !important;
-  height: 1.85rem !important;
-  background-color: #f1f5f9 !important;
-  border: 1px solid #cbd5e1 !important;
-  color: #334155 !important;
-}
-:deep(.custom-speeddial .p-speeddial-button:hover) {
-  background-color: #e2e8f0 !important;
-}
-:deep(.custom-speeddial .p-speeddial-button .p-button-icon) {
-  font-size: 0.8rem !important;
-  color: #334155 !important;
-}
-:deep(.custom-speeddial .p-speeddial-action) {
-  width: 1.85rem !important;
-  height: 1.85rem !important;
-  background-color: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
-}
-:deep(.custom-speeddial .p-speeddial-action:hover) {
-  background-color: #f8fafc !important;
-}
-:deep(.custom-speeddial .p-speeddial-action .p-speeddial-action-icon) {
-  font-size: 0.75rem !important;
-  color: #475569 !important;
+
+.motivo-expanded {
+  display: block;
+  overflow: visible;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 </style>

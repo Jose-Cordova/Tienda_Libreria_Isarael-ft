@@ -30,7 +30,7 @@
     <!-- Tabla -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
+        <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
           <thead>
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Nombre</th>
@@ -50,13 +50,13 @@
             <!-- Normal Data -->
             <template v-else>
               <tr v-for="cat in categorias" :key="cat.id" class="hover:bg-gray-50 transition">
-                <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ cat.nombre }}</td>
-                <td class="py-4 px-5">
+                <td class="celda-titulo py-4 px-5 font-bold text-gray-800 text-sm">{{ cat.nombre }}</td>
+                <td class="celda-chip py-4 px-5">
                   <span class="px-2 py-0.5 rounded text-[10px] font-bold border" :class="getSeccionClass(cat.seccion)">
                     {{ formatSeccion(cat.seccion) }}
                   </span>
                 </td>
-                <td class="py-4 px-5">
+                <td class="celda-acciones py-4 px-5">
                   <div class="flex items-center justify-center gap-1">
                     <Button icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm p-button-warning" @click="abrirModalEditar(cat)" />
                     <Button icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm p-button-danger" @click="confirmarEliminar(cat.id)" />
@@ -245,15 +245,26 @@ const abrirModalEditar = (categoria) => {
 }
 
 const guardar = async () => {
+  limpiarErrores()
   let valid = true
-  if (!form.value.nombre.trim()) {
+  const nombreTrim = form.value.nombre.trim()
+
+  if (!nombreTrim) {
     errorNombre.value = 'El nombre es obligatorio'
     valid = false
+  } else if (nombreTrim.length < 2) {
+    errorNombre.value = 'El nombre debe tener al menos 2 caracteres'
+    valid = false
+  } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombreTrim)) {
+    errorNombre.value = 'El nombre de la categoría solo debe contener letras'
+    valid = false
   }
+
   if (!form.value.seccion) {
     errorSeccion.value = 'Debe seleccionar una sección'
     valid = false
   }
+
   if (!valid) return
 
   loading.value = true
@@ -288,8 +299,8 @@ const guardar = async () => {
   } catch (error) {
     if (error.response?.status === 422) {
       const errors = error.response.data.errors || error.response.data.error
-      if (errors?.nombre) errorNombre.value = errors.nombre[0]
-      if (errors?.seccion) errorSeccion.value = errors.seccion[0]
+      if (errors?.nombre) errorNombre.value = Array.isArray(errors.nombre) ? errors.nombre[0] : errors.nombre
+      if (errors?.seccion) errorSeccion.value = Array.isArray(errors.seccion) ? errors.seccion[0] : errors.seccion
     } else {
       const msg = error.response?.data?.message || 'Error al guardar.'
       toast.add({

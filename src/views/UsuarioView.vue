@@ -55,7 +55,7 @@
     <!-- Tabla de usuarios -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 text-left">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
+        <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
           <thead>
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Usuario</th>
@@ -67,7 +67,7 @@
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
             <tr v-for="user in filteredUsuarios" :key="user.id" class="hover:bg-gray-50 transition">
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">
+              <td class="celda-titulo py-4 px-5 font-bold text-gray-800 text-sm">
                 <div class="flex items-center gap-3">
                   <div class="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-[9px] font-black text-[#0a3622] uppercase border border-white shadow-sm">
                     {{ user.name.substring(0,2) }}
@@ -75,13 +75,13 @@
                   {{ user.name }}
                 </div>
               </td>
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">{{ user.email }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800 text-sm">
+              <td class="celda-subtitulo py-4 px-5 font-bold text-gray-800 text-sm">{{ user.email }}</td>
+              <td class="celda-chip py-4 px-5 font-bold text-gray-800 text-sm">
                 <span :class="user.rol === 'ADMIN' ? 'bg-[#0a3622] text-white' : 'bg-gray-100 text-gray-600'" class="px-2 py-0.5 rounded text-[10px] font-bold border border-black/5">
                   {{ user.rol }}
                 </span>
               </td>
-              <td class="py-4 px-5 text-center">
+              <td class="celda-chip py-4 px-5 text-center">
                 <span :class="[
                   user.estado === 'ACTIVO' ? 'bg-green-100 text-green-700 border-green-200' :
                   user.estado === 'PENDIENTE' ? 'bg-amber-100 text-amber-700 border-amber-200' :
@@ -90,7 +90,7 @@
                   {{ user.estado }}
                 </span>
               </td>
-              <td class="py-4 px-5">
+              <td class="celda-acciones py-4 px-5">
                 <div class="flex items-center justify-center gap-1">
                   <!-- Si es el Master Admin (ID 1) o el usuario actualmente autenticado -->
                   <template v-if="user.id === 1 || user.id === currentUserId">
@@ -228,6 +228,7 @@
   import Button from 'primevue/button';
   import Dropdown from 'primevue/dropdown';
   import Paginator from 'primevue/paginator';
+  import { esCorreoValido, MENSAJE_CORREO_INVALIDO } from '@/utils/validaciones';
 
   const userStore = useUserStore()
   const authStore = useAuthStore()
@@ -313,6 +314,9 @@
     }
     if(!formulario.value.email || !formulario.value.email.trim()){
       errores.value.email = 'El correo electrónico es obligatorio.'
+      valido = false
+    }else if(!esCorreoValido(formulario.value.email)){
+      errores.value.email = MENSAJE_CORREO_INVALIDO
       valido = false
     }
     if(!formulario.value.rol){

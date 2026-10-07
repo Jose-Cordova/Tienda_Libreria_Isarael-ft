@@ -50,7 +50,8 @@
     />
 
     <!-- MODAL: Anulación personalizada -->
-    <div v-if="mostrarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4 text-center">
+    <Teleport to="body">
+    <div v-if="mostrarAnular" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4 text-center">
       <div class="bg-white rounded-[24px] w-full max-w-sm shadow-2xl relative overflow-hidden animate-fade-up border border-gray-100">
         <div class="absolute top-0 left-0 w-full h-2.5 bg-[#044e04]"></div>
         <div class="p-10">
@@ -66,11 +67,12 @@
         </div>
       </div>
     </div>
+    </Teleport>
   </main>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive } from 'vue';
 import api from '@/services/api';
 import { useToast } from 'primevue/usetoast';
 import Button from 'primevue/button';
@@ -118,7 +120,7 @@ const cargarDevoluciones = async (page = 1) => {
     paginaActual.value = data.current_page;
     totalRegistros.value = data.total;
     perPage.value = data.per_page;
-  } catch (error) {
+  } catch {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar las devoluciones.', life: 4000 });
   }
 };

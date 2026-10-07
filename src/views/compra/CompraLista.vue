@@ -73,7 +73,7 @@
     <!-- SECCIÓN: Tabla -->
     <section class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse whitespace-nowrap">
+        <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
           <thead>
             <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-3 px-5">Fecha</th>
@@ -87,17 +87,17 @@
           </thead>
           <tbody class="text-gray-700 divide-y divide-gray-100">
             <tr v-for="compra in store.compras" :key="compra.id" class="hover:bg-gray-50 transition text-sm">
-              <td class="py-4 px-5 font-bold text-gray-800">{{ formateraFecha(compra.fecha_registro) }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800">{{ compra.proveedor?.nombre || '—' }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800">{{ compra.numero_factura }}</td>
-              <td class="py-4 px-5 font-bold text-gray-800">{{ compra.codigo_factura }}</td>
-              <td class="py-4 px-5 text-right font-bold text-gray-800">${{ compra.total }}</td>
-              <td class="py-4 px-5 text-center">
+              <td class="celda-subtitulo py-4 px-5 font-bold text-gray-800">{{ formateraFecha(compra.fecha_registro) }}</td>
+              <td class="celda-titulo py-4 px-5 font-bold text-gray-800">{{ compra.proveedor?.nombre || '—' }}</td>
+              <td data-label="N° Control" class="py-4 px-5 font-bold text-gray-800">{{ compra.numero_factura }}</td>
+              <td data-label="Cód. Generación" class="py-4 px-5 font-bold text-gray-800">{{ compra.codigo_factura }}</td>
+              <td class="celda-destacada py-4 px-5 text-right font-bold text-gray-800">${{ compra.total }}</td>
+              <td class="celda-chip py-4 px-5 text-center">
                 <span :class="compra.estado === 'REGISTRADA' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'" class="px-3 py-1 rounded-full text-[10px] font-black border uppercase">
                   {{ compra.estado }}
                 </span>
               </td>
-              <td class="py-4 px-5">
+              <td class="celda-acciones py-4 px-5">
                 <div class="flex items-center justify-center gap-1">
                   <Button icon="pi pi-eye" class="p-button-rounded p-button-text p-button-sm text-blue-600 hover:bg-blue-50" @click="verDetalle(compra)" />
                   <Button
@@ -110,7 +110,7 @@
               </td>
             </tr>
             <tr v-if="store.compras.length === 0">
-              <td colspan="6" class="py-12 text-center italic text-gray-400">No se encontraron registros de compra.</td>
+              <td colspan="7" class="py-12 text-center italic text-gray-400">No se encontraron registros de compra.</td>
             </tr>
           </tbody>
         </table>
@@ -182,7 +182,7 @@
     try {
       await store.obtenerDetalleCompra(compra.id)
       mostrarDetalle.value = true
-    } catch (error) {
+    } catch {
       toast.add({
         severity: 'error',
         summary: 'Error',

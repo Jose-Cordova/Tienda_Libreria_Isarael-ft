@@ -209,8 +209,8 @@ const calendarOptions = computed(() => ({
   dayHeaderFormat: { weekday: windowWidth.value < 768 ? 'short' : 'long' },
   aspectRatio: windowWidth.value < 768 ? 2.5 : 1.8,
   events: store.eventos,
-  editable: true,
-  selectable: true,
+  editable: false,
+  selectable: false,
   height: windowWidth.value < 768 ? 280 : '100%',
   dayMaxEvents: true,
   eventDisplay: 'block',
@@ -276,7 +276,9 @@ const abrirEditar = (fcEvent) => {
         fechaParsed = new Date(fcEvent.start)
       }
     } else {
-      fechaParsed = new Date(fcEvent.start)
+      // FullCalendar (timeZone: 'UTC') entrega start a medianoche UTC; se usan las partes UTC para no restar un día
+      const d = new Date(fcEvent.start)
+      fechaParsed = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
     }
   }
   formulario.value = {

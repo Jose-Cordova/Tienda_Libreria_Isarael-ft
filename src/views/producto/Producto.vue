@@ -159,8 +159,8 @@
               <h3 class="text-xs font-extrabold text-[#003d00] uppercase tracking-wider flex items-center gap-1.5">
                 <i class="pi pi-calendar-times text-amber-600"></i> Lotes y Fechas de Vencimiento
               </h3>
-              <div v-if="productoResumen.lotes && productoResumen.lotes.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div v-for="lote in productoResumen.lotes" :key="lote.id" class="p-3 bg-white border border-gray-200 rounded-xl flex items-center justify-between text-xs">
+              <div v-if="lotesUnificadosResumen.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div v-for="lote in lotesUnificadosResumen" :key="lote.codigo_lote + lote.fecha_vencimiento" class="p-3 bg-white border border-gray-200 rounded-xl flex items-center justify-between text-xs">
                   <div>
                     <span class="font-bold text-gray-800">Lote: {{ lote.codigo_lote }}</span>
                     <p class="text-gray-400">Vence: <strong class="text-gray-700">{{ formatearFecha(lote.fecha_vencimiento) }}</strong></p>
@@ -186,7 +186,7 @@
               </div>
 
               <div v-else-if="ajustesHistorial.length > 0" class="overflow-x-auto border border-gray-200 rounded-xl">
-                <table class="w-full text-left text-xs border-collapse whitespace-nowrap">
+                <table class="w-full text-left text-xs border-collapse whitespace-nowrap tabla-responsiva">
                   <thead>
                     <tr class="bg-gray-50 text-gray-500 font-extrabold uppercase tracking-wider border-b border-gray-200">
                       <th class="py-2.5 px-4">Fecha</th>
@@ -199,21 +199,44 @@
                   </thead>
                   <tbody class="divide-y divide-gray-100 text-gray-700">
                     <tr v-for="ajuste in ajustesHistorial" :key="ajuste.id" class="hover:bg-gray-50/80 transition">
-                      <td class="py-2.5 px-4 font-bold text-gray-800">{{ formatearFecha(ajuste.created_at) }}</td>
-                      <td class="py-2.5 px-4 font-bold text-gray-600">{{ formatearHora(ajuste.created_at) }}</td>
-                      <td class="py-2.5 px-4 text-center">
+                      <td class="celda-titulo py-2.5 px-4 font-bold text-gray-800">{{ formatearFecha(ajuste.created_at) }}</td>
+                      <td class="celda-subtitulo py-2.5 px-4 font-bold text-gray-600">{{ formatearHora(ajuste.created_at) }}</td>
+                      <td class="celda-chip py-2.5 px-4 text-center">
                         <span :class="ajuste.tipo_ajuste === 'INCREMENTO' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'" class="px-2 py-0.5 rounded font-black text-[10px] border uppercase">
                           {{ ajuste.tipo_ajuste }}
                         </span>
                       </td>
-                      <td class="py-2.5 px-4 text-center font-black" :class="ajuste.tipo_ajuste === 'INCREMENTO' ? 'text-green-700' : 'text-red-700'">
+                      <td class="celda-destacada py-2.5 px-4 text-center font-black" :class="ajuste.tipo_ajuste === 'INCREMENTO' ? 'text-green-700' : 'text-red-700'">
                         {{ ajuste.tipo_ajuste === 'INCREMENTO' ? '+' : '-' }}{{ ajuste.cantidad }} u.
                       </td>
-                      <td class="py-2.5 px-4 text-center font-semibold text-gray-600">
+                      <td data-label="Stock" class="py-2.5 px-4 text-center font-semibold text-gray-600">
                         {{ ajuste.stock_anterior }} &rarr; <strong>{{ ajuste.stock_nuevo }}</strong>
                       </td>
-                      <td class="py-2.5 px-4 font-medium text-gray-700 max-w-xs truncate" :title="ajuste.motivo">
-                        {{ ajuste.motivo || 'Sin motivo especificado' }}
+                      <td class="py-2.5 px-4 whitespace-normal max-w-[280px]">
+                        <div
+                          @click="toggleMotivoAjuste(ajuste.id)"
+                          class="relative p-2 rounded-lg text-xs leading-relaxed transition-all duration-200 cursor-pointer group border overflow-hidden w-full"
+                          :class="motivosAjusteExpandidos.has(ajuste.id)
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-900 shadow-sm'
+                            : 'bg-gray-50/60 border-gray-100 text-gray-700 hover:bg-emerald-50/40 hover:border-emerald-200 hover:text-emerald-800'"
+                        >
+                          <p
+                            class="text-xs leading-relaxed"
+                            :class="[
+                              motivosAjusteExpandidos.has(ajuste.id) ? 'motivo-expanded' : 'motivo-clamped',
+                              (ajuste.motivo || '').length > 20 ? 'pr-5' : ''
+                            ]"
+                          >
+                            {{ ajuste.motivo || 'Sin motivo especificado' }}
+                          </p>
+                          <i
+                            v-if="(ajuste.motivo || '').length > 20"
+                            class="pi text-[10px] absolute right-2 top-2.5 transition-transform duration-200"
+                            :class="[
+                              motivosAjusteExpandidos.has(ajuste.id) ? 'pi-chevron-up text-emerald-700 font-bold' : 'pi-chevron-down text-gray-400 group-hover:text-emerald-600'
+                            ]"
+                          ></i>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
@@ -261,6 +284,14 @@ const marcaStore = useMarcaStore()
 
 // Estado general
 const buscar = ref('')
+const motivosAjusteExpandidos = ref(new Set())
+const toggleMotivoAjuste = (id) => {
+  if (motivosAjusteExpandidos.value.has(id)) {
+    motivosAjusteExpandidos.value.delete(id)
+  } else {
+    motivosAjusteExpandidos.value.add(id)
+  }
+}
 const dialogoTipoVisible = ref(false)
 const mostrarModalProducto = ref(false)
 const esEdicion = ref(false)
@@ -393,11 +424,32 @@ const productoResumen = ref(null)
 const ajustesHistorial = ref([])
 const cargandoAjustes = ref(false)
 
+const lotesUnificadosResumen = computed(() => {
+  if (!productoResumen.value?.lotes) return []
+  const grupos = {}
+  productoResumen.value.lotes.forEach(lote => {
+    const codigo = (lote.codigo_lote || '').trim().toUpperCase()
+    const fecha = lote.fecha_vencimiento ? String(lote.fecha_vencimiento).slice(0, 10) : ''
+    const clave = `${codigo}|${fecha}`
+    if (!grupos[clave]) {
+      grupos[clave] = {
+        codigo_lote: codigo,
+        fecha_vencimiento: fecha,
+        cantidad_actual: Number(lote.cantidad_actual || 0)
+      }
+    } else {
+      grupos[clave].cantidad_actual += Number(lote.cantidad_actual || 0)
+    }
+  })
+  return Object.values(grupos)
+})
+
 const abrirResumenProducto = async (producto) => {
   productoResumen.value = producto
   mostrarResumen.value = true
   cargandoAjustes.value = true
   ajustesHistorial.value = []
+  motivosAjusteExpandidos.value.clear()
   try {
     const res = await productoService.getAjustesStock(producto.id)
     ajustesHistorial.value = res.data || []
@@ -412,6 +464,7 @@ const cerrarResumen = () => {
   mostrarResumen.value = false
   productoResumen.value = null
   ajustesHistorial.value = []
+  motivosAjusteExpandidos.value.clear()
 }
 
 // Formateo de Fecha: YYYY/MM/DD
@@ -453,4 +506,22 @@ onMounted(async () => {
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c6e5d3; border-radius: 4px; }
+
+.motivo-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.motivo-expanded {
+  display: block;
+  overflow: visible;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
 </style>

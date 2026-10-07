@@ -1,7 +1,8 @@
 <template>
+  <Teleport to="body">
   <div
     v-if="visible"
-    class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm p-4"
+    class="fixed inset-0 bg-black/40 flex items-center justify-center z-[110] backdrop-blur-sm p-4"
   >
     <div class="bg-white rounded-xl w-[95vw] max-w-4xl shadow-2xl overflow-hidden animate-fade-up border border-gray-100 flex flex-col max-h-[90vh]">
       <!-- Cabecera -->
@@ -15,8 +16,8 @@
         </button>
       </div>
 
-      <!-- Cuerpo -->
-      <div class="p-6" v-if="cliente">
+      <!-- Cuerpo (con scroll; la cabecera queda fija) -->
+      <div class="p-6 overflow-y-auto min-h-0" v-if="cliente">
         <!-- Información del cliente (KPIs) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-stretch">
           <!-- Card cliente -->
@@ -57,7 +58,7 @@
         <!-- Tabla de créditos -->
         <h3 class="font-extrabold !text-gray-800 mb-2 text-sm uppercase tracking-wider">Créditos del cliente</h3>
         <div class="overflow-x-auto border border-black rounded-lg">
-          <table class="w-full text-left text-xs">
+          <table class="w-full text-left text-xs tabla-responsiva">
             <thead class="bg-[#99bba7]">
               <tr class="text-black font-bold uppercase">
                 <th class="py-2 px-3">Fecha</th>
@@ -70,21 +71,21 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
               <tr v-for="credito in creditosPaginados" :key="credito.id">
-                <td class="py-3 px-3 font-bold text-gray-600">{{ credito.fecha }}</td>
-                <td class="py-3 px-3 font-extrabold text-gray-800">${{ Number(credito.montoOriginal).toFixed(2) }}</td>
-                <td class="py-3 px-3 font-bold text-green-700">${{ Number(credito.abonado).toFixed(2) }}</td>
+                <td class="celda-titulo py-3 px-3 font-bold text-gray-600">{{ credito.fecha }}</td>
+                <td data-label="Monto" class="py-3 px-3 font-extrabold text-gray-800">${{ Number(credito.montoOriginal).toFixed(2) }}</td>
+                <td data-label="Abonado" class="py-3 px-3 font-bold text-green-700">${{ Number(credito.abonado).toFixed(2) }}</td>
 
                 <td
-                  class="py-3 px-3 font-extrabold"
+                  class="celda-destacada py-3 px-3 font-extrabold"
                   :class="Number(credito.saldoPendiente) === 0 ? 'text-gray-800' : 'text-red-600'"
                 >
                   ${{ Number(credito.saldoPendiente).toFixed(2) }}
                 </td>
 
-                <td class="py-3 px-3">
+                <td class="celda-chip py-3 px-3">
                   <CreditoEstadoBadge :estado="credito.estado" />
                 </td>
-                <td class="py-3 px-3">
+                <td class="celda-acciones py-3 px-3">
                   <div class="flex items-center justify-center gap-2">
                     <Button
                       icon="pi pi-eye"
@@ -133,6 +134,7 @@
       @anular-abono="$emit('anular-abono', $event)"
     />
   </div>
+  </Teleport>
 </template>
 
 <script setup>
