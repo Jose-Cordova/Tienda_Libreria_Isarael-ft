@@ -90,13 +90,14 @@
             class="p-calendar-sm flex-1 sm:w-32 custom-prime-calendar custom-calendar-input"
             @date-select="cargarRegistros"
           />
-          <Button
-            v-if="fechaInicio || fechaFin || filtroEstado || busqueda"
-            icon="pi pi-filter-slash"
-            class="p-button-rounded p-button-text p-button-sm !text-red-900 !w-9 !h-9 shrink-0"
-            @click="limpiarFiltros"
-          />
         </div>
+        <button
+          @click="limpiarFiltros"
+          class="flex items-center gap-1 px-4 py-2 text-sm font-bold rounded-lg border border-[#b0c4b0] bg-[#f0f5f0] text-[#2e4a2e] hover:bg-[#e0ebe0] transition-colors shrink-0"
+        >
+          <i class="pi pi-filter-slash text-xs"></i>
+          Limpiar
+        </button>
       </div>
     </section>
 
@@ -105,7 +106,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse whitespace-nowrap tabla-responsiva">
           <thead>
-            <tr class="bg-gray-50 text-gray-500 text-[11px] font-extrabold uppercase tracking-widest border-b border-gray-200">
+            <tr class="bg-[#99bba7] text-[#000000] text-[12px] font-bold uppercase tracking-wider">
               <th class="py-4 px-5">Fecha</th>
               <th class="py-4 px-5">Producto devuelto</th>
               <th class="py-4 px-5">Lote</th>

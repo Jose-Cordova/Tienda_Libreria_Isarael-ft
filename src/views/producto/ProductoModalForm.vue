@@ -83,12 +83,12 @@
 
               <div>
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Precio Detalle ($) *</label>
-                <InputNumber v-model="productoForm.precio_detalle" mode="currency" currency="USD" locale="en-US" class="w-full border border-gray-200 rounded-xl p-3" :class="{ 'border-red-500': errors.precio_detalle }" />
+                <InputNumber v-model="productoForm.precio_detalle" mode="currency" currency="USD" locale="en-US" :max="999999.99" class="w-full border border-gray-200 rounded-xl p-3" :class="{ 'border-red-500': errors.precio_detalle }" />
                 <small class="text-red-500">{{ errors.precio_detalle }}</small>
               </div>
               <div>
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Precio Mayorista ($) *</label>
-                <InputNumber v-model="productoForm.precio_mayor" mode="currency" currency="USD" locale="en-US" class="w-full border border-gray-200 rounded-xl p-3" :class="{ 'border-red-500': errors.precio_mayor }" />
+                <InputNumber v-model="productoForm.precio_mayor" mode="currency" currency="USD" locale="en-US" :max="999999.99" class="w-full border border-gray-200 rounded-xl p-3" :class="{ 'border-red-500': errors.precio_mayor }" />
                 <small class="text-red-500">{{ errors.precio_mayor }}</small>
               </div>
               <div>
@@ -96,14 +96,14 @@
                   <i class="pi pi-exclamation-triangle text-amber-600 text-sm"></i>
                   <span class="text-amber-700">Stock Mínimo *</span>
                 </label>
-                <InputNumber v-model="productoForm.stock_minimo" :min="1" class="w-full border border-gray-200 rounded-xl p-3" :class="{ 'border-red-500': errors.stock_minimo }" />
+                <InputNumber v-model="productoForm.stock_minimo" :min="1" :max="999999" class="w-full border border-gray-200 rounded-xl p-3" :class="{ 'border-red-500': errors.stock_minimo }" />
                 <small class="text-red-500">{{ errors.stock_minimo }}</small>
               </div>
 
               <!-- Cantidad Inicial (Solo en Creación y NO Perecedero) -->
               <div v-if="!esEdicion && !productoForm.perecedero">
                 <label class="block text-[12px] font-extrabold text-[#3a5a3a] uppercase tracking-[0.2em] mb-1">Cantidad Inicial *</label>
-                <InputNumber v-model="productoForm.cantidad_inicial" :min="1" class="w-full border border-gray-200 rounded-xl p-3" :class="{ 'border-red-500': errors.cantidad_inicial }" />
+                <InputNumber v-model="productoForm.cantidad_inicial" :min="1" :max="999999999" class="w-full border border-gray-200 rounded-xl p-3" :class="{ 'border-red-500': errors.cantidad_inicial }" />
                 <small class="text-red-500">{{ errors.cantidad_inicial }}</small>
               </div>
 
@@ -200,6 +200,7 @@
                   <InputNumber
                     v-model="nuevoLoteEdicion.cantidad"
                     :min="1"
+                    :max="999999999"
                     class="w-full border border-gray-200 rounded-xl p-2.5"
                     :class="{ 'border-red-500': errors['nuevo_lote.cantidad'] }"
                   />
@@ -271,6 +272,7 @@
                     <InputNumber
                       v-model="loteItem.cantidad"
                       :min="1"
+                      :max="999999999"
                       class="w-full border border-gray-200 rounded-xl p-2.5"
                       :class="{ 'border-red-500': errors[`lotes.${index}.cantidad`] }"
                     />
@@ -346,6 +348,7 @@
                 <InputNumber
                   v-model="productoForm.nuevo_stock"
                   :min="0"
+                  :max="999999999"
                   class="w-full border border-gray-200 rounded-xl p-3"
                   :class="{ 'border-red-500': errors.nuevo_stock }"
                 />
@@ -536,6 +539,9 @@ const confirmarAjusteStockModal = () => {
   if (productoForm.value.nuevo_stock === null || productoForm.value.nuevo_stock < 0) {
     errors.value.nuevo_stock = 'Ingrese un valor de stock válido.'
     tieneError = true
+  } else if (productoForm.value.nuevo_stock > 999999999) {
+    errors.value.nuevo_stock = 'El nuevo stock no debe superar las 999,999,999 unidades.'
+    tieneError = true
   } else if (productoForm.value.perecedero && productoForm.value.lote_id) {
     const loteAfectado = productoForm.value.lotes.find(l => l.id === productoForm.value.lote_id)
     if (loteAfectado && productoForm.value.nuevo_stock === loteAfectado.cantidad_actual) {
@@ -551,8 +557,15 @@ const confirmarAjusteStockModal = () => {
     errors.value.lote_id = 'Debe seleccionar el lote a afectar.'
     tieneError = true
   }
-  if (!productoForm.value.motivo_ajuste || productoForm.value.motivo_ajuste.trim().length < 3) {
+  const motivoTrimSub = (productoForm.value.motivo_ajuste || '').trim()
+  if (!motivoTrimSub || motivoTrimSub.length < 3) {
     errors.value.motivo_ajuste = 'Ingrese un motivo de ajuste válido (mín. 3 caracteres).'
+    tieneError = true
+  } else if (motivoTrimSub.length > 255) {
+    errors.value.motivo_ajuste = 'El motivo del ajuste no debe superar los 255 caracteres.'
+    tieneError = true
+  } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-\.\,\(\)\:\#\!\¡\?\¿\/]+$/.test(motivoTrimSub)) {
+    errors.value.motivo_ajuste = 'Solo se permiten letras, números y signos de puntuación básicos (. , - () : # ! ¡ ? ¿ /).'
     tieneError = true
   }
 
@@ -739,9 +752,17 @@ const solicitarConfirmacionGuardado = async () => {
   errors.value = {}
 
   // Validaciones locales previas a la confirmación
-  if (!productoForm.value.nombre || !productoForm.value.nombre.trim()) {
+  const nombreTrim = (productoForm.value.nombre || '').trim()
+  if (!nombreTrim) {
     errors.value.nombre = 'El nombre del producto es obligatorio.'
+  } else if (nombreTrim.length < 3) {
+    errors.value.nombre = 'El nombre del producto debe tener al menos 3 caracteres.'
+  } else if (nombreTrim.length > 100) {
+    errors.value.nombre = 'El nombre del producto no debe superar los 100 caracteres.'
+  } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-\.\,\#]+$/.test(nombreTrim)) {
+    errors.value.nombre = 'Solo se permiten letras, números, espacios y los símbolos: - . , #'
   }
+
   if (!productoForm.value.categoria_id) {
     errors.value.categoria_id = 'La categoría es obligatoria.'
   }
@@ -750,20 +771,39 @@ const solicitarConfirmacionGuardado = async () => {
   }
   if (!productoForm.value.precio_detalle || productoForm.value.precio_detalle <= 0) {
     errors.value.precio_detalle = 'El precio detalle debe ser mayor a 0.'
+  } else if (productoForm.value.precio_detalle > 999999.99) {
+    errors.value.precio_detalle = 'El precio detalle no debe superar los $999,999.99.'
   }
   if (!productoForm.value.precio_mayor || productoForm.value.precio_mayor <= 0) {
     errors.value.precio_mayor = 'El precio mayor debe ser mayor a 0.'
+  } else if (productoForm.value.precio_mayor > 999999.99) {
+    errors.value.precio_mayor = 'El precio mayorista no debe superar los $999,999.99.'
   } else if (productoForm.value.precio_detalle && productoForm.value.precio_mayor >= productoForm.value.precio_detalle) {
     errors.value.precio_mayor = 'El precio mayorista debe ser menor que el precio detalle.'
   }
   if (!productoForm.value.stock_minimo || productoForm.value.stock_minimo < 1) {
     errors.value.stock_minimo = 'El stock mínimo debe ser al menos 1.'
+  } else if (productoForm.value.stock_minimo > 999999) {
+    errors.value.stock_minimo = 'El stock mínimo no debe superar las 999,999 unidades.'
+  }
+
+  if (!props.esEdicion && !productoForm.value.perecedero) {
+    if (!productoForm.value.cantidad_inicial || productoForm.value.cantidad_inicial < 1) {
+      errors.value.cantidad_inicial = 'La cantidad inicial debe ser al menos 1.'
+    } else if (productoForm.value.cantidad_inicial > 999999999) {
+      errors.value.cantidad_inicial = 'La cantidad inicial no debe superar las 999,999,999 unidades.'
+    }
   }
 
   if (props.esEdicion) {
     if (modificarStock.value && productoForm.value.nuevo_stock !== null && productoForm.value.nuevo_stock !== productoForm.value.stock_actual) {
-      if (!productoForm.value.motivo_ajuste || productoForm.value.motivo_ajuste.trim().length < 3) {
+      const motivoTrim = (productoForm.value.motivo_ajuste || '').trim()
+      if (!motivoTrim || motivoTrim.length < 3) {
         errors.value.motivo_ajuste = 'El motivo del ajuste debe tener al menos 3 caracteres.'
+      } else if (motivoTrim.length > 255) {
+        errors.value.motivo_ajuste = 'El motivo del ajuste no debe superar los 255 caracteres.'
+      } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-\.\,\(\)\:\#\!\¡\?\¿\/]+$/.test(motivoTrim)) {
+        errors.value.motivo_ajuste = 'Solo se permiten letras, números y signos de puntuación básicos (. , - () : # ! ¡ ? ¿ /).'
       }
       if (productoForm.value.perecedero && !productoForm.value.lote_id) {
         errors.value.lote_id = 'Debe seleccionar un lote para el producto perecedero.'
@@ -797,7 +837,16 @@ const solicitarConfirmacionGuardado = async () => {
   }
 
   if (Object.keys(errors.value).length > 0) {
-    emit('toast', { tipo: 'warn', mensaje: 'Por favor complete todos los campos obligatorios del formulario.' })
+    const hayCamposVacios = !productoForm.value.nombre || !productoForm.value.nombre.trim() ||
+      !productoForm.value.categoria_id ||
+      !productoForm.value.marca_id ||
+      !productoForm.value.precio_detalle ||
+      !productoForm.value.precio_mayor ||
+      !productoForm.value.stock_minimo;
+
+    if (hayCamposVacios) {
+      emit('toast', { tipo: 'warn', mensaje: 'Por favor complete todos los campos obligatorios del formulario.' })
+    }
     return
   }
 
@@ -870,8 +919,9 @@ const guardarProducto = async () => {
         for (const key in resData.errors) {
           errors.value[key] = Array.isArray(resData.errors[key]) ? resData.errors[key][0] : resData.errors[key]
         }
+      } else {
+        emit('toast', { tipo: 'warn', mensaje: resData.message || 'Error de validación en el formulario.' })
       }
-      emit('toast', { tipo: 'warn', mensaje: resData.message || 'Por favor complete todos los campos obligatorios del formulario.' })
     } else {
       const msg = error.response?.data?.message || 'Ocurrió un error inesperado al guardar el producto.'
       emit('toast', { tipo: 'error', mensaje: msg })
