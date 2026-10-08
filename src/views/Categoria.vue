@@ -255,6 +255,9 @@ const guardar = async () => {
   } else if (nombreTrim.length < 2) {
     errorNombre.value = 'El nombre debe tener al menos 2 caracteres'
     valid = false
+  } else if (nombreTrim.length > 50) {
+    errorNombre.value = 'El nombre no debe superar los 50 caracteres'
+    valid = false
   } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombreTrim)) {
     errorNombre.value = 'El nombre de la categoría solo debe contener letras'
     valid = false
