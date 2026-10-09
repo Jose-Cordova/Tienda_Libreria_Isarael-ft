@@ -27,6 +27,11 @@ const compraService = {
     return api.post('/compras', datos)
   },
 
+  //Validamos la compra con las reglas del backend sin guardarla (paso 2)
+  validarCompra(datos){
+    return api.post('/compras/validar', datos)
+  },
+
   //Anulamos una compra
   anularCompra(id){
     return api.post(`/compras/${id}/anular`)

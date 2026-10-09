@@ -68,10 +68,10 @@
                 {{ calcularCantidad(item) }}
               </td>
               <td class="py-3 sm:py-5 px-3 sm:px-6 text-center font-black text-gray-900 text-xs sm:text-sm">
-                ${{ item.precio_unitario }}
+                ${{ formatoMoneda(item.precio_unitario) }}
               </td>
               <td class="py-3 sm:py-5 px-4 sm:px-8 text-right font-black text-gray-900 text-sm sm:text-base">
-                ${{ (item.precio_unitario * calcularCantidad(item)).toFixed(2) }}
+                ${{ formatoMoneda(item.precio_unitario * calcularCantidad(item)) }}
               </td>
             </tr>
           </tbody>
@@ -83,7 +83,7 @@
         <div v-for="(item, index) in datos.detalles" :key="index" class="p-4 space-y-2">
           <div class="flex justify-between items-start">
             <span class="font-black text-gray-900 text-sm">{{ item.nombre }}</span>
-            <span class="font-black text-gray-900 text-sm">${{ (item.precio_unitario * calcularCantidad(item)).toFixed(2) }}</span>
+            <span class="font-black text-gray-900 text-sm">${{ formatoMoneda(item.precio_unitario * calcularCantidad(item)) }}</span>
           </div>
           <div class="flex justify-between text-sm">
             <span class="text-gray-800 font-bold">Cantidad:</span>
@@ -91,7 +91,7 @@
           </div>
           <div class="flex justify-between text-sm">
             <span class="text-gray-800 font-bold">Costo unitario:</span>
-            <span class="font-bold">${{ item.precio_unitario }}</span>
+            <span class="font-bold">${{ formatoMoneda(item.precio_unitario) }}</span>
           </div>
           <!-- Mostrar lotes si es perecedero -->
           <div v-if="item.perecedero === 'PERECEDERO'" class="flex flex-wrap gap-1 pt-1">
@@ -107,7 +107,7 @@
         <div class="z-10 text-center sm:text-left">
           <p class="text-[11px] font-black text-green-300 uppercase tracking-[0.4em]">Total de la Compra</p>
         </div>
-        <p class="text-2xl sm:text-3xl font-black text-gray-200 tracking-tighter z-10">$ {{ totalFactura }}</p>
+        <p class="text-2xl sm:text-3xl font-black text-gray-200 tracking-tighter z-10">$ {{ formatoMoneda(totalFactura) }}</p>
         <div class="absolute -right-16 -bottom-16 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
       </div>
     </section>
@@ -140,6 +140,8 @@
   import { useCompraStore } from '@/stores/compraStore';
   import { useToast } from 'primevue/usetoast';
   import Swal from 'sweetalert2';
+  import { formatoMoneda } from '@/utils/formatos';
+  import { armarDatosCompra, calcularCantidadDetalle, calcularTotalCompra } from '@/utils/compra';
 
   const props = defineProps({
     datos: Object
@@ -165,18 +167,9 @@
     }
   });
 
-  const calcularCantidad = (item) => {
-    if (item.perecedero === 'PERECEDERO') {
-      return item.lotes.reduce((sum, l) => sum + (parseInt(l.cantidad) || 0), 0);
-    }
-    return parseInt(item.cantidad) || 0;
-  };
+  const calcularCantidad = calcularCantidadDetalle;
 
-  const totalFactura = computed(() => {
-    return props.datos.detalles.reduce((sum, item) => {
-      return sum + (parseFloat(item.precio_unitario) * calcularCantidad(item));
-    }, 0).toFixed(2);
-  });
+  const totalFactura = computed(() => calcularTotalCompra(props.datos.detalles));
 
   const formatearFecha = (fecha) => {
     if (!fecha) return '—';
@@ -207,42 +200,7 @@
       cargando.value = true;
       try {
         // Preparamos los datos exactos para el backend
-        const datosParaBackend = {
-          proveedor_id: props.datos.proveedor_id,
-          numero_factura: props.datos.numero_factura,
-          codigo_factura: props.datos.codigo_factura,
-          fecha_emision: props.datos.fecha_emision instanceof Date
-            ? props.datos.fecha_emision.toISOString().split('T')[0]
-            : props.datos.fecha_emision,
-          total: totalFactura.value,
-          detalles: props.datos.detalles.map(d => {
-            const detalle = {
-              producto_id: d.producto_id || null,
-              precio_unitario: d.precio_unitario,
-              factor_conversion: d.factor_conversion || 1,
-              margen_detalle: d.margen_detalle,
-              margen_mayor: d.margen_mayor
-            }
-            // Solo para producto nuevo
-            if(!d.producto_id){
-              detalle.nombre = d.nombre
-              detalle.categoria_id = d.categoria_id
-              detalle.marca_id = d.marca_id
-              detalle.stock_minimo = d.stock_minimo
-              detalle.perecedero = d.perecedero
-              detalle.seccion = d.seccion
-            }
-            // PERECEDERO → lotes, NORMAL → cantidad
-            if(d.perecedero === 'PERECEDERO'){
-              detalle.lotes = d.lotes
-            }else{
-              detalle.cantidad = calcularCantidad(d)
-            }
-            return detalle
-          })
-        };
-
-        await compraStore.registrarCompra(datosParaBackend);
+        await compraStore.registrarCompra(armarDatosCompra(props.datos));
 
         toast.add({
           severity: 'success',
