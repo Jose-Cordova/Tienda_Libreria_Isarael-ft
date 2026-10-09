@@ -98,37 +98,13 @@ watch([filtroCredito, buscarCliente], ([estado, search]) => {
   store.fetchClientes(1);
 });
 
-// KPIs calculados desde los datos reales
-const kpiResumen = computed(() => {
-  const clientes = Array.isArray(store.clientes) ? store.clientes : [];
-
-  let totalDeudaPendiente = 0;
-  let clientesConDeuda = 0;
-  let totalAbonado = 0;
-  let creditosPagados = 0;
-
-  clientes.forEach(c => {
-    const deudaOriginal = parseFloat(c.total_deuda || c.totalDeuda || 0);
-    const abonado = parseFloat(c.total_abonado || c.totalAbonado || 0);
-    const pendiente = deudaOriginal - abonado;
-
-    totalDeudaPendiente += pendiente;
-    totalAbonado += abonado;
-
-    if (pendiente > 0) {
-      clientesConDeuda++;
-    } else {
-      creditosPagados++;
-    }
-  });
-
-  return {
-    totalDeuda: parseFloat(totalDeudaPendiente.toFixed(2)),
-    clientesConDeuda,
-    creditosPagados,
-    totalAbonado: parseFloat(totalAbonado.toFixed(2)),
-  };
-});
+// ✅ KPIs calculados desde el backend (no desde la página actual)
+const kpiResumen = computed(() => ({
+  totalDeuda: parseFloat(store.totales.totalDeuda || 0).toFixed(2),
+  clientesConDeuda: store.totales.clientesConDeuda || 0,
+  creditosPagados: store.totales.creditosPagados || 0,
+  totalAbonado: parseFloat(store.totales.totalAbonado || 0).toFixed(2),
+}));
 
 // Mapear para la tabla
 const clientesFiltrados = computed(() => {
@@ -204,7 +180,7 @@ const confirmarAbono = async (datos) => {
     await store.fetchDetalleCliente(store.clienteSeleccionado.id);
     await store.fetchClientes(store.currentPage);
 
-    // ✅ Generar ticket usando axios con responseType blob (envía el token JWT)
+    // Generar ticket usando axios con responseType blob
     if (response.ticket_url) {
       try {
         const pdfResponse = await api.get(response.ticket_url, {
@@ -212,7 +188,6 @@ const confirmarAbono = async (datos) => {
         });
         const url = window.URL.createObjectURL(new Blob([pdfResponse.data], { type: 'application/pdf' }));
         window.open(url, '_blank');
-        // Liberar memoria después de un tiempo
         setTimeout(() => window.URL.revokeObjectURL(url), 30000);
       } catch (err) {
         toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el ticket.', life: 3000 });
@@ -249,7 +224,6 @@ const abrirEdicionCliente = (cliente) => {
 
 const guardarEdicionCliente = async (datos) => {
   try {
-    // Usar el id del cliente que se está editando
     const idCliente = clienteEditando.value?.id;
     if (!idCliente) {
       toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo identificar el cliente a editar', life: 3000 });
@@ -257,7 +231,7 @@ const guardarEdicionCliente = async (datos) => {
     }
 
     await api.put(`/clientes-creditos/${idCliente}`, datos);
-    editarVisible.value = false; // Cerrar solo si la petición fue exitosa
+    editarVisible.value = false;
     await store.fetchClientes(store.currentPage);
     if (store.clienteSeleccionado) {
       await store.fetchDetalleCliente(store.clienteSeleccionado.id);

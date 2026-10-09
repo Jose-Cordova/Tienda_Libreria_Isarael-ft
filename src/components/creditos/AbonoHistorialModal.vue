@@ -109,10 +109,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
 import Button from 'primevue/button';
 import Paginator from 'primevue/paginator';
 import CreditoEstadoBadge from './CreditoEstadoBadge.vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
   visible: Boolean,
@@ -135,6 +135,11 @@ const abonosPaginados = computed(() => {
 const cambiarPagina = (event) => {
   paginaActual.value = event.page + 1;
 };
+
+// ✅ Resetear página cuando cambia la lista de abonos (por ejemplo, al anular)
+watch(() => props.abonos, () => {
+  paginaActual.value = 1;
+});
 
 // --- Formateo de fecha (solo fecha) ---
 const formatearFecha = (fecha) => {
