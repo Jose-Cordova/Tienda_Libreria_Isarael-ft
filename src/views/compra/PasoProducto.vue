@@ -64,10 +64,16 @@
         </div>
 
         <div class="p-4 sm:p-8 space-y-6 sm:space-y-8 bg-[#fcfdfc]">
+          <!-- Errores del producto que no tienen un campo propio en la tarjeta -->
+          <div v-if="erroresGenerales(index).length" class="bg-red-50 border border-red-200 rounded-xl p-3 space-y-1">
+            <p v-for="(mensaje, i) in erroresGenerales(index)" :key="i" class="text-red-600 text-xs font-bold flex gap-2">
+              <i class="pi pi-exclamation-circle text-[11px] mt-0.5"></i>{{ mensaje }}
+            </p>
+          </div>
           <!-- Barra informativa de contexto: stock y costo promedio anterior -->
           <div v-if="item.producto_id" class="flex flex-wrap gap-x-5 gap-y-2 text-[10px] sm:text-[11px] text-gray-800 font-bold ml-1">
             <span>STOCK ACTUAL EN TIENDA: <b class="text-gray-800 bg-gray-100 px-2 py-0.5 rounded shadow-sm">{{ item.stock_inventario_previo }} u.</b></span>
-            <span>COSTO PROMEDIO ANTERIOR: <b class="text-gray-800 bg-gray-100 px-2 py-0.5 rounded shadow-sm">{{ item.costo_promedio_previo > 0 ? '$' + item.costo_promedio_previo.toFixed(2) : 'SIN COSTO REGISTRADO' }}</b></span>
+            <span>COSTO PROMEDIO ANTERIOR: <b class="text-gray-800 bg-gray-100 px-2 py-0.5 rounded shadow-sm">{{ item.costo_promedio_previo > 0 ? '$' + formatoMoneda(item.costo_promedio_previo) : 'SIN COSTO REGISTRADO' }}</b></span>
           </div>
 
           <!-- Grid de Inputs -->
@@ -78,38 +84,47 @@
                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0a3622] font-black text-xs z-10">$</span>
                 <input
                   type="text"
+                  inputmode="decimal"
                   v-model="item.precio_unitario"
-                  @input="recalcular(index)"
+                  @input="item.precio_unitario = limpiarDecimal($event.target.value, 99999.99); limpiarError(index, 'precio_unitario'); recalcular(index)"
                   @keydown="soloDecimalPositivo"
                   class="w-full border border-gray-400 rounded-xl p-3 pl-8 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all"
+                  :class="{ '!border-red-500': errorDe(index, 'precio_unitario') }"
                 />
               </div>
+              <small v-if="errorDe(index, 'precio_unitario')" class="text-red-500 text-xs block ml-1">{{ errorDe(index, 'precio_unitario') }}</small>
             </div>
             <div class="space-y-2 text-left">
               <label class="text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Margen Detalle (%)</label>
               <div class="relative group">
                 <input
-                  type="number"
+                  type="text"
+                  inputmode="numeric"
                   v-model="item.margen_detalle"
-                  @input="recalcular(index)"
+                  @input="item.margen_detalle = limpiarEntero($event.target.value, 100); limpiarError(index, 'margen_detalle'); recalcular(index)"
                   @keydown="soloEnteroPositivo"
                   class="w-full border border-gray-400 rounded-xl p-3 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all"
+                  :class="{ '!border-red-500': errorDe(index, 'margen_detalle') }"
                 />
                 <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-[10px]">%</span>
               </div>
+              <small v-if="errorDe(index, 'margen_detalle')" class="text-red-500 text-xs block ml-1">{{ errorDe(index, 'margen_detalle') }}</small>
             </div>
             <div class="space-y-2 text-left">
               <label class="text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Margen Mayor (%)</label>
               <div class="relative group">
                 <input
-                  type="number"
+                  type="text"
+                  inputmode="numeric"
                   v-model="item.margen_mayor"
-                  @input="recalcular(index)"
+                  @input="item.margen_mayor = limpiarEntero($event.target.value, 100); limpiarError(index, 'margen_mayor'); recalcular(index)"
                   @keydown="soloEnteroPositivo"
                   class="w-full border border-gray-400 rounded-xl p-3 text-sm font-bold text-gray-800 outline-none focus:border-[#0a3622] focus:ring-2 focus:ring-[#0a3622]/5 bg-white shadow-sm transition-all"
+                  :class="{ '!border-red-500': errorDe(index, 'margen_mayor') }"
                 />
                 <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-black text-[10px]">%</span>
               </div>
+              <small v-if="errorDe(index, 'margen_mayor')" class="text-red-500 text-xs block ml-1">{{ errorDe(index, 'margen_mayor') }}</small>
             </div>
             <!-- Columna 4: Factor con Checkbox integrado -->
             <div class="space-y-2 text-left">
@@ -122,10 +137,12 @@
                 <InputNumber
                   v-model="item.factor_conversion"
                   :min="1"
-                  @update:modelValue="recalcular(index)"
-                  inputClass="w-full border border-gray-400 rounded-xl p-3 !pl-11 text-sm font-bold text-gray-800 outline-none focus:border-blue-500 bg-blue-50/20 shadow-sm transition-all"
+                  :max="1000"
+                  @update:modelValue="limpiarError(index, 'factor_conversion'); recalcular(index)"
+                  :inputClass="['w-full border border-gray-400 rounded-xl p-3 !pl-11 text-sm font-bold text-gray-800 outline-none focus:border-blue-500 bg-blue-50/20 shadow-sm transition-all', { '!border-red-500': errorDe(index, 'factor_conversion') }]"
                 />
               </div>
+              <small v-if="errorDe(index, 'factor_conversion')" class="text-red-500 text-xs block ml-1">{{ errorDe(index, 'factor_conversion') }}</small>
             </div>
           </div>
 
@@ -135,11 +152,11 @@
             <!-- Fila superior: Costo neto y Nuevo CPP -->
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-[10px] text-emerald-800 font-bold border-b border-emerald-200/70 pb-2.5">
               <span>COSTO NETO DE ESTA FACTURA:
-                <b class="text-emerald-950 text-[11px] font-black ml-1">${{ ((parseFloat(item.precio_unitario) || 0) / (parseInt(item.factor_conversion) || 1)).toFixed(2) }} / u.</b>
+                <b class="text-emerald-950 text-[11px] font-black ml-1">${{ formatoMoneda((parseFloat(item.precio_unitario) || 0) / (parseInt(item.factor_conversion) || 1)) }} / u.</b>
               </span>
               <span class="hidden sm:inline text-emerald-300">|</span>
               <span>NUEVO COSTO PROMEDIO (CPP):
-                <b class="text-emerald-950 text-[11px] font-black ml-1">${{ obtenerCppSimuladoText(index) }} / u.</b>
+                <b class="text-emerald-950 text-[11px] font-black ml-1">${{ formatoMoneda(obtenerCppSimuladoText(index)) }} / u.</b>
               </span>
             </div>
 
@@ -147,12 +164,12 @@
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-8 text-[11px] font-bold text-emerald-900">
               <span class="flex items-center gap-2 flex-wrap">
                 VENTA AL DETALLE:
-                <b class="text-emerald-950 text-sm font-black">${{ item.precio_detalle_sugerido }}</b>
+                <b class="text-emerald-950 text-sm font-black">${{ formatoMoneda(item.precio_detalle_sugerido) }}</b>
               </span>
               <div class="w-1 h-4 bg-emerald-200 rounded-full hidden sm:block"></div>
               <span class="flex items-center gap-2 flex-wrap">
                 VENTA AL MAYOR:
-                <b class="text-emerald-950 text-sm font-black">${{ item.precio_mayor_sugerido }}</b>
+                <b class="text-emerald-950 text-sm font-black">${{ formatoMoneda(item.precio_mayor_sugerido) }}</b>
               </span>
             </div>
           </div>
@@ -189,24 +206,37 @@
 
                   <input
                     v-model="lote.codigo_lote"
-                    @input="lote.codigo_lote = lote.codigo_lote.toUpperCase()"
+                    @input="lote.codigo_lote = lote.codigo_lote.toUpperCase(); limpiarError(index, `lotes.${lIdx}.codigo_lote`)"
                     class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-blue-700 uppercase outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 bg-white shadow-sm"
+                    :class="{ '!border-red-500': errorDe(index, `lotes.${lIdx}.codigo_lote`) }"
                     placeholder="EJ: L-100"
                   />
+                  <small v-if="errorDe(index, `lotes.${lIdx}.codigo_lote`)" class="text-red-500 text-xs block ml-1">{{ errorDe(index, `lotes.${lIdx}.codigo_lote`) }}</small>
                 </div>
                 <div class="w-full sm:col-span-4 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Vencimiento</span>
-                  <input type="date" :min="fechaMinimaLote" v-model="lote.fecha_vencimiento" class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-gray-700 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm" />
+                  <input
+                    type="date"
+                    :min="fechaMinimaLote"
+                    v-model="lote.fecha_vencimiento"
+                    @input="limpiarError(index, `lotes.${lIdx}.fecha_vencimiento`)"
+                    class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-gray-700 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm"
+                    :class="{ '!border-red-500': errorDe(index, `lotes.${lIdx}.fecha_vencimiento`) }"
+                  />
+                  <small v-if="errorDe(index, `lotes.${lIdx}.fecha_vencimiento`)" class="text-red-500 text-xs block ml-1">{{ errorDe(index, `lotes.${lIdx}.fecha_vencimiento`) }}</small>
                 </div>
                 <div class="w-full sm:col-span-2 space-y-1.5">
                   <span class="text-[10px] font-black text-gray-800 uppercase tracking-widest ml-1">Cantidad</span>
                   <input
-                    type="number"
+                    type="text"
+                    inputmode="numeric"
                     v-model="lote.cantidad"
                     @keydown="soloEnteroPositivo"
-                    @input="recalcular(index)"
+                    @input="lote.cantidad = limpiarEntero($event.target.value, 99999); limpiarError(index, `lotes.${lIdx}.cantidad`); recalcular(index)"
                     class="w-full border border-gray-400 rounded-lg p-2.5 text-[11px] font-black text-center text-[#0a3622] outline-none focus:border-green-400 focus:ring-2 focus:ring-green-50 bg-white shadow-sm"
+                    :class="{ '!border-red-500': errorDe(index, `lotes.${lIdx}.cantidad`) }"
                   />
+                  <small v-if="errorDe(index, `lotes.${lIdx}.cantidad`)" class="text-red-500 text-xs block ml-1">{{ errorDe(index, `lotes.${lIdx}.cantidad`) }}</small>
                 </div>
                 <div class="absolute top-4 right-4 sm:relative sm:top-0 sm:right-0 sm:col-span-1 flex items-center justify-end sm:pt-5">
                   <button
@@ -225,16 +255,19 @@
 
             <div v-else class="flex items-center gap-4 text-left">
               <input
-                type="number"
+                type="text"
+                inputmode="numeric"
                 v-model="item.cantidad"
                 @keydown="soloEnteroPositivo"
-                @input="recalcular(index)"
+                @input="item.cantidad = limpiarEntero($event.target.value, 99999); limpiarError(index, 'cantidad'); recalcular(index)"
                 class="w-20 border border-gray-300 rounded-xl p-2 text-base font-bold text-center text-[#0a3622] outline-none focus:border-[#0a3622] focus:ring-4 focus:ring-green-50 shadow-md bg-white"
+                :class="{ '!border-red-500': errorDe(index, 'cantidad') }"
               />
               <div class="flex flex-col">
                 <span class="text-[11px] font-black text-[#0a3622] uppercase tracking-widest">Unidades a ingresar</span>
               </div>
             </div>
+            <small v-if="errorDe(index, 'cantidad')" class="text-red-500 text-xs block ml-1 mt-2">{{ errorDe(index, 'cantidad') }}</small>
           </div>
 
           <!-- Pie del Item: Resumen -->
@@ -242,7 +275,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <span class="text-[10px] sm:text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Subtotal de este producto</span>
               <b class="text-[#0a3622] text-lg sm:text-xl font-black tracking-tighter bg-green-50 px-4 sm:px-5 py-2 rounded-xl border border-green-100 shadow-sm w-fit">
-                $ {{ ((parseFloat(item.precio_unitario) || 0) * calcularCantidad(index)).toFixed(2) }}
+                $ {{ formatoMoneda((parseFloat(item.precio_unitario) || 0) * calcularCantidad(index)) }}
               </b>
             </div>
           </div>
@@ -267,7 +300,7 @@
           <p class="text-[12px] font-black text-green-300 uppercase tracking-[0.4em] mb-0.5">Inversión total de factura</p>
         </div>
         <div class="text-center md:text-right z-10">
-           <p class="text-3xl font-black text-white tracking-tighter shadow-sm leading-none">$ {{ totalFactura }}</p>
+           <p class="text-3xl font-black text-white tracking-tighter shadow-sm leading-none">$ {{ formatoMoneda(totalFactura) }}</p>
         </div>
         <div class="absolute -right-12 -bottom-12 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
       </div>
@@ -276,8 +309,9 @@
         <button @click="$emit('atras')" class="w-full md:w-auto px-7 py-2.5 bg-white border border-gray-300 text-[#0a3622] font-black rounded-xl hover:bg-gray-50 transition-all text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm">
           <i class="pi pi-arrow-left text-[9px]"></i> Volver
         </button>
-        <button @click="finalizarPaso" class="w-full md:w-auto px-10 py-3 bg-[#0a3622] text-white font-black rounded-xl hover:bg-[#115033] transition-all text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-md group">
-          Ver resumen <i class="pi pi-arrow-right text-[9px] group-hover:translate-x-1 transition-transform"></i>
+        <button @click="finalizarPaso" :disabled="validando" class="w-full md:w-auto px-10 py-3 bg-[#0a3622] text-white font-black rounded-xl hover:bg-[#115033] transition-all text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-md group disabled:opacity-60 disabled:cursor-wait">
+          <template v-if="validando"><i class="pi pi-spin pi-spinner text-[10px]"></i> Validando…</template>
+          <template v-else>Ver resumen <i class="pi pi-arrow-right text-[9px] group-hover:translate-x-1 transition-transform"></i></template>
         </button>
       </div>
     </div>
@@ -299,6 +333,7 @@
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Nombre Comercial *</label>
                   <InputText
                     v-model="nuevoProducto.nombre"
+                    @input="erroresNuevo.nombre = nuevoProducto.nombre.length > 100 ? 'El nombre del producto no puede tener más de 100 caracteres.' : ''"
                     class="w-full border border-gray-300 rounded-xl p-3 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none transition-all shadow-sm bg-white"
                     :class="{ 'border-red-500': erroresNuevo.nombre }"
                   />
@@ -352,9 +387,11 @@
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Stock Mínimo *</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputmode="numeric"
                     v-model="nuevoProducto.stock_minimo"
                     @keydown="soloEnteroPositivo"
+                    @input="nuevoProducto.stock_minimo = limpiarEntero($event.target.value, 999999)"
                     class="w-full border border-gray-300 rounded-xl p-2 text-sm font-bold text-[#0a3622] focus:border-[#0a3622] outline-none transition-all shadow-sm bg-white"
                   />
                 </div>
@@ -390,6 +427,9 @@
   import Checkbox from 'primevue/checkbox';
   import Button from 'primevue/button';
   import Dropdown from 'primevue/dropdown';
+  import { formatoMoneda } from '@/utils/formatos';
+  import compraService from '@/services/compraService';
+  import { armarDatosCompra } from '@/utils/compra';
 
   const props = defineProps({
     datos: Object
@@ -434,9 +474,21 @@
     };
   };
 
+  // Errores por campo del paso 2 (mismas claves que el backend: detalles.0.lotes.1.codigo_lote)
+  const errores = ref({})
+  const validando = ref(false)
+  const errorDe = (index, campo) => errores.value[`detalles.${index}.${campo}`] || ''
+  const limpiarError = (index, campo) => { delete errores.value[`detalles.${index}.${campo}`] }
+  // Errores del producto que no tienen un campo propio en la tarjeta (nombre duplicado, sin lotes, etc.)
+  const CAMPOS_CON_LUGAR = /^(precio_unitario|margen_detalle|margen_mayor|factor_conversion|cantidad|lotes\.\d+\.(codigo_lote|fecha_vencimiento|cantidad))$/
+  const erroresGenerales = (index) => Object.entries(errores.value)
+    .filter(([clave]) => clave.startsWith(`detalles.${index}.`) && !CAMPOS_CON_LUGAR.test(clave.slice(`detalles.${index}.`.length)))
+    .map(([, mensaje]) => mensaje)
+
   //Solo enteros positivos
   const soloEnteroPositivo = (e) => {
     const key = e.key
+    if (e.ctrlKey || e.metaKey) return
     if (
         !/^[0-9]$/.test(key) &&
         key !== 'Backspace' &&
@@ -455,6 +507,7 @@
 
     // Teclas de control permitidas
     if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'].includes(key)) return;
+    if (e.ctrlKey || e.metaKey) return;
 
     // Solo números y punto
     if (!/^[0-9.]$/.test(key)) return e.preventDefault();
@@ -472,6 +525,17 @@
             e.preventDefault();
         }
     }
+  }
+  //Limpia lo que entra por pegar/arrastrar: solo dígitos y tope máximo
+  const limpiarEntero = (valor, max) => {
+    const limpio = String(valor ?? '').replace(/\D/g, '')
+    return max && Number(limpio) > max ? String(max) : limpio
+  }
+  //Solo dígitos y un punto, máximo 2 decimales y tope máximo
+  const limpiarDecimal = (valor, max) => {
+    const [entero, ...resto] = String(valor ?? '').replace(/[^0-9.]/g, '').split('.')
+    const limpio = resto.length ? `${entero}.${resto.join('').slice(0, 2)}` : entero
+    return max && Number(limpio) > max ? String(max) : limpio
   }
 
   //Busqueda de producto
@@ -611,6 +675,9 @@
 
     if (!nuevoProducto.value.nombre || !nuevoProducto.value.nombre.trim()){
       erroresNuevo.value.nombre = 'El nombre comercial es obligatorio.';
+      valido = false;
+    } else if (nuevoProducto.value.nombre.trim().length > 100){
+      erroresNuevo.value.nombre = 'El nombre del producto no puede tener más de 100 caracteres.';
       valido = false;
     }
     if (!nuevoProducto.value.seccion){
@@ -771,6 +838,8 @@
     loteActual.codigo_lote = loteSeleccionado.codigo_lote
     // Recortamos a YYYY-MM-DD porque el input type="date" no acepta el timestamp completo
     loteActual.fecha_vencimiento = (loteSeleccionado.fecha_vencimiento || '').slice(0, 10)
+    limpiarError(pIdx, `lotes.${lIdx}.codigo_lote`)
+    limpiarError(pIdx, `lotes.${lIdx}.fecha_vencimiento`)
 
     event.target.value = ""
   }
@@ -778,6 +847,8 @@
   const quitarLote = (pIdx, lIdx) => {
     if(productosAgregados.value[pIdx].lotes.length > 1){
       productosAgregados.value[pIdx].lotes.splice(lIdx, 1)
+      // Las posiciones cambian: los errores quedarían en el campo equivocado
+      errores.value = {}
     }
   }
 
@@ -800,6 +871,7 @@
 
     if(result.isConfirmed){
       productosAgregados.value.splice(idx, 1)
+      errores.value = {}
       toast.add({
         severity: 'info',
         summary: 'Removido',
@@ -809,8 +881,58 @@
     }
   }
 
+  // Validaciones locales: mismas reglas de antes, cada error en su campo
+  const validarLocal = () => {
+    const nuevos = {}
+    productosAgregados.value.forEach((p, i) => {
+      const clave = (campo) => `detalles.${i}.${campo}`
+      if(!(parseFloat(p.precio_unitario) > 0)) nuevos[clave('precio_unitario')] = 'El costo unitario debe ser mayor a 0.'
+      if(!(Number(p.margen_detalle) > 0)) nuevos[clave('margen_detalle')] = 'El margen al detalle debe ser mayor a 0%.'
+      if(!(Number(p.margen_mayor) > 0)) nuevos[clave('margen_mayor')] = 'El margen al mayor debe ser mayor a 0%.'
+      else if(Number(p.margen_mayor) >= Number(p.margen_detalle)) nuevos[clave('margen_mayor')] = 'El margen al mayor debe ser menor que el margen al detalle.'
+
+      if(p.perecedero === 'PERECEDERO'){
+        // Vencimientos ya registrados por código (sin contar lotes anulados)
+        const vencimientosEnBd = {}
+        ;(p.lotes_existentes || [])
+          .filter(lex => lex.motivo_inactivo !== 'ANULACION')
+          .forEach(lex => { vencimientosEnBd[(lex.codigo_lote || '').trim().toUpperCase()] = (lex.fecha_vencimiento || '').slice(0, 10) })
+        const codigosEnProducto = []
+
+        p.lotes.forEach((l, j) => {
+          l.codigo_lote = (l.codigo_lote || '').trim().toUpperCase()
+          if(!l.codigo_lote) nuevos[clave(`lotes.${j}.codigo_lote`)] = 'El código de lote es obligatorio.'
+          else if(codigosEnProducto.includes(l.codigo_lote)) nuevos[clave(`lotes.${j}.codigo_lote`)] = `El lote ${l.codigo_lote} está repetido en este producto.`
+          codigosEnProducto.push(l.codigo_lote)
+
+          if(!l.fecha_vencimiento) nuevos[clave(`lotes.${j}.fecha_vencimiento`)] = 'La fecha de vencimiento es obligatoria.'
+          else{
+            const vencimientoBd = vencimientosEnBd[l.codigo_lote]
+            if(vencimientoBd && vencimientoBd !== l.fecha_vencimiento){
+              nuevos[clave(`lotes.${j}.fecha_vencimiento`)] = `El lote ${l.codigo_lote} ya está registrado con vencimiento ${vencimientoBd.split('-').reverse().join('/')}.`
+            }
+          }
+          if(!(parseInt(l.cantidad) > 0)) nuevos[clave(`lotes.${j}.cantidad`)] = 'La cantidad debe ser mayor a 0.'
+        })
+      }else if(!(parseInt(p.cantidad) > 0)){
+        nuevos[clave('cantidad')] = 'La cantidad de ingreso debe ser mayor a 0.'
+      }
+    })
+    return nuevos
+  }
+
+  const avisarErrores = () => {
+    const total = Object.keys(errores.value).length
+    toast.add({
+      severity: 'warn',
+      summary: 'Revise los datos',
+      detail: `Hay ${total} ${total === 1 ? 'error' : 'errores'}. Revise los campos marcados en rojo.`,
+      life: 5000
+    })
+  }
+
   // Navegacion
-  const finalizarPaso = () => {
+  const finalizarPaso = async () => {
     if(productosAgregados.value.length === 0){
       return toast.add({
         severity: 'warn',
@@ -820,65 +942,34 @@
       })
     }
 
-    // Validación de campos obligatorios
-    let incompleto = false
-    let mensaje = 'Por favor complete todos los campos obligatorios.'
-    productosAgregados.value.forEach(p => {
-      if(p.precio_unitario <= 0){
-        incompleto = true
-        mensaje = 'El costo unitario de todos los productos debe ser mayor a 0.'
-      }
-      if(p.margen_detalle <= 0 || p.margen_mayor <= 0){
-        incompleto = true;
-        mensaje = 'Los márgenes de ganancia (detalle y mayor) deben ser mayores a 0%.';
-      }
-      if(Number(p.margen_mayor) >= Number(p.margen_detalle)){
-        incompleto = true;
-        mensaje = 'El margen al mayor debe ser menor que el margen al detalle.';
-      }
-      if(p.perecedero === 'PERECEDERO'){
-        // Vencimientos ya registrados por código (sin contar lotes anulados)
-        const vencimientosEnBd = {}
-        ;(p.lotes_existentes || [])
-          .filter(lex => lex.motivo_inactivo !== 'ANULACION')
-          .forEach(lex => { vencimientosEnBd[(lex.codigo_lote || '').trim().toUpperCase()] = (lex.fecha_vencimiento || '').slice(0, 10) })
-        const codigosEnProducto = []
+    errores.value = validarLocal()
+    if(Object.keys(errores.value).length) return avisarErrores()
 
-        p.lotes.forEach(l => {
-          l.codigo_lote = (l.codigo_lote || '').trim().toUpperCase()
-          if(!l.codigo_lote || !l.fecha_vencimiento || l.cantidad <= 0){
-            incompleto = true
-             mensaje = 'Complete todos los campos de los lotes para productos perecederos (código, fecha y cantidad).'
-            return
-          }
-          if(codigosEnProducto.includes(l.codigo_lote)){
-            incompleto = true
-            mensaje = `El lote ${l.codigo_lote} está repetido en el producto ${p.nombre}.`
-          }
-          codigosEnProducto.push(l.codigo_lote)
-
-          const vencimientoBd = vencimientosEnBd[l.codigo_lote]
-          if(vencimientoBd && vencimientoBd !== l.fecha_vencimiento){
-            incompleto = true
-            mensaje = `El lote ${l.codigo_lote} de ${p.nombre} ya está registrado con vencimiento ${vencimientoBd.split('-').reverse().join('/')}.`
-          }
+    // Mismas reglas del backend que al registrar, sin guardar nada
+    validando.value = true
+    try{
+      await compraService.validarCompra(armarDatosCompra({ ...props.datos, detalles: productosAgregados.value }))
+      emit('siguiente', { detalles: productosAgregados.value })
+    }catch(error){
+      const recibidos = error.response?.status === 422 ? error.response.data?.errors : null
+      if(!recibidos){
+        return toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo validar la compra. Intente de nuevo.',
+          life: 5000
         })
-      }else{
-        if(p.cantidad <= 0){
-          incompleto = true
-           mensaje = 'La cantidad de ingreso debe ser mayor a 0.'
-        }
       }
-    })
-    if(incompleto){
-      return toast.add({
-        severity: 'warn',
-        summary: 'Datos incompletos',
-        detail: mensaje,
-        life: 5000
-      })
+      errores.value = Object.fromEntries(Object.entries(recibidos).map(([clave, mensajes]) => [clave, mensajes[0]]))
+      // Errores de la factura (paso 1): no tienen campo en este paso
+      const deFactura = Object.entries(errores.value).filter(([clave]) => !clave.startsWith('detalles.')).map(([, m]) => m)
+      if(deFactura.length){
+        toast.add({ severity: 'error', summary: 'Datos de la factura', detail: deFactura.join(' '), life: 6000 })
+      }
+      avisarErrores()
+    }finally{
+      validando.value = false
     }
-    emit('siguiente', { detalles: productosAgregados.value })
   }
 </script>
 

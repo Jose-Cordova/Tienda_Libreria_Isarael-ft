@@ -50,9 +50,18 @@
           />
           <div class="flex items-center gap-2 bg-gray-50 rounded-xl p-1 px-3 border border-gray-200 flex-1 sm:flex-none justify-between">
             <Button icon="pi pi-chevron-left" class="p-button-text p-button-sm !text-[#0a3622] !w-7 !h-7 hover:!bg-white" @click="prev" />
-            <div class="min-w-[100px] sm:min-w-[120px] text-center">
+            <button
+              type="button"
+              @click="panelMes.toggle($event)"
+              class="min-w-[100px] sm:min-w-[120px] text-center rounded-lg px-2 py-1 hover:bg-white transition-colors flex items-center justify-center gap-1.5"
+              title="Elegir mes"
+            >
               <span class="text-[10px] sm:text-xs font-black text-[#0a3622] uppercase tracking-widest">{{ mesAnioActual }}</span>
-            </div>
+              <i class="pi pi-calendar text-[10px] text-[#0a3622]"></i>
+            </button>
+            <OverlayPanel ref="panelMes">
+              <Calendar v-model="mesSeleccionado" view="month" dateFormat="mm/yy" inline @update:modelValue="irAMes" />
+            </OverlayPanel>
             <Button icon="pi pi-chevron-right" class="p-button-text p-button-sm !text-[#0a3622] !w-7 !h-7 hover:!bg-white" @click="next" />
           </div>
         </div>
@@ -165,6 +174,7 @@ import { useToast } from 'primevue/usetoast';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
+import OverlayPanel from 'primevue/overlaypanel';
 import Textarea from 'primevue/textarea';
 import { useCronogramaStore } from '@/stores/cronogramaStore';
 
@@ -172,6 +182,8 @@ const store = useCronogramaStore()
 const toast = useToast()
 const fullCalendar = ref(null)
 const mesAnioActual = ref('')
+const panelMes = ref(null)
+const mesSeleccionado = ref(new Date())
 const mostrarModal = ref(false)
 const esEdicion = ref(false)
 const cargando = ref(false)
@@ -218,6 +230,9 @@ const calendarOptions = computed(() => ({
   eventClassNames: 'font-bold uppercase text-[10px] border-none !bg-[#0a3622] text-white rounded-md p-1 shadow-sm',
   datesSet: async (info) => {
     mesAnioActual.value = info.view.title;
+    // currentStart viene en UTC (timeZone: 'UTC'); se arma la fecha local del mismo mes
+    const inicio = info.view.currentStart
+    mesSeleccionado.value = new Date(inicio.getUTCFullYear(), inicio.getUTCMonth(), 1)
     await store.fetchEventos(info.startStr, info.endStr);
   },
   eventClick: (info) => {
@@ -249,6 +264,13 @@ const agendaEventos = computed(() => {
 const prev = () => fullCalendar.value?.getApi()?.prev()
 const next = () => fullCalendar.value?.getApi()?.next()
 const irAHoy = () => fullCalendar.value?.getApi()?.today()
+// Salta al mes elegido en el selector (se pasa como texto para que la zona horaria no cambie el mes)
+const irAMes = (fecha) => {
+  if (!fecha) return
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+  fullCalendar.value?.getApi()?.gotoDate(`${fecha.getFullYear()}-${mes}-01`)
+  panelMes.value?.hide()
+}
 
 const abrirNuevo = async () => {
   if(store.proveedores.length === 0){
