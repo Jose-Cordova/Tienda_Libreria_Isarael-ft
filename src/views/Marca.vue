@@ -245,11 +245,24 @@ const abrirModalEditar = (marca) => {
 }
 
 const guardar = async () => {
+  limpiarErrores()
   let valid = true
-  if (!form.value.nombre.trim()) {
+  const nombreTrim = form.value.nombre.trim()
+
+  if (!nombreTrim) {
     errorNombre.value = 'El nombre es obligatorio'
     valid = false
+  } else if (nombreTrim.length < 2) {
+    errorNombre.value = 'El nombre debe tener al menos 2 caracteres'
+    valid = false
+  } else if (nombreTrim.length > 50) {
+    errorNombre.value = 'El nombre no debe superar los 50 caracteres'
+    valid = false
+  } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-]+$/.test(nombreTrim)) {
+    errorNombre.value = 'El nombre de la marca contiene caracteres no permitidos'
+    valid = false
   }
+
   if (!form.value.seccion) {
     errorSeccion.value = 'Debe seleccionar una sección'
     valid = false

@@ -195,10 +195,15 @@ const guardar = async () => {
   if (!formulario.value.cantidad || formulario.value.cantidad < 1) {
     errors.value.cantidad = 'La cantidad debe ser al menos 1.';
   }
-  if (!formulario.value.descripcion || !formulario.value.descripcion.trim()) {
+  const descTrim = (formulario.value.descripcion || '').trim();
+  if (!descTrim) {
     errors.value.descripcion = 'El motivo del cambio es obligatorio.';
-  } else if (formulario.value.descripcion.trim().length < 3) {
+  } else if (descTrim.length < 3) {
     errors.value.descripcion = 'El motivo debe tener al menos 3 caracteres.';
+  } else if (descTrim.length > 255) {
+    errors.value.descripcion = 'El motivo no debe superar los 255 caracteres.';
+  } else if (!/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-\.\,\(\)\:\#\!\¡\?\¿\/]+$/.test(descTrim)) {
+    errors.value.descripcion = 'Solo se permiten letras, números y signos de puntuación básicos (. , - () : # ! ¡ ? ¿ /).';
   }
 
   if (Object.keys(errors.value).length > 0) {
