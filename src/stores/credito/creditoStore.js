@@ -14,6 +14,14 @@ export const useCreditoStore = defineStore('credito', {
     total: 0,
     perPage: 10,
 
+    // ✅ Totales globales y del mes (nuevos)
+    totales: {
+      totalDeuda: 0,
+      clientesConDeuda: 0,
+      creditosPagados: 0,
+      totalAbonado: 0,
+    },
+
     // Para el show (detalle de un cliente)
     clienteSeleccionado: null,
     creditosCliente: [],
@@ -39,6 +47,11 @@ export const useCreditoStore = defineStore('credito', {
         this.currentPage = data.current_page;
         this.lastPage = data.last_page;
         this.total = data.total;
+
+        // ✅ Guardar totales del backend
+        if (data.totales) {
+          this.totales = data.totales;
+        }
       } catch (error) {
         console.error('Error al cargar créditos:', error);
         throw error;
@@ -75,7 +88,7 @@ export const useCreditoStore = defineStore('credito', {
       return response.data;
     },
 
-    // Cargar métodos de pago (si no están en otro store)
+    // Cargar métodos de pago
     async cargarMetodosPago() {
       try {
         const response = await api.get('/metodos-pagos');

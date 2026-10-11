@@ -152,7 +152,14 @@ const props = defineProps({
 defineEmits(['update:visible', 'registrar-abono', 'anular-abono', 'editar-cliente']);
 
 const mostrarHistorial = ref(false);
-const abonosSeleccionados = ref([]);
+const creditoSeleccionadoId = ref(null);
+
+// ✅ Computed reactivo: obtiene los abonos actualizados del crédito seleccionado
+const abonosSeleccionados = computed(() => {
+  if (!creditoSeleccionadoId.value) return [];
+  const credito = props.cliente?.creditos?.find(c => c.id === creditoSeleccionadoId.value);
+  return credito?.abonos || [];
+});
 
 const paginaCreditos = ref(1);
 const porPaginaCreditos = 10;
@@ -170,7 +177,7 @@ const cambiarPaginaCreditos = (event) => {
 };
 
 const abrirHistorial = (credito) => {
-  abonosSeleccionados.value = credito.abonos || [];
+  creditoSeleccionadoId.value = credito.id;
   mostrarHistorial.value = true;
 };
 </script>

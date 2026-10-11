@@ -94,7 +94,7 @@ defineProps({
 
 defineEmits(['update:filtros', 'limpiar']);
 
-const estadosVenta = ['PAGADA', 'CREDITO', 'ANULADA'];
+const estadosVenta = ['PAGADA', 'CREDITO', 'ANULADA', 'DEVOLUCION'];
 const tiposCliente = ['DETALLES', 'MAYORISTA'];
 </script>
 

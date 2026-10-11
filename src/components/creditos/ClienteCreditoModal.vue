@@ -26,6 +26,8 @@
         <label class="text-sm font-medium">DUI <span class="text-gray-400">(opcional)</span></label>
         <InputText
           v-model="form.dui"
+          @keypress="bloquearCaracteresDui"
+          @paste="bloquearPegadoDui"
           placeholder="12345678-9"
           maxlength="10"
           :class="{ 'p-invalid': errores.dui }"
@@ -53,7 +55,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { Dialog, Button, InputText } from '@/utils/primevue';
-// ✅ Importación corregida
 import SelectorPaisTelefono from '../ventas/SelectorPaisTelefono.vue';
 
 const props = defineProps({
@@ -82,7 +83,6 @@ const esEdicion = computed(() => !!form.value.id);
 
 // ✅ Función que carga los datos del cliente al formulario
 const cargarDatosCliente = () => {
-  console.log('props.cliente en ClienteCreditoModal (creditos):', props.cliente);
   if (props.cliente) {
     form.value = {
       id: props.cliente.id || null,
@@ -97,7 +97,6 @@ const cargarDatosCliente = () => {
 
   nextTick(() => {
     if (selectorTelefono.value) {
-      // Forzar actualización del selector si es necesario
       selectorTelefono.value.$forceUpdate?.();
     }
   });
@@ -162,6 +161,35 @@ const validarDuiLocal = (dui) => {
   const digitoCalculado = (10 - residuo) % 10;
 
   return digitos[8] === digitoCalculado;
+};
+
+// ✅ Bloquear caracteres no numéricos al presionar la tecla
+const bloquearCaracteresDui = (event) => {
+  // Permitir teclas especiales (Backspace, Delete, Tab, flechas, etc.)
+  const teclasPermitidas = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter'];
+  if (teclasPermitidas.includes(event.key)) return;
+
+  // Permitir Ctrl+C, Ctrl+V, Ctrl+A, etc.
+  if (event.ctrlKey || event.metaKey) return;
+
+  // Solo permitir dígitos del 0 al 9
+  if (!/^[0-9]$/.test(event.key)) {
+    event.preventDefault();
+  }
+};
+
+// ✅ Bloquear pegado de caracteres no numéricos
+const bloquearPegadoDui = (event) => {
+  event.preventDefault();
+  const textoPegado = (event.clipboardData || window.clipboardData).getData('text');
+  // Limpiar todo lo que no sea dígito
+  const soloDigitos = textoPegado.replace(/\D/g, '');
+  // insertar solo los dígitos en el input
+  if (soloDigitos) {
+    const actual = form.value.dui.replace(/\D/g, '');
+    const combinado = (actual + soloDigitos).slice(0, 9);
+    form.value.dui = combinado;
+  }
 };
 
 const validarFormulario = () => {

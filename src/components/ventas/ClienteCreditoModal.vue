@@ -1,36 +1,20 @@
 <template>
-  <Dialog
-    header="Datos del Cliente Crédito"
-    :visible="visible"
-    @update:visible="$emit('update:visible', $event)"
-    :modal="true"
-    :closable="false"
-    class="w-full max-w-md"
-    appendTo="body"
-  >
+  <Dialog header="Datos del Cliente Crédito" :visible="visible" @update:visible="$emit('update:visible', $event)"
+    :modal="true" :closable="false" class="w-full max-w-md" appendTo="body">
     <div class="flex flex-col gap-4">
       <!-- Nombre -->
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium">Nombre <span class="text-red-500">*</span></label>
-        <InputText
-          :value="form.nombre"
-          @input="filtrarNombre($event)"
-          placeholder="Nombre completo"
-          maxlength="50"
-          :class="{ 'p-invalid': errores.nombre }"
-        />
+        <InputText :value="form.nombre" @input="filtrarNombre($event)" placeholder="Nombre completo" maxlength="50"
+          :class="{ 'p-invalid': errores.nombre }" />
         <small v-if="errores.nombre" class="text-red-500">{{ errores.nombre }}</small>
       </div>
 
       <!-- DUI -->
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium">DUI <span class="text-gray-400">(opcional)</span></label>
-        <InputText
-          v-model="form.dui"
-          placeholder="12345678-9"
-          maxlength="10"
-          :class="{ 'p-invalid': errores.dui }"
-        />
+        <InputText v-model="form.dui" @keypress="bloquearCaracteresDui" @paste="bloquearPegadoDui"
+          placeholder="12345678-9" maxlength="10" :class="{ 'p-invalid': errores.dui }" />
         <small v-if="errores.dui" class="text-red-500">{{ errores.dui }}</small>
       </div>
 
@@ -87,6 +71,7 @@ const filtrarNombre = (event) => {
 // --- Watcher DUI: guion automático ---
 watch(() => form.value.dui, (val) => {
   if (!val) return;
+
   let soloDigitos = val.replace(/\D/g, '');
   if (soloDigitos.length > 9) {
     soloDigitos = soloDigitos.slice(0, 9);
@@ -112,7 +97,6 @@ const validarDuiLocal = (dui) => {
   const soloDigitos = dui.replace('-', '');
   if (/^0+$/.test(soloDigitos)) return false;
 
-
   const digitos = dui.replace('-', '').split('').map(Number);
   const factores = [9, 8, 7, 6, 5, 4, 3, 2];
   let suma = 0;
@@ -125,6 +109,35 @@ const validarDuiLocal = (dui) => {
   const digitoCalculado = (10 - residuo) % 10;
 
   return digitos[8] === digitoCalculado;
+};
+
+// ✅ Bloquear caracteres no numéricos al presionar la tecla
+const bloquearCaracteresDui = (event) => {
+  // Permitir teclas especiales (Backspace, Delete, Tab, flechas, etc.)
+  const teclasPermitidas = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter'];
+  if (teclasPermitidas.includes(event.key)) return;
+
+  // Permitir Ctrl+C, Ctrl+V, Ctrl+A, etc.
+  if (event.ctrlKey || event.metaKey) return;
+
+  // Solo permitir dígitos del 0 al 9
+  if (!/^[0-9]$/.test(event.key)) {
+    event.preventDefault();
+  }
+};
+
+// ✅ Bloquear pegado de caracteres no numéricos
+const bloquearPegadoDui = (event) => {
+  event.preventDefault();
+  const textoPegado = (event.clipboardData || window.clipboardData).getData('text');
+  // Limpiar todo lo que no sea dígito
+  const soloDigitos = textoPegado.replace(/\D/g, '');
+  // Insertar solo los dígitos en el input
+  if (soloDigitos) {
+    const actual = form.value.dui.replace(/\D/g, '');
+    const combinado = (actual + soloDigitos).slice(0, 9);
+    form.value.dui = combinado;
+  }
 };
 
 const validarFormulario = () => {
