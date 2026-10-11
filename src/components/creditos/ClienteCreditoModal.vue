@@ -184,7 +184,7 @@ const bloquearPegadoDui = (event) => {
   const textoPegado = (event.clipboardData || window.clipboardData).getData('text');
   // Limpiar todo lo que no sea dígito
   const soloDigitos = textoPegado.replace(/\D/g, '');
-  // Insertar solo los dígitos en el input
+  // insertar solo los dígitos en el input
   if (soloDigitos) {
     const actual = form.value.dui.replace(/\D/g, '');
     const combinado = (actual + soloDigitos).slice(0, 9);
