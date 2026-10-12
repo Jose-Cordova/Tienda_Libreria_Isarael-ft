@@ -135,8 +135,9 @@
 
   // Máximo de caracteres del DTE (mismas reglas que el backend)
   const reglasDte = {
-    numero_factura: { nombre: 'Nº de Control', largo: 31 },
-    codigo_factura: { nombre: 'Código de Generación', largo: 36 }
+    numero_factura: { nombre: 'Nº de Control', largo: 31, corto: 31 },
+    codigo_factura: { nombre: 'Código de Generación', largo: 36, corto: 36 },
+
   }
 
   // Mientras escribe: avisa en cuanto se pasa del máximo de caracteres
@@ -145,7 +146,7 @@
     const regla = reglasDte[campo]
     errores.value[campo] = valor.length > regla.largo
       ? `El ${regla.nombre} admite máximo ${regla.largo} caracteres (tiene ${valor.length}).`
-      : ''
+      : `El ${regla.nombre} admite minimo ${regla.corto} caracteres (tiene ${valor.length}).`
   }
 
   // Al continuar: obligatorio y máximo de caracteres
@@ -154,6 +155,7 @@
     const regla = reglasDte[campo]
     if(!valor) return `El ${regla.nombre} es obligatorio.`
     if(valor.length > regla.largo) return `El ${regla.nombre} admite máximo ${regla.largo} caracteres (tiene ${valor.length}).`
+    if(valor.length < regla.corto) return `El ${regla.nombre} admite minimo ${regla.corto} caracteres (tiene ${valor.length}).`
     return ''
   }
 
