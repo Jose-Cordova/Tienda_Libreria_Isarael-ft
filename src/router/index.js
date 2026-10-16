@@ -64,13 +64,13 @@ const router = createRouter({
         {
           path: 'creditos',
           name: 'creditos',
-          component: () => import('../views/CreditosView.vue'),
+          component: () => import('../views/venta/CreditosView.vue'),
           meta: { roles: ['ADMIN', 'VENDEDOR'] } // Permitido para ambos
         },
         {
           path: 'productos',
           name: 'productos',
-          component: () => import('../views/producto/Producto.vue'),
+          component: () => import('../views/producto/ProductosView.vue'),
           meta: { roles: ['ADMIN', 'VENDEDOR'] } // Permitido para ambos
         },
         {
@@ -100,7 +100,7 @@ const router = createRouter({
         {
           path: 'devoluciones-ventas',
           name: 'devoluciones-ventas',
-          component: () => import('../views/DevolucionesVentasView.vue'),
+          component: () => import('../views/venta/DevolucionesVentasView.vue'),
           meta: { roles: ['ADMIN', 'VENDEDOR'] } // Permitido para ambos
         },
         {

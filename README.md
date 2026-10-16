@@ -25,6 +25,14 @@ Tienda_Libreria_Isarael-ft/
 ├── src/
 │   ├── assets/                   # Iconos, imágenes y estilos CSS globales
 │   ├── components/               # Componentes reutilizables (Modales, Tablas, Layouts)
+│   │   ├── catalogos/            # Interfaz compartida de alta de catálogos
+│   │   ├── categorias/           # Modal reutilizable de nueva categoría
+│   │   ├── marcas/               # Modal reutilizable de nueva marca
+│   │   └── productos/            # Componentes del módulo de productos
+│   │       ├── ProductoTabla.vue
+│   │       ├── ProductoModalForm.vue
+│   │       ├── ProductoAjusteStockModal.vue
+│   │       └── formulario/       # Datos, precios, inventario y lotes
 │   ├── router/                   # Configuración de rutas y guardias de navegación
 │   │   └── index.js
 │   ├── services/                 # Configuración de Axios e interceptores API
@@ -39,17 +47,16 @@ Tienda_Libreria_Isarael-ft/
 │   │   │   └── CompraDetalle.vue     # Detalle completo de compra
 │   │   ├── venta/                # Módulo de Ventas POS
 │   │   │   ├── VentasView.vue        # Caja registradora y cobro rápido
-│   │   │   └── HistorialVentasView.vue # Historial de comprobantes emitidos
+│   │   │   ├── HistorialVentasView.vue # Historial de comprobantes emitidos
+│   │   │   ├── CreditosView.vue      # Control de cuentas por cobrar y abonos
+│   │   │   └── DevolucionesVentasView.vue # Gestión de devoluciones de ventas
 │   │   ├── producto/             # Módulo de Catálogo e Inventario
-│   │   │   ├── Producto.vue
-│   │   │   ├── ProductoTabla.vue
-│   │   │   └── ProductoModalForm.vue
+│   │   │   └── ProductosView.vue
 │   │   ├── cambioProducto/       # Módulo de Garantías y Cambios
 │   │   │   ├── CambioProducto.vue
 │   │   │   └── CambioWizardAceptar.vue
 │   │   ├── productoDanado/       # Módulo de Mermas / Averías
 │   │   │   └── ProductoDanado.vue
-│   │   ├── CreditosView.vue      # Control de cuentas por cobrar y abonos
 │   │   ├── ProveedorView.vue     # Directorio de proveedores
 │   │   ├── CronogramaView.vue    # Calendario interactivo de visitas
 │   │   ├── ReportesView.vue      # Generador y visualizador de reportes
@@ -66,6 +73,8 @@ Tienda_Libreria_Isarael-ft/
 ---
 
 ## ⚙️ Requisitos Previos
+
+La arquitectura y el análisis del formulario de productos están documentados en [docs/productos-formulario.md](docs/productos-formulario.md).
 
 * Node.js >= 20.19.0 o >= 22.12.0
 * npm >= 10.x

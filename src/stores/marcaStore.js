@@ -1,5 +1,6 @@
-import { defineStore } from 'pinia'
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import marcaService from '@/services/marcaService'
+import { validarNombreCatalogoDisponible } from '@/utils/catalogos'
 
 export const useMarcaStore = defineStore('marca', {
   state: () => ({
@@ -42,6 +43,11 @@ export const useMarcaStore = defineStore('marca', {
     async createMarca(newMarca) {
       this.loading = true;
       try {
+        await validarNombreCatalogoDisponible({
+          nombre: newMarca.nombre,
+          listar: params => marcaService.getMarcas(params),
+          entidad: 'Marca'
+        });
         await marcaService.createMarca(newMarca);
         await this.fetchMarcas({ page: 1, per_page: this.pagination.per_page });
       } finally {
@@ -52,6 +58,12 @@ export const useMarcaStore = defineStore('marca', {
     async updateMarca(id, updatedMarca) {
       this.loading = true;
       try {
+        await validarNombreCatalogoDisponible({
+          nombre: updatedMarca.nombre,
+          listar: params => marcaService.getMarcas(params),
+          entidad: 'Marca',
+          omitirId: id
+        });
         await marcaService.updateMarca(id, updatedMarca);
         await this.fetchMarcas({ page: this.pagination.current_page, per_page: this.pagination.per_page });
       } finally {
@@ -70,3 +82,7 @@ export const useMarcaStore = defineStore('marca', {
     }
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useMarcaStore, import.meta.hot))
+}

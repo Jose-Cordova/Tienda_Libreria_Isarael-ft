@@ -356,32 +356,40 @@
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Categoría *</label>
-                  <Dropdown
-                    v-model="nuevoProducto.categoria_id"
-                    :options="categorias"
-                    optionLabel="nombre"
-                    optionValue="id"
-                    placeholder="Seleccionar"
-                    class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white"
-                    :class="{ 'border-red-500': erroresNuevo.categoria_id }"
-                    filter
-                    :disabled="!nuevoProducto.seccion"
-                  />
+                  <div class="flex items-center gap-2">
+                    <Dropdown
+                      v-model="nuevoProducto.categoria_id"
+                      :options="categorias"
+                      optionLabel="nombre"
+                      optionValue="id"
+                      placeholder="Seleccionar"
+                      class="flex-1 min-w-0 border border-gray-300 rounded-xl text-sm font-bold bg-white"
+                      :class="{ 'border-red-500': erroresNuevo.categoria_id }"
+                      filter
+                      :disabled="!nuevoProducto.seccion || cargandoCatalogos"
+                      @update:modelValue="erroresNuevo.categoria_id = ''"
+                    />
+                    <Button type="button" icon="pi pi-plus" aria-label="Nueva categoría" class="!bg-[#003d00] !text-white !rounded-full !w-8 !h-8 shrink-0" :disabled="!nuevoProducto.seccion || cargandoCatalogos" @click="mostrarModalCategoria = true" />
+                  </div>
                   <small v-if="erroresNuevo.categoria_id" class="text-red-500 text-xs block">{{ erroresNuevo.categoria_id }}</small>
                 </div>
                 <div class="space-y-2">
                   <label class="block text-[10px] font-black text-[#0a3622] uppercase tracking-[0.2em] ml-1">Marca *</label>
-                  <Dropdown
-                    v-model="nuevoProducto.marca_id"
-                    :options="marcas"
-                    optionLabel="nombre"
-                    optionValue="id"
-                    placeholder="Seleccionar"
-                    class="w-full border border-gray-300 rounded-xl text-sm font-bold bg-white"
-                    :class="{ 'border-red-500': erroresNuevo.marca_id }"
-                    filter
-                    :disabled="!nuevoProducto.seccion"
-                  />
+                  <div class="flex items-center gap-2">
+                    <Dropdown
+                      v-model="nuevoProducto.marca_id"
+                      :options="marcas"
+                      optionLabel="nombre"
+                      optionValue="id"
+                      placeholder="Seleccionar"
+                      class="flex-1 min-w-0 border border-gray-300 rounded-xl text-sm font-bold bg-white"
+                      :class="{ 'border-red-500': erroresNuevo.marca_id }"
+                      filter
+                      :disabled="!nuevoProducto.seccion || cargandoCatalogos"
+                      @update:modelValue="erroresNuevo.marca_id = ''"
+                    />
+                    <Button type="button" icon="pi pi-plus" aria-label="Nueva marca" class="!bg-[#003d00] !text-white !rounded-full !w-8 !h-8 shrink-0" :disabled="!nuevoProducto.seccion || cargandoCatalogos" @click="mostrarModalMarca = true" />
+                  </div>
                   <small v-if="erroresNuevo.marca_id" class="text-red-500 text-xs block">{{ erroresNuevo.marca_id }}</small>
                 </div>
                 <div class="space-y-2">
@@ -414,11 +422,13 @@
         </div>
       </div>
     </Teleport>
+    <CategoriaCrearModal v-model:visible="mostrarModalCategoria" :seccion="nuevoProducto.seccion || ''" @creado="seleccionarCategoriaCreada" @toast="mostrarToastCatalogo" />
+    <MarcaCrearModal v-model:visible="mostrarModalMarca" :seccion="nuevoProducto.seccion || ''" @creado="seleccionarMarcaCreada" @toast="mostrarToastCatalogo" />
   </div>
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue';
+  import { ref, computed, watch } from 'vue';
   import api from '@/services/api';
   import Swal from 'sweetalert2';
   import { useToast } from 'primevue/usetoast';
@@ -427,6 +437,8 @@
   import Checkbox from 'primevue/checkbox';
   import Button from 'primevue/button';
   import Dropdown from 'primevue/dropdown';
+  import CategoriaCrearModal from '@/components/categorias/CategoriaCrearModal.vue';
+  import MarcaCrearModal from '@/components/marcas/MarcaCrearModal.vue';
   import { formatoMoneda } from '@/utils/formatos';
   import compraService from '@/services/compraService';
   import { armarDatosCompra } from '@/utils/compra';
@@ -447,6 +459,19 @@
   // --- ESTADOS PARA EL NUEVO PRODUCTO ---
   const categorias = ref([]);
   const marcas = ref([]);
+  const mostrarModalCategoria = ref(false);
+  const mostrarModalMarca = ref(false);
+  const cargandoCatalogos = ref(false);
+  let solicitudCatalogos = 0;
+
+  watch(mostrarModalNuevo, visible => {
+    if (!visible) {
+      mostrarModalCategoria.value = false;
+      mostrarModalMarca.value = false;
+      solicitudCatalogos++;
+      cargandoCatalogos.value = false;
+    }
+  });
 
   const nuevoProducto = ref({
     nombre: '',
@@ -622,6 +647,8 @@
     // al abrir
     categorias.value = [];
     marcas.value = [];
+    mostrarModalCategoria.value = false;
+    mostrarModalMarca.value = false;
     nuevoProducto.value = {
       nombre: '',
       categoria_id: null,
@@ -637,24 +664,54 @@
   // Cargar categorías y marcas filtradas por la sección seleccionada
   const cargarCatalogosPorSeccion = async () => {
     const seccion = nuevoProducto.value.seccion;
+    const solicitudActual = ++solicitudCatalogos;
+    mostrarModalCategoria.value = false;
+    mostrarModalMarca.value = false;
     // Resetear selección previa al cambiar de sección
     nuevoProducto.value.categoria_id = null;
     nuevoProducto.value.marca_id = null;
     categorias.value = [];
     marcas.value = [];
+    erroresNuevo.value.seccion = '';
+    erroresNuevo.value.categoria_id = '';
+    erroresNuevo.value.marca_id = '';
+    cargandoCatalogos.value = false;
 
     if (!seccion) return;
 
+    cargandoCatalogos.value = true;
     try {
       const [resCat, resMar] = await Promise.all([
         api.get(`/categorias?per_page=100&seccion=${seccion}`),
         api.get(`/marcas?per_page=100&seccion=${seccion}`)
       ]);
-      categorias.value = resCat.data.data || resCat.data;
-      marcas.value = resMar.data.data || resMar.data;
+      if (solicitudActual !== solicitudCatalogos) return;
+      categorias.value = (resCat.data.data || resCat.data).filter(item => item.seccion === seccion);
+      marcas.value = (resMar.data.data || resMar.data).filter(item => item.seccion === seccion);
     } catch (error) {
+      if (solicitudActual !== solicitudCatalogos) return;
       console.error("Error al cargar catálogos por sección:", error);
+      mostrarToastCatalogo({ tipo: 'error', mensaje: 'No se pudieron cargar las categorías y marcas.' });
+    } finally {
+      if (solicitudActual === solicitudCatalogos) cargandoCatalogos.value = false;
     }
+  };
+
+  // Incorporar solo el catálogo creado conserva la selección del otro campo.
+  const seleccionarCategoriaCreada = categoria => {
+    if (!mostrarModalNuevo.value || categoria.seccion !== nuevoProducto.value.seccion) return;
+    categorias.value = [...categorias.value.filter(item => item.id !== categoria.id), categoria];
+    nuevoProducto.value.categoria_id = categoria.id;
+    erroresNuevo.value.categoria_id = '';
+  };
+  const seleccionarMarcaCreada = marca => {
+    if (!mostrarModalNuevo.value || marca.seccion !== nuevoProducto.value.seccion) return;
+    marcas.value = [...marcas.value.filter(item => item.id !== marca.id), marca];
+    nuevoProducto.value.marca_id = marca.id;
+    erroresNuevo.value.marca_id = '';
+  };
+  const mostrarToastCatalogo = ({ tipo, mensaje }) => {
+    toast.add({ severity: tipo, summary: tipo === 'success' ? 'Guardado' : 'Error', detail: mensaje, life: 3500 });
   };
 
   // Función auxiliar para normalizar nombres
