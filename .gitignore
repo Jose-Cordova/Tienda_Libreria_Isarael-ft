@@ -44,3 +44,9 @@ __screenshots__/
 # Doker 
 Dockerfile
 nginx.conf
+
+# Agente Open Code
+.opencode
+
+#Skill de commits
+RegistroCommits

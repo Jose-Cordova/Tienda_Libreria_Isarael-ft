@@ -69,12 +69,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import { useCreditoStore } from '@/stores/credito/creditoStore';
-import CreditoHeader from '../components/creditos/CreditoHeader.vue';
-import CreditoCards from '../components/creditos/CreditoCards.vue';
-import CreditoTable from '../components/creditos/CreditoTable.vue';
-import DetalleCreditoModal from '../components/creditos/DetalleCreditoModal.vue';
-import AbonoModal from '../components/creditos/AbonoModal.vue';
-import ClienteCreditoModal from '../components/creditos/ClienteCreditoModal.vue';
+import CreditoHeader from '@/components/creditos/CreditoHeader.vue';
+import CreditoCards from '@/components/creditos/CreditoCards.vue';
+import CreditoTable from '@/components/creditos/CreditoTable.vue';
+import DetalleCreditoModal from '@/components/creditos/DetalleCreditoModal.vue';
+import AbonoModal from '@/components/creditos/AbonoModal.vue';
+import ClienteCreditoModal from '@/components/creditos/ClienteCreditoModal.vue';
 import Paginator from 'primevue/paginator';
 import { useToast } from 'primevue/usetoast';
 import api from '@/services/api';

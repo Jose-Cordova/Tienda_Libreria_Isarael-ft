@@ -272,10 +272,10 @@ import InputText from 'primevue/inputtext'
 import Swal from 'sweetalert2'
 import { useToast } from 'primevue/usetoast'
 import productoService from '@/services/productoService'
-import ProductoTabla from './ProductoTabla.vue'
-import ProductoModalForm from './ProductoModalForm.vue'
+import ProductoTabla from '@/components/productos/ProductoTabla.vue'
+import ProductoModalForm from '@/components/productos/ProductoModalForm.vue'
 
-defineOptions({ name: 'ProductoView' })
+defineOptions({ name: 'ProductosView' })
 
 const productoStore = useProductoStore()
 const toast = useToast()
