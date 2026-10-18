@@ -19,14 +19,15 @@ export const useProductoStore = defineStore('producto', {
   },
 
   actions: {
-    async fetchProductos({ page = 1, per_page = 10, search = '', seccion = '' } = {}) {
+    async fetchProductos({ page = 1, per_page = 10, search = '', seccion = '', categoria_id = null, marca_id = null } = {}) {
       this.loading = true
       this.error = null
       try {
         const params = { page, per_page }
         if (search) params.search = search
         if (seccion) params.seccion = seccion
-        if (seccion) params.seccion = seccion
+        if (categoria_id) params.categoria_id = categoria_id
+        if (marca_id) params.marca_id = marca_id
 
         const response = await productoService.getProductos(params)
         this.productos = response.data.data
