@@ -2,12 +2,20 @@
   <main class="flex-1 bg-[#f4f7f6] p-6 overflow-y-auto custom-scrollbar relative font-dm-sans">
 
     <!-- Encabezado -->
-    <section class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
+    <section class="flex flex-col gap-4 bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-300 border-l-[8px] border-l-[#0a3622]">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-3 w-full">
       <div class="flex items-center gap-3 w-full sm:w-auto">
         <i class="pi pi-box text-xl text-green-600"></i>
         <h1 class="text-lg font-extrabold text-[#0a3622]">Productos</h1>
       </div>
-      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <Button
+          label="Nuevo Producto"
+          icon="pi pi-plus"
+          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all duration-300 w-full sm:w-auto"
+          @click="abrirDialogoTipo"
+        />
+      </div>
+      <div class="flex flex-wrap items-center gap-3 w-full">
         <span class="relative flex-1 sm:flex-none">
           <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-black text-sm z-10"></i>
           <InputText
@@ -17,12 +25,37 @@
             @input="buscarProductos"
           />
         </span>
-        <Button
-          label="Nuevo Producto"
-          icon="pi pi-plus"
-          class="p-button-sm font-bold text-sm !bg-[#062c1b] hover:!bg-[#03160d] text-white border-none shadow-sm transition-all duration-300 w-full sm:w-auto"
-          @click="abrirDialogoTipo"
+        <Dropdown
+          v-model="filtroCategoria"
+          :options="categoriaStore.categorias"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Categoría"
+          filter
+          filterPlaceholder="Buscar categoría..."
+          emptyFilterMessage="No se encontraron categorías"
+          class="p-dropdown-sm border-gray-500 rounded-lg text-sm text-[#0a3622] w-full sm:w-48 flex items-center font-bold"
+          @change="aplicarFiltros"
         />
+        <Dropdown
+          v-model="filtroMarca"
+          :options="marcaStore.marcas"
+          optionLabel="nombre"
+          optionValue="id"
+          placeholder="Marca"
+          filter
+          filterPlaceholder="Buscar marca..."
+          emptyFilterMessage="No se encontraron marcas"
+          class="p-dropdown-sm border-gray-500 rounded-lg text-sm text-[#0a3622] w-full sm:w-48 flex items-center font-bold"
+          @change="aplicarFiltros"
+        />
+        <button
+          @click="limpiarFiltros"
+          class="flex items-center gap-1 px-4 py-2 text-sm font-bold rounded-lg border border-[#b0c4b0] bg-[#f0f5f0] text-[#2e4a2e] hover:bg-[#e0ebe0] transition-colors shrink-0"
+        >
+          <i class="pi pi-filter-slash text-xs"></i>
+          Limpiar
+        </button>
       </div>
     </section>
 
@@ -269,6 +302,7 @@ import { useCategoriaStore } from '@/stores/categoriaStore'
 import { useMarcaStore } from '@/stores/marcaStore'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import Dropdown from 'primevue/dropdown'
 import Swal from 'sweetalert2'
 import { useToast } from 'primevue/usetoast'
 import productoService from '@/services/productoService'
@@ -284,6 +318,8 @@ const marcaStore = useMarcaStore()
 
 // Estado general
 const buscar = ref('')
+const filtroCategoria = ref(null)
+const filtroMarca = ref(null)
 const motivosAjusteExpandidos = ref(new Set())
 const toggleMotivoAjuste = (id) => {
   if (motivosAjusteExpandidos.value.has(id)) {
@@ -347,28 +383,36 @@ const cargarProductos = async (page = null) => {
   }
   if (buscar.value) params.search = buscar.value
   if (seccionActiva.value) params.seccion = seccionActiva.value
+  if (filtroCategoria.value) params.categoria_id = filtroCategoria.value
+  if (filtroMarca.value) params.marca_id = filtroMarca.value
   await productoStore.fetchProductos(params)
   isInitialLoading.value = false
 }
 
 const cambiarSeccion = (seccion) => {
   seccionActiva.value = seccion
-  cargarProductos(1)
+  aplicarFiltros()
 }
 
 const cambiarPagina = async (event) => {
-  const params = { page: event.page + 1, per_page: 10 }
-  if (buscar.value) params.search = buscar.value
-  if (seccionActiva.value) params.seccion = seccionActiva.value
-  await productoStore.fetchProductos(params)
+  await cargarProductos(event.page + 1)
 }
 
 let timer = null
+const aplicarFiltros = () => {
+  clearTimeout(timer)
+  return cargarProductos(1)
+}
+
+const limpiarFiltros = () => {
+  filtroCategoria.value = null
+  filtroMarca.value = null
+  aplicarFiltros()
+}
+
 const buscarProductos = () => {
   clearTimeout(timer)
-  timer = setTimeout(async () => {
-    await productoStore.fetchProductos({ page: 1, per_page: 10, search: buscar.value })
-  }, 500)
+  timer = setTimeout(() => cargarProductos(1), 500)
 }
 
 // Control de modales

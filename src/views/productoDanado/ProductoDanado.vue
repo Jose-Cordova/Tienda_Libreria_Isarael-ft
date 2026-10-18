@@ -99,13 +99,14 @@
             class="p-calendar-sm flex-1 sm:w-32 custom-prime-calendar custom-calendar-input"
             @date-select="cargarRegistros"
           />
-          <Button
-            v-if="fechaInicio || fechaFin || filtroEstado || filtroOrigen || busqueda"
-            icon="pi pi-filter-slash"
-            class="p-button-rounded p-button-text p-button-sm !text-red-900 !w-9 !h-9 shrink-0"
-            @click="limpiarFiltros"
-          />
         </div>
+        <button
+          @click="limpiarFiltros"
+          class="flex items-center gap-1 px-4 py-2 text-sm font-bold rounded-lg border border-[#b0c4b0] bg-[#f0f5f0] text-[#2e4a2e] hover:bg-[#e0ebe0] transition-colors shrink-0"
+        >
+          <i class="pi pi-filter-slash text-xs"></i>
+          Limpiar
+        </button>
       </div>
     </section>
 
